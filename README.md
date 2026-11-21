@@ -20,6 +20,10 @@ liest den Beleg per KI und rechnet den Verbrauch aus. Alles landet in einer List
 
 ---
 
+![Das Panel mit Fahrzeugkopf, Kennzahlen und Liste](docs/panel.png)
+
+*Das Panel „Drive Energy Doc“ (Adressen unkenntlich gemacht).*
+
 ## Wozu das Ganze? Der Sinn des Tankbuches
 
 Ein Fahrtenbuch/Tankbuch beantwortet Fragen, die man sonst nur schätzt:
