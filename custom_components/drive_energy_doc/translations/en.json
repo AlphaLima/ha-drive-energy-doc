@@ -1,0 +1,344 @@
+{
+  "config": {
+    "step": {
+      "settings": {
+        "title": "Drive Energy Doc: settings",
+        "description": "Applies to all vehicles. The Companion app channel needs no account, Telegram needs a bot, WhatsApp a Meta business account. Afterwards add vehicles (add the integration again).",
+        "data": {
+          "channels": "How should Drive Energy Doc talk to you?",
+          "price_provider": "Fuel price source",
+          "electric_price": "Electricity price €/kWh (EV only, number or entity)",
+          "ai_task_entity": "AI for reading receipts (empty = Gemini automatically)"
+        }
+      },
+      "price_key": {
+        "title": "Tankerkoenig",
+        "description": "For prices in Germany. Free key at creativecommons.tankerkoenig.de, or leave empty (the receipt is enough).",
+        "data": {
+          "tankerkoenig_key": "Tankerkoenig API key (free, personal)"
+        }
+      },
+      "whatsapp": {
+        "title": "WhatsApp Cloud API",
+        "description": "Credentials from the Meta developer portal, see README. Webhook address: /api/drive_energy_doc/whatsapp",
+        "data": {
+          "wa_token": "Access token (permanent)",
+          "wa_phone_id": "Phone number ID",
+          "wa_verify": "Webhook verify token (your choice)",
+          "wa_secret": "App secret",
+          "wa_template": "Template name (WhatsApp template with one variable, for messages after 24 h)",
+          "wa_lang": "Template language code"
+        }
+      },
+      "vehicle": {
+        "title": "Add vehicle",
+        "description": "{plate_preview}\n\nChoose the country of the plate. After “OK” you see the plate drawn with the chosen country before anything is saved.",
+        "data": {
+          "name": "Name",
+          "energy": "Fuel / drive",
+          "level_entity": "Fuel / charge level (%)",
+          "odometer_entity": "Odometer",
+          "tracker_entity": "GPS position (device_tracker)",
+          "capacity": "Tank / battery capacity (l / kWh)",
+          "image_entity": "Vehicle picture (optional, otherwise automatic)",
+          "license_plate": "License plate (optional)",
+          "vehicle_type": "Vehicle type (e.g. BMW X1 20d, optional)",
+          "image_upload": "Upload a vehicle picture (alternative to the image entity, takes precedence)",
+          "image_remove": "Remove uploaded picture",
+          "plate_country": "Country of the plate"
+        }
+      },
+      "messaging": {
+        "title": "Messaging for this vehicle",
+        "description": "Grouped by channel. “Send test message” checks a channel right away with the values you entered, before anything is saved. Only the channels you chose in the settings.",
+        "sections": {
+          "whatsapp": {
+            "name": "WhatsApp",
+            "description": "The driver's number. Credentials are in the settings.",
+            "data": {
+              "wa_phone": "Driver's mobile number (with country code, e.g. 491701234567)",
+              "test": "Send test message"
+            }
+          },
+          "telegram": {
+            "name": "Telegram",
+            "description": "Own bot or own chat per vehicle.",
+            "data": {
+              "telegram_token": "Bot token",
+              "telegram_chat_id": "Your chat ID (not the bot's: send /start to the bot, it tells you)",
+              "test": "Send test message"
+            }
+          },
+          "companion": {
+            "name": "Companion app",
+            "description": "Push message to the phone, a tap opens the panel.",
+            "data": {
+              "notify_service": "Notify service (notify.mobile_app_…)",
+              "test": "Send test message"
+            }
+          }
+        }
+      },
+      "plate_preview": {
+        "title": "Check the plate",
+        "description": "{plate_preview}\n\nThis is how the plate is drawn with the chosen country. Does it fit?",
+        "data": {
+          "ok": "Fits, save (untick to go back and change it)"
+        }
+      },
+      "messaging_result": {
+        "title": "Test result",
+        "description": "{result}",
+        "menu_options": {
+          "msg_save": "Save",
+          "msg_again": "Send again",
+          "msg_back": "Back to the form"
+        }
+      }
+    },
+    "abort": {
+      "seed_done": "Vehicles are being set up.",
+      "already_configured": "Exists already."
+    },
+    "error": {
+      "wa_invalid": "WhatsApp access rejected by Meta: {detail}",
+      "tg_invalid": "Telegram token invalid: {detail}"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "menu_options": {
+          "general": "Channels, price source, AI",
+          "price_key": "Tankerkoenig key",
+          "whatsapp": "WhatsApp access",
+          "basic": "Vehicle data",
+          "messaging": "Messaging",
+          "thresholds": "Refuel detection (fine tuning)"
+        }
+      },
+      "general": {
+        "title": "General",
+        "description": "",
+        "data": {
+          "channels": "How should Drive Energy Doc talk to you?",
+          "price_provider": "Fuel price source",
+          "electric_price": "Electricity price €/kWh (EV only, number or entity)",
+          "ai_task_entity": "AI for reading receipts (empty = Gemini automatically)"
+        }
+      },
+      "price_key": {
+        "title": "Tankerkoenig",
+        "description": "For prices in Germany. Free key at creativecommons.tankerkoenig.de, or leave empty (the receipt is enough).",
+        "data": {
+          "tankerkoenig_key": "Tankerkoenig API key (free, personal)"
+        }
+      },
+      "whatsapp": {
+        "title": "WhatsApp Cloud API",
+        "description": "Credentials from the Meta developer portal, see README. Webhook address: /api/drive_energy_doc/whatsapp",
+        "data": {
+          "wa_token": "Access token (permanent)",
+          "wa_phone_id": "Phone number ID",
+          "wa_verify": "Webhook verify token (your choice)",
+          "wa_secret": "App secret",
+          "wa_template": "Template name (WhatsApp template with one variable, for messages after 24 h)",
+          "wa_lang": "Template language code"
+        }
+      },
+      "basic": {
+        "title": "Vehicle data",
+        "description": "{plate_preview}\n\nChoose the country of the plate. After “OK” you see the plate drawn with the chosen country before anything is saved.",
+        "data": {
+          "name": "Name",
+          "energy": "Fuel / drive",
+          "level_entity": "Fuel / charge level (%)",
+          "odometer_entity": "Odometer",
+          "tracker_entity": "GPS position (device_tracker)",
+          "capacity": "Tank / battery capacity (l / kWh)",
+          "image_entity": "Vehicle picture (optional, otherwise automatic)",
+          "license_plate": "License plate (optional)",
+          "vehicle_type": "Vehicle type (e.g. BMW X1 20d, optional)",
+          "image_upload": "Upload a vehicle picture (alternative to the image entity, takes precedence)",
+          "image_remove": "Remove uploaded picture",
+          "plate_country": "Country of the plate"
+        }
+      },
+      "messaging": {
+        "title": "Messaging for this vehicle",
+        "description": "Grouped by channel. “Send test message” checks a channel right away with the values you entered, before anything is saved. Only the channels you chose in the settings.",
+        "sections": {
+          "whatsapp": {
+            "name": "WhatsApp",
+            "description": "The driver's number. Credentials are in the settings.",
+            "data": {
+              "wa_phone": "Driver's mobile number (with country code, e.g. 491701234567)",
+              "test": "Send test message"
+            }
+          },
+          "telegram": {
+            "name": "Telegram",
+            "description": "Own bot or own chat per vehicle.",
+            "data": {
+              "telegram_token": "Bot token",
+              "telegram_chat_id": "Your chat ID (not the bot's: send /start to the bot, it tells you)",
+              "test": "Send test message"
+            }
+          },
+          "companion": {
+            "name": "Companion app",
+            "description": "Push message to the phone, a tap opens the panel.",
+            "data": {
+              "notify_service": "Notify service (notify.mobile_app_…)",
+              "test": "Send test message"
+            }
+          }
+        }
+      },
+      "thresholds": {
+        "title": "Refuel detection (fine tuning)",
+        "description": "Defaults usually fit.",
+        "data": {
+          "min_increase": "Minimum increase (%)",
+          "settle_seconds": "Quiet time without increase (s)",
+          "min_distance": "Minimum distance from fuel stop (m)",
+          "require_distance": "Require distance from fuel stop to finish"
+        }
+      },
+      "plate_preview": {
+        "title": "Check the plate",
+        "description": "{plate_preview}\n\nThis is how the plate is drawn with the chosen country. Does it fit?",
+        "data": {
+          "ok": "Fits, save (untick to go back and change it)"
+        }
+      },
+      "messaging_result": {
+        "title": "Test result",
+        "description": "{result}",
+        "menu_options": {
+          "msg_save": "Save",
+          "msg_again": "Send again",
+          "msg_back": "Back to the form"
+        }
+      }
+    },
+    "error": {
+      "wa_invalid": "WhatsApp access rejected by Meta: {detail}",
+      "tg_invalid": "Telegram token invalid: {detail}"
+    },
+    "abort": {
+      "no_channel": "No channel is set up for this vehicle yet (menu “Messaging”).",
+      "not_loaded": "The vehicle is not loaded right now."
+    }
+  },
+  "selector": {
+    "channels": {
+      "options": {
+        "companion": "Companion app (push, photo in the Drive Energy Doc panel)",
+        "telegram": "Telegram",
+        "whatsapp": "WhatsApp"
+      }
+    },
+    "provider": {
+      "options": {
+        "auto": "Automatic by country",
+        "none": "None (receipt only)",
+        "tankerkoenig": "Tankerkoenig (DE, key)",
+        "econtrol_at": "E-Control (AT, no key)",
+        "prix_fr": "prix-carburants (FR, no key)"
+      }
+    },
+    "energy": {
+      "options": {
+        "diesel": "Diesel",
+        "e5": "Petrol E5",
+        "e10": "Petrol E10",
+        "electric": "Electric"
+      }
+    },
+    "test_channel": {
+      "options": {
+        "whatsapp": "WhatsApp",
+        "telegram": "Telegram",
+        "companion": "Companion app",
+        "all": "All configured channels"
+      }
+    },
+    "plate_country": {
+      "options": {
+        "AL": "Albania",
+        "AD": "Andorra",
+        "AT": "Austria",
+        "BY": "Belarus",
+        "BE": "Belgium",
+        "BA": "Bosnia and Herzegovina",
+        "BG": "Bulgaria",
+        "HR": "Croatia",
+        "CY": "Cyprus",
+        "CZ": "Czechia",
+        "DK": "Denmark",
+        "EE": "Estonia",
+        "FI": "Finland",
+        "FR": "France",
+        "DE": "Germany",
+        "GR": "Greece",
+        "HU": "Hungary",
+        "IS": "Iceland",
+        "IE": "Ireland",
+        "IT": "Italy",
+        "XK": "Kosovo",
+        "LV": "Latvia",
+        "LI": "Liechtenstein",
+        "LT": "Lithuania",
+        "LU": "Luxembourg",
+        "MT": "Malta",
+        "MD": "Moldova",
+        "MC": "Monaco",
+        "ME": "Montenegro",
+        "NL": "Netherlands",
+        "MK": "North Macedonia",
+        "NO": "Norway",
+        "PL": "Poland",
+        "PT": "Portugal",
+        "RO": "Romania",
+        "RU": "Russia",
+        "SM": "San Marino",
+        "RS": "Serbia",
+        "SK": "Slovakia",
+        "SI": "Slovenia",
+        "ES": "Spain",
+        "SE": "Sweden",
+        "CH": "Switzerland",
+        "TR": "Türkiye",
+        "UA": "Ukraine",
+        "GB": "United Kingdom",
+        "VA": "Vatican City",
+        "US": "United States"
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "status": {
+        "name": "Status",
+        "state": {
+          "idle": "Idle",
+          "candidate": "Increase detected",
+          "refuelling": "Refuelling"
+        }
+      },
+      "last_refuel": {
+        "name": "Last refuel"
+      },
+      "last_price": {
+        "name": "Last price"
+      },
+      "consumption": {
+        "name": "Consumption (avg last 5)"
+      },
+      "cost_12m": {
+        "name": "Cost 12 months"
+      }
+    }
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "config": {
+    "step": {
+      "messaging": {
+        "sections": {
+          "whatsapp": "mdi:whatsapp",
+          "telegram": "mdi:telegram",
+          "companion": "mdi:cellphone-message"
+        }
+      }
+    }
+  },
+  "options": {
+    "step": {
+      "messaging": {
+        "sections": {
+          "whatsapp": "mdi:whatsapp",
+          "telegram": "mdi:telegram",
+          "companion": "mdi:cellphone-message"
+        }
+      }
+    }
+  }
+}

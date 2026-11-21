@@ -1,0 +1,24 @@
+{
+  "domain": "drive_energy_doc",
+  "name": "Drive Energy Doc",
+  "codeowners": [
+    "@AlphaLima"
+  ],
+  "config_flow": true,
+  "dependencies": [
+    "http",
+    "websocket_api",
+    "frontend",
+    "panel_custom",
+    "file_upload"
+  ],
+  "after_dependencies": [
+    "ai_task"
+  ],
+  "documentation": "https://github.com/AlphaLima/ha-drive-energy-doc",
+  "integration_type": "service",
+  "iot_class": "cloud_polling",
+  "issue_tracker": "https://github.com/AlphaLima/ha-drive-energy-doc/issues",
+  "requirements": [],
+  "version": "0.1.66"
+}
