@@ -18,6 +18,8 @@ Es gibt zwei Arten, es zu nutzen, die sich auch mischen lassen:
   Dafür sind beim Fahrzeug keinerlei Sensoren nötig. Das ist **ideal für ein Flottenmanagement**: jedes Fahrzeug bekommt einen eigenen
   Telegram-Chat (z. B. mit dem Fahrer), und alle Fahrzeuge landen in einer Liste mit CSV- und PDF-Druck.
 
+Auch **weiteres Verbrauchsmaterial** (AdBlue, Öl, Scheibenreiniger, …) lässt sich per Nachricht oder Foto dokumentieren; es zählt zu den Kosten, aber nicht zum Verbrauch.
+
 Alles landet in einer Liste im Seitenmenü (mit CSV- und PDF-Druck).
 
 ## Inhalt
@@ -160,7 +162,7 @@ als „Beleg geprüft“ markiert, wenn mindestens Menge, Preis oder Summe vom B
 
 Die Nachrichten laufen über **Telegram** (eigener Bot, empfohlen), **WhatsApp** (Cloud-API von Meta) oder die **Companion-App**
 (Push-Nachricht; Foto-Upload dann im Panel). Pro Fahrzeug wählst du, welche Kanäle genutzt werden. Mit `?`, `h`, `help` oder `hilfe`
-(auch `/help`, `/start`) zeigt der Bot alle Kommandos.
+(auch `/help`, `/start`, oder das Wort für „Hilfe“ in der eigenen Sprache) zeigt der Bot alle Kommandos.
 
 ### Beleg zum Tanken
 - **Foto** vom Bon oder von der Zapfsäule schicken. Die KI liest Menge, Preis, Summe, Datum und – falls sichtbar – den Kilometerstand.
@@ -239,6 +241,14 @@ Voraussetzungen: Home Assistant ab 2025.8; für das Lesen von Belegen eine `ai_t
 5. Meldungen von sich aus erlaubt WhatsApp nur innerhalb von 24 h nach der letzten Nachricht des Fahrers. Danach nur mit freigegebener
    Vorlage: in Meta eine Vorlage (Kategorie Utility) mit einem Text wie `Drive Energy Doc: {{1}}` anlegen und ihren Namen eintragen.
 
+## Sprachen
+Panel und Bot sprechen **36 Sprachen**: Deutsch, Englisch, Französisch, Spanisch, Italienisch, Niederländisch, Portugiesisch, Polnisch, Tschechisch, Slowakisch, Slowenisch, Kroatisch, Serbisch, Bosnisch, Mazedonisch, Bulgarisch, Ukrainisch, Belarussisch, **Russisch**, Rumänisch, Ungarisch, Griechisch, Türkisch, Albanisch, Litauisch, Lettisch, Estnisch, Finnisch, Schwedisch, Dänisch, Norwegisch, Isländisch, Irisch, Maltesisch, Luxemburgisch und Katalanisch.
+- **Panel:** folgt automatisch der Sprache des angemeldeten HA-Benutzers; ist sie nicht dabei, erscheint Englisch.
+- **Bot-Antworten:** je Fahrzeug einstellbar (*Konfigurieren → Fahrzeug*, Feld „Sprache der Bot-Antworten“), Standard ist die Sprache von Home Assistant. So kann jedes Fahrzeug einer Flotte in der Sprache seines Fahrers antworten.
+- **Kommandos:** `?`, `help`, `extra`, `+`, `ja`/`nein`/`neu` und die Kurzwörter für Verbrauchsmaterial werden in **allen** Sprachen verstanden, unabhängig von der Antwortsprache.
+- Die Einrichtungsdialoge in Home Assistant gibt es auf Deutsch und Englisch (andere Sprachen fallen auf Englisch zurück).
+- Die Übersetzungen sind mit KI-Unterstützung entstanden; Korrekturen sind als Issue oder Pull Request willkommen (Dateien in `custom_components/drive_energy_doc/frontend/i18n/`).
+
 ## Daten und Datenschutz
 - Alle Einträge und Fotos liegen **lokal** in deiner HA-Installation (`.storage` und `config/drive_energy_doc/`). Es gibt keinen Server des Autors.
 - Nach außen gehen nur: die Preisabfrage (Position ≈ Tankstellen-Umkreis an den Preisdienst), Nachrichten an Telegram/WhatsApp, und Belegfotos an die
@@ -268,6 +278,8 @@ A **fuel and charging log for any number of vehicles** (combustion and electric)
 
 - **Connected to the car (fully automatic):** Home Assistant detects refuelling or charging on its own from the car's sensors (level, odometer, GPS), creates the entry, looks up the price and calculates the consumption. The driver does not have to do anything. The receipt is only a bonus: if it is sent via Telegram, the AI reads it, the accounting becomes even more precise (real quantity, price and total) and the event is documented as well.
 - **Without any connection to the car (photo mode):** Just send a **photo of the odometer** and a **photo of the pump or the receipt** via Telegram. The AI reads mileage, quantity, price and total, the log is kept and the receipts are archived. No sensors are needed for the vehicle. This is **ideal for fleet management**: every vehicle gets its own Telegram chat (e.g. with the driver), and all vehicles end up in one list with CSV and PDF export.
+
+**Other consumables** (AdBlue, oil, washer fluid, …) can be documented as well, by message or photo; they count towards costs but not towards consumption.
 
 Everything ends up in one list in the sidebar (with CSV and PDF printing).
 
@@ -368,7 +380,7 @@ The source depends on the country of the position (or is fixed by choice). Witho
 
 ## Receipt, accessories and odometer by message
 
-Messages run via **Telegram** (own bot, recommended), **WhatsApp** (Meta Cloud API) or the **Companion app** (push message; photo upload then in the panel). Per vehicle you choose which channels are used. With `?`, `h`, `help` or `hilfe` (also `/help`, `/start`) the bot lists all commands. The bot's replies and its keywords (`zusatz`, `neu`, `ja`, `adblue`, `öl` …) are in German.
+Messages run via **Telegram** (own bot, recommended), **WhatsApp** (Meta Cloud API) or the **Companion app** (push message; photo upload then in the panel). Per vehicle you choose which channels are used. With `?`, `h`, `help` or `hilfe` (also `/help`, `/start`) the bot lists all commands. Replies and keywords work in many languages (see *Languages*).
 
 ### Receipt for refuelling
 - Send a **photo** of the receipt or the pump. The AI reads quantity, price, total, date and, if visible, the mileage. The photo is **cropped to the receipt** (the AI gives the frame; without an AI answer a simple detection of tall, bright paper receipts takes over). The original is kept and can be viewed in the panel.
@@ -422,6 +434,14 @@ Requirements: Home Assistant 2025.8 or newer; to read receipts an `ai_task` inte
 3. In the Meta dashboard create a webhook: callback URL `https://<your-public-HA-address>/api/drive_energy_doc/whatsapp`, the same verify token, subscribe to the field `messages`. HA must be reachable from the internet via HTTPS for this.
 4. Enter the driver's number at the vehicle (with country code, without + and spaces); only messages from this number are accepted.
 5. WhatsApp only allows unsolicited messages within 24 h of the driver's last message. After that only with an approved template: create a template in Meta (category Utility) with a text such as `Drive Energy Doc: {{1}}` and enter its name.
+
+## Languages
+The panel and the bot speak **36 languages**: German, English, French, Spanish, Italian, Dutch, Portuguese, Polish, Czech, Slovak, Slovenian, Croatian, Serbian, Bosnian, Macedonian, Bulgarian, Ukrainian, Belarusian, **Russian**, Romanian, Hungarian, Greek, Turkish, Albanian, Lithuanian, Latvian, Estonian, Finnish, Swedish, Danish, Norwegian, Icelandic, Irish, Maltese, Luxembourgish and Catalan.
+- **Panel:** follows the language of the signed-in HA user automatically; if it is not available, English is shown.
+- **Bot replies:** configurable per vehicle (*Configure → Vehicle*, field "Language of the bot's replies"), default is the Home Assistant language. So every vehicle of a fleet can answer in its driver's language.
+- **Commands:** `?`, `help`, `extra`, `+`, `yes`/`no`/`new` and the short words for consumables are understood in **all** languages, independent of the reply language.
+- The setup dialogs in Home Assistant are available in German and English (other languages fall back to English).
+- The translations were produced with AI assistance; corrections are welcome as an issue or pull request (files in `custom_components/drive_energy_doc/frontend/i18n/`).
 
 ## Data and privacy
 - All entries and photos are stored **locally** in your HA installation (`.storage` and `config/drive_energy_doc/`). There is no server run by the author.

@@ -46,3 +46,5 @@ PLATE_NAMES = {'AL': 'Albanien', 'AD': 'Andorra', 'AT': 'Österreich', 'BY': 'Be
 CONF_PLATE_COUNTRY = "plate_country"  # Land des Kennzeichens (Darstellung), Standard: Land der HA-Installation
 CONF_IMAGE_FILE = "image_file"  # hochgeladenes Fahrzeugbild (Dateiname in config/drive_energy_doc/images)
 CONF_PLATE = "license_plate"  # Kennzeichen, optional
+CONF_LANGUAGE = "language"  # Sprache der Bot-Antworten dieses Fahrzeugs (leer = Sprache von Home Assistant)
+LANG_NAMES = {"sq": "Shqip", "be": "Беларуская", "bs": "Bosanski", "bg": "Български", "ca": "Català", "hr": "Hrvatski", "cs": "Čeština", "da": "Dansk", "nl": "Nederlands", "en": "English", "et": "Eesti", "fi": "Suomi", "fr": "Français", "de": "Deutsch", "el": "Ελληνικά", "hu": "Magyar", "is": "Íslenska", "ga": "Gaeilge", "it": "Italiano", "lv": "Latviešu", "lt": "Lietuvių", "lb": "Lëtzebuergesch", "mk": "Македонски", "mt": "Malti", "nb": "Norsk", "pl": "Polski", "pt": "Português", "ro": "Română", "ru": "Русский", "sr": "Српски", "sk": "Slovenčina", "sl": "Slovenščina", "es": "Español", "sv": "Svenska", "tr": "Türkçe", "uk": "Українська"}

@@ -1,13 +1,13 @@
 /* Drive-Energy-Doc-Panel: Fahrzeug-Reiter, Tankliste mit Belegfotos, Bearbeiten, CSV-Export */
 const COLS = ["date", "km", "station", "qty", "price", "total", "cons", "receipt", "note", "act"];
 
-const VERSION = "0.1.74b1";
+const VERSION = "0.1.75b1";
 
 class DriveEnergyDocPanel extends HTMLElement {
   set hass(h) {
     const first = !this._hass;
     this._hass = h;
-    if (first) this._load();
+    if (first) this._loadLang().then(() => this._load());
   }
   set narrow(v) { this._narrow = v; }
   connectedCallback() {
@@ -79,14 +79,33 @@ class DriveEnergyDocPanel extends HTMLElement {
   }
   disconnectedCallback() { clearInterval(this._timer); }
 
+  async _loadLang() {
+    // Oberflächensprache = Sprache des HA-Benutzers; Wörterbuch i18n/<sprache>.json (Schlüssel = deutscher Text), Deutsch braucht keines
+    const l = String((this._hass.locale && this._hass.locale.language) || this._hass.language || "en");
+    const base = ({ no: "nb", nn: "nb", sh: "hr" })[l.toLowerCase().split("-")[0]] || l.toLowerCase().split("-")[0];
+    this._locale = l;
+    this._dict = {};
+    this._rtl = ["ar", "he", "fa"].includes(base);
+    if (base === "de") return;
+    const get = async code => { try { const r = await fetch(`/drive_energy_doc_static/i18n/${code}.json?v=${VERSION}`); return r.ok ? await r.json() : null; } catch (e) { return null; } };
+    this._dict = (await get(base)) || (await get("en")) || {};
+  }
+  T(s, ...a) {
+    let r = (this._dict && this._dict[s]) || s;
+    a.forEach((v, i) => { r = r.split(`{${i}}`).join(v); });
+    return r;
+  }
+
   async _load() {
     try {
       this._data = await this._hass.callWS({ type: "drive_energy_doc/list" });
       if (!this._dlg) this._render();
     } catch (e) { this._err = String(e.message || e); this._render(); }
   }
-  _fmt(n, d = 2) { return n == null ? "–" : Number(n).toLocaleString("de-DE", { minimumFractionDigits: d, maximumFractionDigits: d }); }
-  _date(ts) { return new Date(ts * 1000).toLocaleString("de-DE", { dateStyle: "short", timeStyle: "short" }); }
+  _fmt(n, d = 2) { return n == null ? "–" : Number(n).toLocaleString(this._locale || "de-DE", { minimumFractionDigits: d, maximumFractionDigits: d }); }
+  _d(ts) { return new Date(ts * 1000).toLocaleDateString(this._locale || "de-DE", { dateStyle: "short" }); }
+  _tm(ts) { return new Date(ts * 1000).toLocaleTimeString(this._locale || "de-DE", { timeStyle: "short" }); }
+  _date(ts) { return this._d(ts) + ", " + this._tm(ts); }
   _gps(e, link = true) {
     if (e.lat == null || e.lon == null) return "";
     const txt = `${Number(e.lat).toFixed(5)}, ${Number(e.lon).toFixed(5)}`;
@@ -130,7 +149,7 @@ class DriveEnergyDocPanel extends HTMLElement {
     if (!e) return;
     const r = el.getBoundingClientRect(), pop = document.createElement("div");
     pop.className = "pop sel";
-    pop.innerHTML = (e.photo_urls || []).map((p, i) => `<img src="${p}" data-p="${p}" data-entry="${e.id}" data-name="${this._esc((e.photos || [])[i] || "")}" alt="Foto ${i + 1}" title="Foto ${i + 1}">`).join("");
+    pop.innerHTML = (e.photo_urls || []).map((p, i) => `<img src="${p}" data-p="${p}" data-entry="${e.id}" data-name="${this._esc((e.photos || [])[i] || "")}" alt="${this.T("Foto {0}", i + 1)}" title="${this.T("Foto {0}", i + 1)}">`).join("");
     pop.style.cssText = `position:fixed;z-index:98;padding:8px;border-radius:8px;background:var(--card-background-color);box-shadow:0 2px 12px #0006;border:1px solid var(--divider-color);top:${Math.min(r.bottom - 2, window.innerHeight - 90)}px;left:${Math.max(8, Math.min(r.left - 20, window.innerWidth - 380))}px`;
     pop.addEventListener("pointerleave", ev => { if (ev.pointerType !== "touch") pop.remove(); });
     this._pvHide();
@@ -145,7 +164,7 @@ class DriveEnergyDocPanel extends HTMLElement {
     // Land und Kennzeichen wählen: Länderliste mit echt gezeichneten Schildern, das große Schild oben zeichnet sich sofort neu
     if (!this._countries) {
       try { this._countries = await this._hass.callWS({ type: "drive_energy_doc/countries" }); }
-      catch (e) { alert("Länderliste nicht verfügbar: " + (e.message || e)); return; }
+      catch (e) { alert(this.T("Länderliste nicht verfügbar: ") + (e.message || e)); return; }
     }
     this._pvHide();
     const st = { cc: v.plate_country || "DE", plate: v.plate || "", q: "" };
@@ -153,12 +172,12 @@ class DriveEnergyDocPanel extends HTMLElement {
     const dlg = document.createElement("div");
     dlg.className = "dlg";
     dlg.innerHTML = `<div class="card">
-      <div class="dh">Kennzeichen · ${this._esc(v.name)}</div>
-      <img class="pvp" alt="Vorschau">
-      <input id="plt" type="text" maxlength="14" placeholder="Kennzeichen" autocomplete="off" spellcheck="false">
-      <input id="cf" type="search" placeholder="Land suchen" autocomplete="off">
+      <div class="dh">${this.T("Kennzeichen")} · ${this._esc(v.name)}</div>
+      <img class="pvp" alt="${this.T("Vorschau")}">
+      <input id="plt" type="text" maxlength="14" placeholder="${this.T("Kennzeichen")}" autocomplete="off" spellcheck="false">
+      <input id="cf" type="search" placeholder="${this.T("Land suchen")}" autocomplete="off">
       <div class="cl"></div>
-      <div class="df"><button data-d="cancel">Abbrechen</button><button data-d="save" class="pri">Speichern</button></div></div>`;
+      <div class="df"><button data-d="cancel">${this.T("Abbrechen")}</button><button data-d="save" class="pri">${this.T("Speichern")}</button></div></div>`;
     this.shadowRoot.appendChild(dlg);
     this._dlg = dlg;
     const prev = dlg.querySelector(".pvp"), inp = dlg.querySelector("#plt"), search = dlg.querySelector("#cf"), list = dlg.querySelector(".cl");
@@ -182,7 +201,7 @@ class DriveEnergyDocPanel extends HTMLElement {
       if (b && b.dataset.d === "cancel" || ev.target === dlg) return close();
       if (b && b.dataset.d === "save") {
         try { await this._hass.callWS({ type: "drive_energy_doc/set_plate", vehicle: v.id, plate: st.plate, country: st.cc }); }
-        catch (e) { alert("Speichern fehlgeschlagen: " + (e.message || e)); return; }
+        catch (e) { alert(this.T("Speichern fehlgeschlagen: ") + (e.message || e)); return; }
         close();
       }
     };
@@ -353,8 +372,8 @@ class DriveEnergyDocPanel extends HTMLElement {
     `;
     this._pvHide();
     if (this._err) { this.shadowRoot.innerHTML = `<style>${css}</style><p>${this._esc(this._err)}</p>`; return; }
-    if (!d.length) { this.shadowRoot.innerHTML = `<style>${css}</style><h1>Drive Energy Doc</h1><p>Noch kein Fahrzeug. Einstellungen → Geräte &amp; Dienste → Integration „Drive Energy Doc“ hinzufügen.</p>`; return; }
-    const s = v.summary, u = v.unit;
+    if (!d.length) { this.shadowRoot.innerHTML = `<style>${css}</style><h1>Drive Energy Doc</h1><p>${this.T("Noch kein Fahrzeug. Einstellungen → Geräte & Dienste → Integration „Drive Energy Doc“ hinzufügen.")}</p>`; return; }
+    const s = v.summary, u = this.T(v.unit);
     const pic = v.image_url || (v.image && this._hass.states[v.image] ? this._hass.states[v.image].attributes.entity_picture : "");
     const cw = this._cw || {};
     const fixed = COLS.some(c => cw[c]);
@@ -362,16 +381,16 @@ class DriveEnergyDocPanel extends HTMLElement {
     const order = this._order();
     const rows = v.entries.map(e => {
       const cell = {
-        date: `<td><span>${this._date(e.ts).split(", ")[0]}</span><span class="tm">${this._date(e.ts).split(", ")[1] || ""}</span></td>`,
+        date: `<td><span>${this._d(e.ts)}</span><span class="tm">${this._tm(e.ts)}</span></td>`,
         km: `<td class="n">${e.odometer != null ? this._fmt(e.odometer, 0) : "–"}</td>`,
-        station: `<td><div>${e.kind === "extra" ? `<span class="tag">${this._esc(e.item || "Zubehör")}</span> ` : ""}${this._esc(e.station || "")}</div><div class="src">${this._esc(e.address || "")}</div><div class="src gps">${this._gps(e)}</div></td>`,
-        qty: `<td class="n">${e.quantity != null ? this._fmt(e.quantity) + " " + (e.kind === "extra" ? (e.unit || "") : u) : "–"}<div class="src">${e.level_from != null && e.level_to != null ? Math.round(e.level_from) + "→" + Math.round(e.level_to) + " %" : (e.increase != null ? "+" + Math.round(e.increase) + " %" : "")} ${this._esc(e.quantity_source || "")}</div></td>`,
-        price: `<td class="n">${this._fmt(e.unit_price, 3)}<div class="src">${this._esc(e.price_source || "")}</div></td>`,
+        station: `<td><div>${e.kind === "extra" ? `<span class="tag">${this._esc(e.item || this.T("Zubehör"))}</span> ` : ""}${this._esc(e.station || "")}</div><div class="src">${this._esc(e.address || "")}</div><div class="src gps">${this._gps(e)}</div></td>`,
+        qty: `<td class="n">${e.quantity != null ? this._fmt(e.quantity) + " " + (e.kind === "extra" ? (e.unit || "") : u) : "–"}<div class="src">${e.level_from != null && e.level_to != null ? Math.round(e.level_from) + "→" + Math.round(e.level_to) + " %" : (e.increase != null ? "+" + Math.round(e.increase) + " %" : "")} ${this._esc(this.T(e.quantity_source || ""))}</div></td>`,
+        price: `<td class="n">${this._fmt(e.unit_price, 3)}<div class="src">${this._esc(this.T(e.price_source || ""))}</div></td>`,
         total: `<td class="n">${this._fmt(e.total)} €</td>`,
         cons: `<td class="n">${e.consumption != null ? this._fmt(e.consumption) : "–"}</td>`,
-        receipt: (() => { const ph = e.photo_urls || [], im = (p, k) => `<img class="${k}" src="${p}" data-p="${p}" data-entry="${e.id}" data-name="${this._esc((e.photos || [])[ph.indexOf(p)] || "")}"${ph.length > 1 && k === "thumb" ? ` data-multi="${e.id}"` : ""} alt="${ph.indexOf(p) === 0 && e.receipt ? "Beleg" : "Zusatzfoto"}">`; return `<td>${ph.length ? im(ph[0], "thumb") : ""}${e.receipt ? "" : `<span class="no" title="Beleg fehlt">${this._ico("warn")}</span>`}</td>`; })(),
-        note: `<td>${e.note ? `<span class="notei" data-note="${this._esc(e.note)}" title="${this._esc(e.note)}" tabindex="0" role="button" aria-label="Notiz anzeigen">${this._ico("note")}</span>` : ""}</td>`,
-        act: `<td><button data-act="photo" title="Foto zu diesem Eintrag" aria-label="Foto hinzufügen">${this._ico("camera")}</button> <button data-act="edit" title="Bearbeiten" aria-label="Bearbeiten">${this._ico("edit")}</button> <button data-act="del" title="Eintrag löschen" aria-label="Eintrag löschen">${this._ico("trash")}</button></td>`,
+        receipt: (() => { const ph = e.photo_urls || [], im = (p, k) => `<img class="${k}" src="${p}" data-p="${p}" data-entry="${e.id}" data-name="${this._esc((e.photos || [])[ph.indexOf(p)] || "")}"${ph.length > 1 && k === "thumb" ? ` data-multi="${e.id}"` : ""} alt="${ph.indexOf(p) === 0 && e.receipt ? this.T("Beleg") : this.T("Zusatzfoto")}">`; return `<td>${ph.length ? im(ph[0], "thumb") : ""}${e.receipt ? "" : `<span class="no" title="${this.T("Beleg fehlt")}">${this._ico("warn")}</span>`}</td>`; })(),
+        note: `<td>${e.note ? `<span class="notei" data-note="${this._esc(e.note)}" title="${this._esc(e.note)}" tabindex="0" role="button" aria-label="${this.T("Notiz anzeigen")}">${this._ico("note")}</span>` : ""}</td>`,
+        act: `<td><button data-act="photo" title="${this.T("Foto zu diesem Eintrag")}" aria-label="${this.T("Foto hinzufügen")}">${this._ico("camera")}</button> <button data-act="edit" title="${this.T("Bearbeiten")}" aria-label="${this.T("Bearbeiten")}">${this._ico("edit")}</button> <button data-act="del" title="${this.T("Eintrag löschen")}" aria-label="${this.T("Eintrag löschen")}">${this._ico("trash")}</button></td>`,
       };
       return `<tr data-id="${e.id}">${order.map(k => cell[k].replace("<td", `<td data-c="${k}"`)).join("")}</tr>`;
     }).join("");
@@ -379,15 +398,16 @@ class DriveEnergyDocPanel extends HTMLElement {
       <div class="head"><div class="ttl"><img class="logo" src="/drive_energy_doc_static/icon.png?v=${VERSION}" alt=""><div><div class="app">Drive Energy Doc</div><h1>${this._esc(this._title(v))}</h1></div>${v.plate ? this._plate(v) : ""}</div>${pic ? `<img class="car" src="${pic}" alt="${this._esc(v.name)}">` : ""}</div>
       ${d.length > 1 ? `<div class="tabs">${d.map((x, i) => `<button class="${i === this._tab ? "on" : ""}" data-tab="${i}">${this._esc(x.name)}${x.plate ? " · " + this._esc(x.plate) : ""}</button>`).join("")}</div>` : ""}
       <div class="sum">
-        <div><b>${s.count}</b><span>Einträge</span></div>
-        <div><b>${this._fmt(s.avg_consumption)}</b><span>${u}/100 km (Ø letzte 5)</span></div>
-        <div><b>${this._fmt(s.cost_12m)} €</b><span>Kosten 12 Monate</span></div>
-        <div><b>${{ idle: "Bereit", candidate: "Anstieg erkannt", refuelling: "Tankt" }[s.status]}</b><span>Status</span></div>
+        <div><b>${s.count}</b><span>${this.T("Einträge")}</span></div>
+        <div><b>${this._fmt(s.avg_consumption)}</b><span>${u}/100 ${this.T("km")} (${this.T("Ø letzte 5")})</span></div>
+        <div><b>${this._fmt(s.cost_12m)} €</b><span>${this.T("Kosten 12 Monate")}</span></div>
+        <div><b>${this.T({ idle: "Bereit", candidate: "Anstieg erkannt", refuelling: "Tankt" }[s.status])}</b><span>${this.T("Status")}</span></div>
       </div>
-      <div class="bar"><button data-act="csv" title="CSV-Export" aria-label="CSV-Export">${this._ico("csv")}</button><button data-act="print" title="Drucken / PDF" aria-label="Drucken">${this._ico("print")}</button><button data-act="ori" title="${this._ori === "portrait" ? "Hochformat" : "Querformat"} (zum Wechseln klicken)" aria-label="Seitenformat">${this._ico(this._ori)}</button><button data-act="rcp" title="Belege im Druck: ${this._rcp ? "mit" : "ohne"} (zum Wechseln klicken)" aria-label="Belege im Druck" aria-pressed="${this._rcp}">${this._ico(this._rcp ? "photo" : "photoOff")}</button><button data-act="plate" title="Kennzeichen und Land ändern" aria-label="Kennzeichen">${this._ico("plate")}</button><button data-act="add" title="Eintrag von Hand hinzufügen" aria-label="Eintrag von Hand">${this._ico("plus")}</button><button data-act="shoot" title="Beleg fotografieren oder hochladen" aria-label="Beleg fotografieren">${this._ico("camera")}</button><input type="file" id="cam" accept="image/*" capture="environment" hidden><input type="file" id="pic" accept="image/*" hidden></div>
-      <div class="wrap"><table class="${fixed ? "fx" : ""}" ${fixed ? `style="width:${sumW}px"` : ""}><colgroup>${order.map(c => `<col data-c="${c}" ${cw[c] ? `style="width:${cw[c]}px"` : ""}>`).join("")}</colgroup><thead><tr>${order.map(c => { const H = { date: ["Datum", ""], km: ["km", "n"], station: ["Tankstelle", ""], qty: ["Menge", "n"], price: [`€/${u}`, "n"], total: ["Betrag", "n"], cons: [`${u}/100 km`, "n"], receipt: ["Beleg", ""], note: ["Notiz", ""], act: ["", ""] }[c]; return `<th data-c="${c}" class="${H[1]}" ${c === "act" ? "" : `draggable="true" title="Auf eine andere Überschrift ziehen: Reihenfolge ändern"`}>${H[0]}<span class="rs" data-c="${c}" title="Ziehen: Spaltenbreite ändern · Doppelklick: Breiten und Reihenfolge zurücksetzen"></span></th>`; }).join("")}</tr></thead><tbody>${rows}</tbody></table></div>
+      <div class="bar"><button data-act="csv" title="${this.T("CSV-Export")}" aria-label="${this.T("CSV-Export")}">${this._ico("csv")}</button><button data-act="print" title="${this.T("Drucken / PDF")}" aria-label="${this.T("Drucken")}">${this._ico("print")}</button><button data-act="ori" title="${this._ori === "portrait" ? this.T("Hochformat") : this.T("Querformat")} (${this.T("zum Wechseln klicken")})" aria-label="${this.T("Seitenformat")}">${this._ico(this._ori)}</button><button data-act="rcp" title="${this.T("Belege im Druck")}: ${this._rcp ? this.T("mit") : this.T("ohne")} (${this.T("zum Wechseln klicken")})" aria-label="${this.T("Belege im Druck")}" aria-pressed="${this._rcp}">${this._ico(this._rcp ? "photo" : "photoOff")}</button><button data-act="plate" title="${this.T("Kennzeichen und Land ändern")}" aria-label="${this.T("Kennzeichen")}">${this._ico("plate")}</button><button data-act="add" title="${this.T("Eintrag von Hand hinzufügen")}" aria-label="${this.T("Eintrag von Hand")}">${this._ico("plus")}</button><button data-act="shoot" title="${this.T("Beleg fotografieren oder hochladen")}" aria-label="${this.T("Beleg fotografieren")}">${this._ico("camera")}</button><input type="file" id="cam" accept="image/*" capture="environment" hidden><input type="file" id="pic" accept="image/*" hidden></div>
+      <div class="wrap"><table class="${fixed ? "fx" : ""}" ${fixed ? `style="width:${sumW}px"` : ""}><colgroup>${order.map(c => `<col data-c="${c}" ${cw[c] ? `style="width:${cw[c]}px"` : ""}>`).join("")}</colgroup><thead><tr>${order.map(c => { const H = { date: [this.T("Datum"), ""], km: [this.T("km"), "n"], station: [this.T("Tankstelle"), ""], qty: [this.T("Menge"), "n"], price: [`€/${u}`, "n"], total: [this.T("Betrag"), "n"], cons: [`${u}/100 ${this.T("km")}`, "n"], receipt: [this.T("Beleg"), ""], note: [this.T("Notiz"), ""], act: ["", ""] }[c]; return `<th data-c="${c}" class="${H[1]}" ${c === "act" ? "" : `draggable="true" title="${this.T("Auf eine andere Überschrift ziehen: Reihenfolge ändern")}"`}>${H[0]}<span class="rs" data-c="${c}" title="${this.T("Ziehen: Spaltenbreite ändern · Doppelklick: Breiten und Reihenfolge zurücksetzen")}"></span></th>`; }).join("")}</tr></thead><tbody>${rows}</tbody></table></div>
       <div class="ver">Drive Energy Doc ${VERSION}</div>`;
     this._cur = v;
+    this.setAttribute("dir", this._rtl ? "rtl" : "ltr");
   }
 
   async _click(ev, v) {
@@ -406,13 +426,13 @@ class DriveEnergyDocPanel extends HTMLElement {
     if (t.dataset.p) {
       const lb = document.createElement("div");
       lb.className = "lb";
-      lb.innerHTML = `<div style="display:flex;flex-direction:column;align-items:center;gap:10px"><img src="${t.dataset.p}" style="max-width:92vw;max-height:80vh"><div><button data-lbact="del" title="Beleg löschen">${this._ico("trash")}Beleg löschen</button> <button data-lbact="close" title="Schließen">${this._ico("close")}Schließen</button></div></div>`;
+      lb.innerHTML = `<div style="display:flex;flex-direction:column;align-items:center;gap:10px"><img src="${t.dataset.p}" style="max-width:92vw;max-height:80vh"><div><button data-lbact="del" title="${this.T("Beleg löschen")}">${this._ico("trash")}${this.T("Beleg löschen")}</button> <button data-lbact="close" title="${this.T("Schließen")}">${this._ico("close")}${this.T("Schließen")}</button></div></div>`;
       lb.style.cssText = "position:fixed;inset:0;background:#000d;display:flex;align-items:center;justify-content:center;z-index:99";
       lb.onclick = async ev => {
         const lbb = ev.target.closest ? ev.target.closest("[data-lbact]") : null;
         const a = lbb ? lbb.dataset.lbact : undefined;
         if (a === "del") {
-          if (!confirm("Dieses Foto endgültig löschen (auch das gesicherte Original)?")) return;
+          if (!confirm(this.T("Dieses Foto endgültig löschen (auch das gesicherte Original)?"))) return;
           await this._hass.callWS({ type: "drive_energy_doc/delete_photo", vehicle: v.id, entry: t.dataset.entry, photo: t.dataset.name });
           lb.remove(); this._load();
         } else if (a === "close" || ev.target === lb) lb.remove();
@@ -441,7 +461,7 @@ class DriveEnergyDocPanel extends HTMLElement {
     const id = t.closest("tr").dataset.id;
     const e = v.entries.find(x => x.id === id);
     if (act === "del") {
-      if (confirm(`Eintrag vom ${this._date(e.ts)} endgültig löschen?`)) { await this._hass.callWS({ type: "drive_energy_doc/delete", vehicle: v.id, entry: id }); this._load(); }
+      if (confirm(this.T("Eintrag vom {0} endgültig löschen?", this._date(e.ts)))) { await this._hass.callWS({ type: "drive_energy_doc/delete", vehicle: v.id, entry: id }); this._load(); }
     } else if (act === "edit") this._form(v, e);
   }
 
@@ -468,21 +488,21 @@ class DriveEnergyDocPanel extends HTMLElement {
     fd.append("text", text || "");
     try {
       const r = await this._hass.fetchWithAuth(`/api/drive_energy_doc/upload/${v.id}`, { method: "POST", body: fd });
-      if (!r.ok) throw new Error(`Fehler ${r.status}`);
+      if (!r.ok) throw new Error(`${this.T("Fehler")} ${r.status}`);
       const j = await r.json();
-      const msg = (j.replies || []).join("\n\n") || "Gespeichert.";
+      const msg = (j.replies || []).join("\n\n") || this.T("Gespeichert.");
       if (j.awaiting) {
-        const ans = prompt(msg + "\n\nAntwort (Datum z. B. 27.10. oder „neu“):");
+        const ans = prompt(msg + "\n\n" + this.T("Antwort (Datum z. B. 27.10. oder „neu“):"));
         if (ans) return this._send(v, null, ans);
       } else alert(msg);
-    } catch (e) { alert("Upload fehlgeschlagen: " + (e.message || e)); }
+    } catch (e) { alert(this.T("Upload fehlgeschlagen: ") + (e.message || e)); }
     this._load();
   }
 
   _print(v, orient = this._ori) {
     // A4 quer oder hoch; im Druckdialog "Als PDF speichern" wählen. Alle Einträge, darunter die Belegfotos je Eintrag (max. 4).
-    const u = v.unit, e = this._esc.bind(this);
-    const rows = [...v.entries].reverse().map(x => `<tr><td>${this._date(x.ts)}</td><td class="n">${x.odometer != null ? this._fmt(x.odometer, 0) : ""}</td><td>${x.kind === "extra" ? "[" + e(x.item || "Zubehör") + "] " : ""}${e(x.station || "")}<br><small>${e(x.address || "")}</small><br><small>${this._gps(x, false)}</small></td><td class="n">${x.quantity != null ? this._fmt(x.quantity) + " " + (x.kind === "extra" ? e(x.unit || "") : u) : ""}</td><td class="n">${this._fmt(x.unit_price, 3)}</td><td class="n">${this._fmt(x.total)} €</td><td class="n">${x.consumption != null ? this._fmt(x.consumption) : ""}</td><td>${e(x.note || "")}</td></tr>`).join("");
+    const u = this.T(v.unit), e = this._esc.bind(this);
+    const rows = [...v.entries].reverse().map(x => `<tr><td>${this._date(x.ts)}</td><td class="n">${x.odometer != null ? this._fmt(x.odometer, 0) : ""}</td><td>${x.kind === "extra" ? "[" + e(x.item || this.T("Zubehör")) + "] " : ""}${e(x.station || "")}<br><small>${e(x.address || "")}</small><br><small>${this._gps(x, false)}</small></td><td class="n">${x.quantity != null ? this._fmt(x.quantity) + " " + (x.kind === "extra" ? e(x.unit || "") : u) : ""}</td><td class="n">${this._fmt(x.unit_price, 3)}</td><td class="n">${this._fmt(x.total)} €</td><td class="n">${x.consumption != null ? this._fmt(x.consumption) : ""}</td><td>${e(x.note || "")}</td></tr>`).join("");
     const photos = v.entries.filter(x => (x.photo_urls || []).length).map(x => `<div class="g"><div class="c">${this._date(x.ts)} · ${e(x.station || "")} · ${this._fmt(x.total)} €</div>${x.photo_urls.slice(0, 4).map(p => `<img src="${new URL(p, location.origin).href}">`).join("")}</div>`).join("");
     const total = v.entries.reduce((a, x) => a + (x.total || 0), 0), qty = v.entries.reduce((a, x) => a + (x.quantity || 0), 0);
     const html = `<!doctype html><meta charset="utf-8"><title>Drive Energy Doc ${e(v.name)}${v.plate ? " " + e(v.plate) : ""}</title><style>
@@ -491,9 +511,9 @@ class DriveEnergyDocPanel extends HTMLElement {
       th{border-bottom:2px solid #000}.n{text-align:right;white-space:nowrap}small{color:#555}
       .g{break-inside:avoid;margin-top:10px}.c{font-weight:bold;margin-bottom:3px}.g img{max-height:75mm;max-width:90mm;margin-right:6px;border:1px solid #ccc}
       h2{margin:14px 0 0;font-size:13px;break-before:page}</style>
-      <h1>Drive Energy Doc ${e(v.name)}${v.plate ? " · " + e(v.plate) : ""}</h1><div>${v.entries.length} Einträge · ${this._fmt(qty)} ${u} · ${this._fmt(total)} € · erstellt ${new Date().toLocaleDateString("de-DE")}</div>
-      <table><thead><tr><th>Datum</th><th class="n">km</th><th>Tankstelle</th><th class="n">Menge</th><th class="n">€/${u}</th><th class="n">Betrag</th><th class="n">${u}/100 km</th><th>Notiz</th></tr></thead><tbody>${rows}</tbody></table>
-      ${photos && this._rcp ? `<h2>Belege</h2>${photos}` : ""}`;
+      <h1>Drive Energy Doc ${e(v.name)}${v.plate ? " · " + e(v.plate) : ""}</h1><div>${v.entries.length} ${this.T("Einträge")} · ${this._fmt(qty)} ${u} · ${this._fmt(total)} € · ${this.T("erstellt")} ${new Date().toLocaleDateString(this._locale || "de-DE")}</div>
+      <table><thead><tr><th>${this.T("Datum")}</th><th class="n">${this.T("km")}</th><th>${this.T("Tankstelle")}</th><th class="n">${this.T("Menge")}</th><th class="n">€/${u}</th><th class="n">${this.T("Betrag")}</th><th class="n">${u}/100 ${this.T("km")}</th><th>${this.T("Notiz")}</th></tr></thead><tbody>${rows}</tbody></table>
+      ${photos && this._rcp ? `<h2>${this.T("Belege")}</h2>${photos}` : ""}`;
     if (this._printOnlyHtml) return html;  // Testhilfe
     const f = document.createElement("iframe");
     f.style.cssText = "position:fixed;width:0;height:0;border:0";
@@ -512,7 +532,7 @@ class DriveEnergyDocPanel extends HTMLElement {
     let item = e && e.kind === "extra" ? e.item || "" : "";
     if (!e) {
       // Neuer Eintrag von Hand: Kraftstoff/Strom oder Zubehör (AdBlue, Öl, Scheibenwischer …)
-      const art = prompt("Art: leer lassen = " + (v.energy === "electric" ? "Strom" : "Kraftstoff") + ", sonst Bezeichnung des Zubehörs (z. B. AdBlue, Öl, Scheibenwischer)", "");
+      const art = prompt(this.T("Art: leer lassen = {0}, sonst Bezeichnung des Zubehörs (z. B. AdBlue, Öl, Scheibenwischer)", v.energy === "electric" ? this.T("Strom") : this.T("Kraftstoff")), "");
       if (art === null) return;
       if (art.trim()) { kind = "extra"; item = art.trim(); }
     }
@@ -523,18 +543,18 @@ class DriveEnergyDocPanel extends HTMLElement {
     const f = {};
     let unit = v.unit;
     if (extra) {
-      if (e) { const it = ask("Bezeichnung", item); if (it === null) return; f.item = it.trim() || item; }
-      const un = ask("Einheit (z. B. l, Stk), leer = keine", e ? e.unit : (/^(adblue|öl|motoröl|scheibenwasser|frostschutz)$/i.test(item) ? "l" : "")); if (un === null) return;
+      if (e) { const it = ask(this.T("Bezeichnung"), item); if (it === null) return; f.item = it.trim() || item; }
+      const un = ask(this.T("Einheit (z. B. l, Stk), leer = keine"), e ? e.unit : (/^(adblue|öl|motoröl|scheibenwasser|frostschutz)$/i.test(item) ? "l" : "")); if (un === null) return;
       f.unit = un.trim(); unit = f.unit;
     }
-    const q = ask(`${extra ? (f.item || item) + ": " : ""}Menge${unit ? " (" + unit + ")" : ""}${extra ? ", optional" : ""}`, e?.quantity); if (q === null) return; f.quantity = num(q);
-    const p = ask(`Preis €${unit ? "/" + unit : ""}`, e?.unit_price); if (p === null) return; f.unit_price = num(p);
-    const t = ask("Betrag €", e?.total); if (t === null) return; f.total = num(t);
-    const k = ask("Kilometerstand", e?.odometer); if (k === null) return; f.odometer = num(k);
-    const n = ask("Notiz", e?.note); if (n === null) return; f.note = n;
+    const q = ask(`${extra ? (f.item || item) + ": " : ""}${this.T("Menge")}${unit ? " (" + unit + ")" : ""}${extra ? ", " + this.T("optional") : ""}`, e?.quantity); if (q === null) return; f.quantity = num(q);
+    const p = ask(`${this.T("Preis")} €${unit ? "/" + unit : ""}`, e?.unit_price); if (p === null) return; f.unit_price = num(p);
+    const t = ask(this.T("Betrag") + " €", e?.total); if (t === null) return; f.total = num(t);
+    const k = ask(this.T("Kilometerstand"), e?.odometer); if (k === null) return; f.odometer = num(k);
+    const n = ask(this.T("Notiz"), e?.note); if (n === null) return; f.note = n;
     if (e) await this._hass.callWS({ type: "drive_energy_doc/update", vehicle: v.id, entry: e.id, fields: f });
     else {
-      const ds = ask("Datum (TT.MM.JJJJ)", new Date().toLocaleDateString("de-DE")); if (!ds) return;
+      const now = new Date(), ds = ask(this.T("Datum (TT.MM.JJJJ)"), `${String(now.getDate()).padStart(2, "0")}.${String(now.getMonth() + 1).padStart(2, "0")}.${now.getFullYear()}`); if (!ds) return;
       const [dd, mm, yy] = ds.split("."); f.ts = new Date(+yy, mm - 1, +dd, 12).getTime() / 1000;
       if (extra) { f.kind = "extra"; f.item = item; }
       await this._hass.callWS({ type: "drive_energy_doc/add", vehicle: v.id, fields: f });

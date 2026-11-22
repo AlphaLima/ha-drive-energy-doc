@@ -15,6 +15,8 @@ from typing import Any
 
 from aiohttp import ClientError, ClientTimeout
 
+from . import messages
+
 _LOGGER = logging.getLogger(__name__)
 API = "https://api.telegram.org"
 
@@ -61,9 +63,9 @@ class TelegramBot:
             self._hinted[chat] = now
             await self.send(
                 chat,
-                f"Diese Chat-ID ({chat}) ist noch keinem Fahrzeug zugeordnet, deshalb habe ich die Nachricht nicht verarbeitet.\n\n"
-                "Trage die Zahl in Home Assistant ein: Einstellungen → Geräte & Dienste → Drive Energy Doc → Fahrzeug → Optionen → "
-                "Kommunikation → Telegram → Chat-ID. Danach nehme ich Belege an.",
+                messages.tr(self.hass.config.language, "Diese Chat-ID ({0}) ist noch keinem Fahrzeug zugeordnet, deshalb habe ich die Nachricht nicht verarbeitet.", chat)
+                + "\n\n"
+                + messages.tr(self.hass.config.language, "Trage die Zahl in Home Assistant ein: Einstellungen → Geräte & Dienste → Drive Energy Doc → Fahrzeug → Optionen → Kommunikation → Telegram → Chat-ID. Danach nehme ich Belege an."),
             )
 
     def add(self, chat_id: str, handler: Handler) -> None:

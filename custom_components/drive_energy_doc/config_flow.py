@@ -98,6 +98,7 @@ def s_basic(d: dict, hass_country: str | None = None) -> vol.Schema:
             _text(CONF_PLATE, d): str,
             vol.Optional(CONF_PLATE_COUNTRY, description={"suggested_value": d.get(CONF_PLATE_COUNTRY, default_cc)}): _country_selector(),
             _text(CONF_VEHICLE_TYPE, d): str,
+            _text(CONF_LANGUAGE, d): _language_selector(),
             _text(CONF_IMAGE, d): _ent(["image", "camera"]),
             vol.Optional("image_upload"): sel.FileSelector(sel.FileSelectorConfig(accept="image/*")),
             **({vol.Optional("image_remove", default=False): bool} if d.get(CONF_IMAGE_FILE) else {}),
@@ -261,6 +262,14 @@ async def process_image(hass: HomeAssistant, user_input: dict, old_file: str | N
 
 def _country_selector() -> sel.SelectSelector:
     return sel.SelectSelector(sel.SelectSelectorConfig(options=PLATE_COUNTRIES, mode=sel.SelectSelectorMode.DROPDOWN, translation_key="plate_country", sort=True))
+
+
+def _language_selector() -> sel.SelectSelector:
+    """Sprache der Bot-Antworten dieses Fahrzeugs (leer = Sprache von Home Assistant); Namen in der jeweiligen Sprache."""
+    from . import messages
+
+    opts = [{"value": c, "label": LANG_NAMES.get(c, c)} for c in messages.languages()]
+    return sel.SelectSelector(sel.SelectSelectorConfig(options=opts, mode=sel.SelectSelectorMode.DROPDOWN, sort=True))
 
 
 def plate_md(d: dict, hass_country: str | None) -> str:

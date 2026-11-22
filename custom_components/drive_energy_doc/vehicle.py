@@ -20,7 +20,7 @@ from homeassistant.helpers.storage import Store
 from homeassistant.util import dt as dt_util
 
 from . import channels as chan
-from . import receipt, stats
+from . import messages, receipt, stats
 from .const import *  # noqa: F403
 from .detector import FuelDetector
 from .price import lookup, resolve_provider
@@ -262,7 +262,7 @@ class Vehicle:
         self._notify_entities()
         self.hass.bus.async_fire(f"{DOMAIN}_refuel", {"vehicle": self.name, "entry": entry})
         if not r:
-            await self._say(self._summary(entry, "Tankvorgang erkannt") + "\n\nBitte schick mir den Beleg (Foto vom Bon oder der Zapfsäule) oder tippe: Menge Betrag, z. B. 45,93 105,13\nZubehör gekauft (AdBlue, Öl, Scheibenwischer …)? Schreib: extra 24,90 oder x Öl 1 9,50 (auch als Bildtext zum Foto). Alle Kommandos: ? oder hilfe.")
+            await self._say(self._summary(entry, self.tr("Tankvorgang erkannt")) + "\n\n" + self.tr("Bitte schick mir den Beleg (Foto vom Bon oder der Zapfsäule) oder tippe: Menge Betrag, z. B. 45,93 105,13") + "\n" + self.tr("Zubehör gekauft (AdBlue, Öl, Scheibenwischer …)? Schreib: extra 24,90 oder x Öl 1 9,50 (auch als Bildtext zum Foto). Alle Kommandos: ? oder hilfe."))
 
     # ---------------------------------------------------------------- Nachrichten
     async def upload(self, image: bytes | None, text: str) -> list[str]:
@@ -327,9 +327,9 @@ class Vehicle:
 
     async def test_channel(self, channel: str) -> tuple[bool, str]:
         if channel not in self.channels():
-            return False, "Dieser Kanal ist bei diesem Fahrzeug nicht eingerichtet"
-        label = {"whatsapp": "WhatsApp", "telegram": "Telegram", "companion": "die Companion-App"}[channel]
-        return await self.send_channel(channel, f"✅ Testnachricht von Drive Energy Doc ({self.name}): {label} funktioniert.")
+            return False, self.tr("Dieser Kanal ist bei diesem Fahrzeug nicht eingerichtet")
+        label = {"whatsapp": "WhatsApp", "telegram": "Telegram", "companion": self.tr("die Companion-App")}[channel]
+        return await self.send_channel(channel, self.tr("✅ Testnachricht von Drive Energy Doc ({0}): {1} funktioniert.", self.name, label))
 
     async def _say(self, text: str) -> None:
         if self._capture is not None:
@@ -347,14 +347,14 @@ class Vehicle:
             lines.append(" ".join(x for x in (e.get("station"), e.get("address")) if x))
         if e.get("odometer") is not None:
             lines.append(f"{e['odometer']:.0f} km")
-        q = f"{e['quantity']:.2f} {unit}".strip().replace(".", ",") if e.get("quantity") else "?"
+        q = self._dec(f"{e['quantity']:.2f} {unit}".strip()) if e.get("quantity") else "?"
         lv = f"{e['level_from']:.0f} → {e['level_to']:.0f} %, " if e.get("level_from") is not None and e.get("level_to") is not None else ""
         if e.get("quantity") or not extra:
-            lines.append(f"{q} ({lv}{e['quantity_source']})")
+            lines.append(f"{q} ({lv}{self.tr(e['quantity_source'])})")
         if e.get("unit_price"):
-            lines.append(f"{e['unit_price']:.3f} €{'/' + unit if unit else ''} ({e.get('price_source') or '?'})".replace(".", ","))
+            lines.append(self._dec(f"{e['unit_price']:.3f} €{'/' + unit if unit else ''} ({self.tr(e.get('price_source') or '?')})"))
         if e.get("total"):
-            lines.append(f"Summe {e['total']:.2f} €".replace(".", ","))
+            lines.append(self.tr("Summe {0} €", self._dec(f"{e['total']:.2f}")))
         return "\n".join(lines)
 
     async def handle_message(self, msg: dict[str, Any]) -> None:
@@ -369,7 +369,7 @@ class Vehicle:
             if image:
                 await self.receive_photo(image, text)
             else:
-                await self._say("Das Foto konnte ich nicht laden.")
+                await self._say(self.tr("Das Foto konnte ich nicht laden."))
             return
         if text:
             await self.receive_text(text, sent_ts=msg.get("date"))
@@ -382,7 +382,7 @@ class Vehicle:
         entry = self._new_manual_entry()
         entry["kind"] = "extra"
         entry["item"] = item
-        entry["unit"] = "l" if item.lower() in ("adblue", "öl", "motoröl", "scheibenwasser", "frostschutz") else ""
+        entry["unit"] = {v[0].lower(): v[1] for v in messages.items().values()}.get(item.lower(), "")
         if d:
             entry["ts"] = entry["ts_start"] = datetime.combine(d, dtime(12, 0), tzinfo=dt_util.DEFAULT_TIME_ZONE).timestamp()
         if values:
@@ -395,36 +395,45 @@ class Vehicle:
         self._save()
         self._notify_entities()
         if values:
-            await self._say(self._summary(entry, f"Zubehör erfasst: {item}"))
+            await self._say(self._summary(entry, self.tr("Zubehör erfasst: {0}", item or self.tr("Zubehör"))))
         else:
             self.data["awaiting_extra"] = {"id": entry["id"], "ts": time.time()}
-            await self._say(f"Zubehör „{item}“ angelegt. Tippe noch Menge und Betrag (z. B. 1 9,50) oder nur den Betrag.")
+            await self._say(self.tr("Zubehör „{0}“ angelegt. Tippe noch Menge und Betrag (z. B. 1 9,50) oder nur den Betrag.", item or self.tr("Zubehör")))
 
-    HELP_WORDS = ("?", "h", "help", "hilfe", "/help", "/hilfe", "/start")
+    @property
+    def lang(self) -> str:
+        return self.o.get(CONF_LANGUAGE) or self.hass.config.language or "en"
+
+    def tr(self, key: str, *args) -> str:
+        return messages.tr(self.lang, key, *args)
+
+    def _dec(self, s: str) -> str:
+        return s.replace(".", messages.decimal(self.lang))
 
     def _help(self) -> str:
+        t = self.tr
         lines = [
-            f"Drive Energy Doc: Hilfe ({self.name})",
+            t("Drive Energy Doc: Hilfe ({0})", self.name),
             "",
-            "Beleg zum Tanken:",
-            "• Foto vom Bon oder der Zapfsäule schicken",
-            "• oder Text: Menge Betrag (45,93 105,13), mit Preis: Menge Preis Betrag, mit Datum davor: 27.10. 45,93 105,13",
-            "• weiteres Foto zum letzten Tanken: Foto mit zusatz im Bildtext",
+            t("Beleg zum Tanken:"),
+            t("• Foto vom Bon oder der Zapfsäule schicken"),
+            t("• oder Text: Menge Betrag (45,93 105,13), mit Preis: Menge Preis Betrag, mit Datum davor: 27.10. 45,93 105,13"),
+            t("• weiteres Foto zum letzten Tanken: Foto mit zusatz im Bildtext"),
             "",
-            "Zubehör (AdBlue, Öl, Scheibenwischer …):",
-            "• Kennwort: +, e, x, extra, z, zub oder zubehör, dann Bezeichnung und Zahlen",
-            "• Beispiele: + 24,90 · extra Öl 1 9,50 · x Scheibenwischer 24,90",
-            "• auch als Bildtext zum Foto. Kurzwörter ohne Kennwort: adblue, öl, scheibenwasser, frostschutz",
+            t("Zubehör (AdBlue, Öl, Scheibenwischer …):"),
+            t("• Kennwort: +, e, x, extra, z, zub oder zubehör, dann Bezeichnung und Zahlen"),
+            t("• Beispiele: + 24,90 · extra Öl 1 9,50 · x Scheibenwischer 24,90"),
+            t("• auch als Bildtext zum Foto. Kurzwörter ohne Kennwort: adblue, öl, scheibenwasser, frostschutz"),
             "",
-            "Kilometerstand: Foto vom Tacho oder Text km 54210. Er wird dem Tankvorgang zugeordnet, der zur Sendezeit passt.",
+            t("Kilometerstand: Foto vom Tacho oder Text km 54210. Er wird dem Tankvorgang zugeordnet, der zur Sendezeit passt."),
             "",
-            "Rückfragen beantwortest du mit einem Datum (27.10.) oder mit neu.",
-            "Hilfe: ?, h, help oder hilfe",
+            t("Rückfragen beantwortest du mit einem Datum (27.10.) oder mit neu."),
+            t("Hilfe: ?, h, help oder hilfe"),
         ]
         return "\n".join(lines)
 
     async def receive_text(self, text: str, sent_ts: float | None = None) -> None:
-        if text.strip().lower() in self.HELP_WORDS:
+        if text.strip().lower() in messages.keywords("help"):
             return await self._say(self._help())
         px = receipt.parse_extra(text)
         if px:
@@ -435,15 +444,15 @@ class Vehicle:
         ao = self.data.get("awaiting_odo")
         if ao and time.time() - ao["ts"] < AWAIT_TTL:
             low = text.lower().strip()
-            if ao.get("confirm") and low in ("ja", "j", "yes", "ok"):
+            if ao.get("confirm") and low in messages.keywords("yes"):
                 self.data["awaiting_odo"] = None
                 e = self.get_entry(ao["id"])
                 if e:
                     return await self._apply_odometer(e, ao["km"], ao.get("photo"), time.time() - e["ts"])
-            if low in ("nein", "n", "no"):
+            if low in messages.keywords("no"):
                 self.data["awaiting_odo"] = None
                 self._save()
-                return await self._say("Gut, den Kilometerstand habe ich nicht übernommen.")
+                return await self._say(self.tr("Gut, den Kilometerstand habe ich nicht übernommen."))
             if not ao.get("confirm"):
                 d = receipt.parse_date_hint(text)
                 if d:
@@ -451,11 +460,11 @@ class Vehicle:
                     if e:
                         self.data["awaiting_odo"] = None
                         return await self._apply_odometer(e, ao["km"], ao.get("photo"), ao["sent"] - e["ts"])
-                    return await self._say(f"Zu {d:%d.%m.%Y} habe ich keinen Tankvorgang. Anderes Datum oder „nein“.")
+                    return await self._say(self.tr("Zu {0} habe ich keinen Tankvorgang. Anderes Datum oder „nein“.", f"{d:%d.%m.%Y}"))
         aw = self.data.get("awaiting")
         if aw and time.time() - aw["ts"] < AWAIT_TTL:
             low = text.lower().strip()
-            if low in ("neu", "new"):
+            if low in messages.keywords("new"):
                 entry = self._new_manual_entry()
                 self.data["entries"].append(entry)
                 self.data["awaiting"] = None
@@ -468,7 +477,7 @@ class Vehicle:
                     self.data["awaiting"] = None
                     await self._apply_and_report(entry, aw["values"], aw.get("photo"))
                 else:
-                    await self._say(f"Zu {d:%d.%m.%Y} habe ich keinen Tankvorgang. Anderes Datum oder „neu“.")
+                    await self._say(self.tr("Zu {0} habe ich keinen Tankvorgang. Anderes Datum oder „neu“.", f"{d:%d.%m.%Y}"))
                 return
         values = receipt.parse_text(text)
         aw_ad = self.data.get("awaiting_extra")
@@ -481,11 +490,11 @@ class Vehicle:
                 self.data["awaiting_extra"] = None
                 self._save()
                 self._notify_entities()
-                await self._say(self._summary(e, f"Zubehör erfasst: {e.get('item') or 'Zubehör'}"))
+                await self._say(self._summary(e, self.tr("Zubehör erfasst: {0}", e.get("item") or self.tr("Zubehör"))))
                 return
         if not values:
             if aw:
-                await self._say("Antworte mit einem Datum (z. B. 27.10.) oder „neu“.")
+                await self._say(self.tr("Antworte mit einem Datum (z. B. 27.10.) oder „neu“."))
             return
         await self._route(values, None)
 
@@ -503,7 +512,7 @@ class Vehicle:
             name = receipt.new_photo_name()
             await self.hass.async_add_executor_job(receipt.crop_and_save, image, box, self.photo_dir, name, self.orig_dir)
             return await self._extra(item, rest, name, values)
-        extra = low.startswith(("zusatz",))
+        extra = low.startswith(tuple(messages.keywords("photo")))
         values = None if extra else receipt.parse_text(caption)
         km = None if (extra or values) else receipt.parse_km(caption)   # Tacho-Foto mit Bildtext „km 54210“
         box = None
@@ -524,14 +533,14 @@ class Vehicle:
             if target is None and pend:
                 pend.extras.setdefault("extra_photos", []).append(name)
                 self._save()
-                await self._say("Zusatzfoto vorgemerkt, es wird dem Tankvorgang beim Abschluss zugefügt.")
+                await self._say(self.tr("Zusatzfoto vorgemerkt, es wird dem Tankvorgang beim Abschluss zugefügt."))
             elif target:
                 target["photos"].append(name)
                 self._save()
                 self._notify_entities()
-                await self._say("Zusatzfoto gespeichert." if extra else "Werte nicht lesbar, das Foto habe ich als Zusatzfoto abgelegt. Tippe sie sonst: Menge Betrag, z. B. 45,93 105,13")
+                await self._say(self.tr("Zusatzfoto gespeichert.") if extra else self.tr("Werte nicht lesbar, das Foto habe ich als Zusatzfoto abgelegt. Tippe sie sonst: Menge Betrag, z. B. 45,93 105,13"))
             else:
-                await self._say("Kein Tankvorgang zum Zuordnen gefunden.")
+                await self._say(self.tr("Kein Tankvorgang zum Zuordnen gefunden."))
             return
         await self._route(values, name)
 
@@ -547,7 +556,7 @@ class Vehicle:
         if pend and pend.valid:  # es wird gerade getankt: beim Abschluss übernehmen
             pend.extras["odometer"] = {"km": km, "photo": photo}
             self._save()
-            await self._say(f"Kilometerstand {self._fmt_km(km)} km vorgemerkt, er wird beim Abschluss des laufenden Tankvorgangs übernommen.")
+            await self._say(self.tr("Kilometerstand {0} km vorgemerkt, er wird beim Abschluss des laufenden Tankvorgangs übernommen.", self._fmt_km(km)))
             return
         m = stats.match_odometer(self.data["entries"], km, sent)
         if not self.o.get(CONF_LEVEL) and m["status"] in ("none", "too_old"):
@@ -557,23 +566,23 @@ class Vehicle:
             self.data["entries"].append(e)
             self.data["entries"].sort(key=lambda x: x["ts"])
             await self._apply_odometer(e, km, photo, 0)
-            await self._say("Neuer Eintrag angelegt. Schick jetzt noch das Foto vom Beleg oder der Zapfsäule.")
+            await self._say(self.tr("Neuer Eintrag angelegt. Schick jetzt noch das Foto vom Beleg oder der Zapfsäule."))
             return
         if m["status"] == "none":
-            await self._say("Es gibt noch keinen Tankvorgang, dem ich den Kilometerstand zuordnen könnte.")
+            await self._say(self.tr("Es gibt noch keinen Tankvorgang, dem ich den Kilometerstand zuordnen könnte."))
             return
         e = m["entry"]
         when = dt_util.as_local(dt_util.utc_from_timestamp(e["ts"])).strftime("%d.%m.%Y %H:%M")
         if m["status"] == "too_old":
             self.data["awaiting_odo"] = {"km": km, "photo": photo, "ts": time.time(), "sent": sent}
             self._save()
-            await self._say(f"Zu dieser Uhrzeit gibt es keinen Tankvorgang (nächster: {when}). Antworte mit dem Datum (z. B. 27.10.), dann ordne ich {self._fmt_km(km)} km diesem Tankvorgang zu, oder mit „nein“.")
+            await self._say(self.tr("Zu dieser Uhrzeit gibt es keinen Tankvorgang (nächster: {0}). Antworte mit dem Datum (z. B. 27.10.), dann ordne ich {1} km diesem Tankvorgang zu, oder mit „nein“.", when, self._fmt_km(km)))
             return
         if m["status"] == "mismatch" or m.get("backwards"):
             self.data["awaiting_odo"] = {"id": e["id"], "km": km, "photo": photo, "ts": time.time(), "confirm": True}
             self._save()
-            why = f"liegt unter dem Stand beim vorigen Tanken ({self._fmt_km(m['prev_odo'])} km)" if m.get("backwards") else f"weicht stark vom gespeicherten Stand ({self._fmt_km(e['odometer'])} km) ab"
-            await self._say(f"Der Kilometerstand {self._fmt_km(km)} km {why}. Tankvorgang: {when}. Antworte „ja“, um ihn trotzdem zu übernehmen, oder „nein“.")
+            why = self.tr("liegt unter dem Stand beim vorigen Tanken ({0} km)", self._fmt_km(m["prev_odo"])) if m.get("backwards") else self.tr("weicht stark vom gespeicherten Stand ({0} km) ab", self._fmt_km(e["odometer"]))
+            await self._say(self.tr("Der Kilometerstand {0} km {1}. Tankvorgang: {2}. Antworte „ja“, um ihn trotzdem zu übernehmen, oder „nein“.", self._fmt_km(km), why, when))
             return
         await self._apply_odometer(e, km, photo, m["dt"])
 
@@ -585,8 +594,8 @@ class Vehicle:
         self._save()
         self._notify_entities()
         when = dt_util.as_local(dt_util.utc_from_timestamp(entry["ts"])).strftime("%d.%m.%Y %H:%M")
-        late = f" (Nachricht {abs(dt) / 3600:.1f} h {'nach' if dt > 0 else 'vor'} dem Tanken)".replace(".", ",") if abs(dt) > 3 * 3600 else ""
-        await self._say(f"Kilometerstand {self._fmt_km(km)} km für den Tankvorgang vom {when} übernommen{late}.")
+        late = " " + self.tr("(Nachricht {0} h nach dem Tanken)" if dt > 0 else "(Nachricht {0} h vor dem Tanken)", self._dec(f"{abs(dt) / 3600:.1f}")) if abs(dt) > 3 * 3600 else ""
+        await self._say(self.tr("Kilometerstand {0} km für den Tankvorgang vom {1} übernommen{2}.", self._fmt_km(km), when, late))
 
     # ---------------------------------------------------------------- Zuordnung
     def _entry_on(self, d, any_kind: bool = False) -> dict | None:
@@ -619,12 +628,12 @@ class Vehicle:
                 self.data["entries"].sort(key=lambda x: x["ts"])
             if not target:
                 self.data["awaiting"] = {"values": {**values, "date": None}, "photo": photo, "ts": time.time()}
-                await self._say(f"Zu {d:%d.%m.%Y} gibt es keinen Tankvorgang. Antworte mit einem anderen Datum oder „neu“.")
+                await self._say(self.tr("Zu {0} gibt es keinen Tankvorgang. Antworte mit einem anderen Datum oder „neu“.", f"{d:%d.%m.%Y}"))
                 return
         elif self.detector.pending and self.detector.pending.valid:
             self.detector.pending.extras["receipt"] = {"values": {k: v for k, v in values.items() if k != "date"}, "photo": photo}
             self._save()
-            await self._say("Beleg vorgemerkt, er wird beim Abschluss des laufenden Tankvorgangs übernommen.")
+            await self._say(self.tr("Beleg vorgemerkt, er wird beim Abschluss des laufenden Tankvorgangs übernommen."))
             return
         else:
             target = self._newest_within(48 * 3600)
@@ -634,7 +643,7 @@ class Vehicle:
         if target is None:
             self.data["awaiting"] = {"values": {**values, "date": None}, "photo": photo, "ts": time.time()}
             recent = ", ".join(dt_util.as_local(dt_util.utc_from_timestamp(e["ts"])).strftime("%d.%m.") for e in self.data["entries"][-3:])
-            await self._say("Dazu habe ich keinen offenen Tankvorgang." + (f" Letzte: {recent}." if recent else "") + " Antworte mit dem Datum (z. B. 27.10.) oder „neu“ für einen neuen Eintrag.")
+            await self._say(self.tr("Dazu habe ich keinen offenen Tankvorgang.") + (" " + self.tr("Letzte: {0}.", recent) if recent else "") + " " + self.tr("Antworte mit dem Datum (z. B. 27.10.) oder „neu“ für einen neuen Eintrag."))
             return
         await self._apply_and_report(target, values, photo)
 
@@ -642,8 +651,8 @@ class Vehicle:
         self._apply_values(entry, values, photo)
         self._save()
         self._notify_entities()
-        warn = "" if receipt.plausible(entry) else "\n⚠️ Menge × Preis passt nicht zum Betrag, bitte prüfen."
-        await self._say(self._summary(entry, "Beleg übernommen") + warn)
+        warn = "" if receipt.plausible(entry) else "\n" + self.tr("⚠️ Menge × Preis passt nicht zum Betrag, bitte prüfen.")
+        await self._say(self._summary(entry, self.tr("Beleg übernommen")) + warn)
 
     def _apply_values(self, entry: dict, values: dict, photo: str | None) -> None:
         q, p, t = values.get("quantity"), values.get("unit_price"), values.get("total")
@@ -752,14 +761,14 @@ class Vehicle:
     def to_csv(self) -> str:
         buf = io.StringIO()
         w = csv.writer(buf, delimiter=";")
-        w.writerow(CSV_FIELDS)
+        w.writerow([self.tr(f) for f in CSV_FIELDS])
 
         def n(v, d=2):
-            return "" if v is None else f"{v:.{d}f}".replace(".", ",")
+            return "" if v is None else self._dec(f"{v:.{d}f}")
 
         for e in self.entries_with_stats():
             t = dt_util.as_local(dt_util.utc_from_timestamp(e["ts"]))
-            w.writerow([self.name, self.plate, "Zubehör" if e.get("kind") == "extra" else ("Strom" if self.electric else "Kraftstoff"), e.get("item") or "", t.strftime("%d.%m.%Y"), t.strftime("%H:%M"), n(e.get("odometer"), 0), e.get("station") or "", e.get("address") or "", n(e.get("lat"), 6), n(e.get("lon"), 6), n(e.get("level_from"), 0), n(e.get("level_to"), 0), n(e.get("quantity")), (e.get("unit") or "") if e.get("kind") == "extra" else self.unit, n(e.get("unit_price"), 3), n(e.get("total")), e.get("quantity_source") or "", e.get("price_source") or "", "ja" if e.get("receipt") else "nein", n(e.get("consumption")), e.get("note") or ""])
+            w.writerow([self.name, self.plate, self.tr("Zubehör") if e.get("kind") == "extra" else (self.tr("Strom") if self.electric else self.tr("Kraftstoff")), e.get("item") or "", t.strftime("%d.%m.%Y"), t.strftime("%H:%M"), n(e.get("odometer"), 0), e.get("station") or "", e.get("address") or "", n(e.get("lat"), 6), n(e.get("lon"), 6), n(e.get("level_from"), 0), n(e.get("level_to"), 0), n(e.get("quantity")), (e.get("unit") or "") if e.get("kind") == "extra" else self.unit, n(e.get("unit_price"), 3), n(e.get("total")), e.get("quantity_source") or "", e.get("price_source") or "", "ja" if e.get("receipt") else "nein", n(e.get("consumption")), e.get("note") or ""])
         return buf.getvalue()
 
     # ---------------------------------------------------------------- Speichern

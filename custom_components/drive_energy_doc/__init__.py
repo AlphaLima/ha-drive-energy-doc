@@ -20,7 +20,7 @@ from homeassistant.exceptions import HomeAssistantError
 from homeassistant.loader import async_get_integration
 
 from .const import CONF_KIND, CONF_PLATE, CONF_PLATE_COUNTRY, DOMAIN, KIND_SETTINGS, PANEL_PATH, PANEL_URL, PLATE_CODES, PLATE_NAMES
-from . import plate
+from . import messages, plate
 from .vehicle import Vehicle
 
 _LOGGER = logging.getLogger(__name__)
@@ -39,6 +39,7 @@ def _vehicle(hass: HomeAssistant, entry_id: str) -> Vehicle:
 
 
 async def async_setup(hass: HomeAssistant, config) -> bool:
+    await hass.async_add_executor_job(messages.preload)  # Sprachdateien einmalig lesen
     return True
 
 

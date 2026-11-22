@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.75b1 (Beta)
+- Mehrsprachig: Panel und Bot in 36 Sprachen (alle europäischen Sprachen und Russisch), Sprache der Bot-Antworten je Fahrzeug einstellbar, Kommandos in allen Sprachen verständlich.
+- README: Hinweis auf weiteres Verbrauchsmaterial, Abschnitt Sprachen.
+
 ## 0.1.74b1 (Beta)
 - README zusätzlich auf Englisch.
 - Foto-Betrieb: Tacho-Foto ohne vorhandenen Eintrag legt einen neuen an; README beschreibt den Betrieb ohne Auto-Anbindung (Flottenmanagement).

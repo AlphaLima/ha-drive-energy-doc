@@ -12,6 +12,8 @@ from datetime import date, datetime
 from pathlib import Path
 from typing import Any
 
+from . import messages
+
 _LOGGER = logging.getLogger(__name__)
 
 _NUM = re.compile(r"\d+(?:[.,]\d+)?")
@@ -56,35 +58,36 @@ def parse_text(text: str) -> dict[str, Any] | None:
     return {"quantity": qty, "unit_price": price, "total": total, "date": parse_date_hint(text)}
 
 
-_KM_A = re.compile(r"(?is)^\s*(?:km|kilometer(?:stand)?|tacho|odometer)\b[:=\s]*(\d{1,3}(?:[. ]\d{3})+|\d{3,7})(?:[.,]\d+)?\s*(?:km)?\s*$")
 _KM_B = re.compile(r"(?is)^\s*(\d{1,3}(?:[. ]\d{3})+|\d{4,7})\s*km\s*$")
+
+
+def _alt(words) -> str:
+    return "|".join(re.escape(w) for w in sorted(words, key=len, reverse=True))
 
 
 def parse_km(text: str) -> float | None:
     """'km 54210', 'Kilometerstand: 54.210', 'tacho 54 210' oder '54210 km' -> 54210.0, sonst None."""
-    m = _KM_A.match(text or "") or _KM_B.match(text or "")
+    km_a = re.compile(r"(?is)^\s*(?:" + _alt(messages.keywords("km")) + r")(?![^\W\d_])[:=\s]*(\d{1,3}(?:[. ]\d{3})+|\d{3,7})(?:[.,]\d+)?\s*(?:km)?\s*$")
+    m = km_a.match(text or "") or _KM_B.match(text or "")
     return float(re.sub(r"[. ]", "", m.group(1))) if m else None
 
-
-ALIASES = {
-    "adblue": "AdBlue", "ad blue": "AdBlue", "ad-blue": "AdBlue", "motoröl": "Motoröl", "motoroel": "Motoröl", "öl": "Öl", "oel": "Öl",
-    "scheibenwischer": "Scheibenwischer", "wischer": "Scheibenwischer", "scheibenwasser": "Scheibenwasser", "frostschutz": "Frostschutz",
-}
 
 
 def parse_extra(text: str) -> tuple[str, str] | None:
     """Zubehör-Nachricht erkennen: 'zubehör Öl 1 9,50', 'extra Scheibenwischer 24,90' oder Kurzwort ('adblue 5,2 12,50').
-    Rückgabe (Bezeichnung, Rest mit den Zahlen) oder None."""
+    Rückgabe (Bezeichnung, Rest mit den Zahlen) oder None; die Bezeichnung ist leer, wenn keine genannt wurde.
+    Die Stichwörter stammen aus allen Sprachen (messages.py)."""
     t = (text or "").strip()
-    m = re.match(r"(?is)(?:(?:zubeh(?:ö|oe)r|zub|extra|z|e|x)(?=[:\s]|$)|\+)[:\s]*(.*)$", t)
+    m = re.match(r"(?is)(?:(?:" + _alt(messages.keywords("extra")) + r")(?=[:\s]|$)|\+)[:\s]*(.*)$", t)
     if m:
         mm = re.match(r"(?s)([^\d]*?)\s*(\d.*)?$", m.group(1))
         item = (mm.group(1) or "").strip(" :-,.")
-        return (item or "Zubehör"), (mm.group(2) or "")
+        return item, (mm.group(2) or "")
     low = t.lower()
-    for key in sorted(ALIASES, key=len, reverse=True):
+    aliases = messages.items()
+    for key in sorted(aliases, key=len, reverse=True):
         if re.match(re.escape(key) + r"(?![\w-])", low):
-            return ALIASES[key], t[len(key):].lstrip(" :")
+            return aliases[key][0], t[len(key):].lstrip(" :")
     return None
 
 

@@ -43,6 +43,7 @@
           "image_entity": "Vehicle picture (optional, otherwise automatic)",
           "license_plate": "License plate (optional)",
           "vehicle_type": "Vehicle type (e.g. BMW X1 20d, optional)",
+          "language": "Language of the bot's replies (empty = Home Assistant language)",
           "image_upload": "Upload a vehicle picture (alternative to the image entity, takes precedence)",
           "image_remove": "Remove uploaded picture",
           "plate_country": "Country of the plate"
@@ -159,6 +160,7 @@
           "image_entity": "Vehicle picture (optional, otherwise automatic)",
           "license_plate": "License plate (optional)",
           "vehicle_type": "Vehicle type (e.g. BMW X1 20d, optional)",
+          "language": "Language of the bot's replies (empty = Home Assistant language)",
           "image_upload": "Upload a vehicle picture (alternative to the image entity, takes precedence)",
           "image_remove": "Remove uploaded picture",
           "plate_country": "Country of the plate"
