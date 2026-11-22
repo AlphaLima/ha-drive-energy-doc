@@ -43,6 +43,8 @@ Alles landet in einer Liste im Seitenmenü (mit CSV- und PDF-Druck).
 
 *Das Panel (Beispieldaten): Fahrzeugkopf, Kennzahlen, großer Foto-Knopf und die Liste mit Belegfotos.*
 
+> **Hinweis: Alle Screenshots, Beispiele und Testbilder in diesem Projekt zeigen frei erfundene Dummydaten.** Kennzeichen, Tankstellen, Adressen, Belege, Preise und Kilometerstände sind ausgedacht und gehören zu keinem echten Fahrzeug, keiner echten Person und keiner echten Tankstelle. Ähnlichkeiten mit echten Kennzeichen oder Orten sind Zufall.
+
 <table>
 <tr>
 <td align="center"><img src="docs/panel-lesen.png" alt="Beleg wird gelesen" width="300"><br><sub>Die KI liest den Beleg (mit Lupe)</sub></td>
@@ -380,6 +382,8 @@ Everything ends up in one list in the sidebar (with CSV and PDF printing).
 ![The panel with vehicle header, key figures and list](docs/panel-liste.png)
 
 *The panel (sample data): vehicle header, key figures, big photo button and the list with receipt photos.*
+
+> **Note: All screenshots, examples and test images in this project show entirely fictional dummy data.** Licence plates, filling stations, addresses, receipts, prices and odometer readings are made up and belong to no real vehicle, no real person and no real filling station. Any resemblance to real plates or places is coincidental.
 
 <table>
 <tr>

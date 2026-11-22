@@ -4,7 +4,7 @@
 
 ## Deutsch
 
-20 **frei erfundene** Foto-Paare zum Ausprobieren von Drive Energy Doc. Es sind keine echten Belege, Orte, Tankstellen, Kennzeichen oder Kilometerstände.
+20 **frei erfundene** Foto-Paare zum Ausprobieren von Drive Energy Doc. Es sind **nur Dummydaten**: keine echten Belege, Orte, Tankstellen, Kennzeichen oder Kilometerstände, Ähnlichkeiten sind Zufall.
 Die Bilder wurden mit einem Skript gezeichnet und danach wie Handyfotos verfremdet (Perspektive, Licht, Unschärfe, Rauschen, Spiegelungen).
 
 ### Was ist drin
@@ -79,7 +79,7 @@ Die Bilder dürfen frei verwendet werden (Lizenz wie das Projekt, MIT).
 
 ## English
 
-20 **entirely fictional** photo pairs for trying out Drive Energy Doc. No real receipts, places, stations, plates or odometer readings.
+20 **entirely fictional** photo pairs for trying out Drive Energy Doc. **Dummy data only**: no real receipts, places, stations, plates or odometer readings; any resemblance is coincidental.
 The images were drawn by a script and then degraded like phone photos (perspective, light, blur, noise, reflections).
 
 ### What is in it
