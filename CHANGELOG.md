@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.1.75b29 (unveröffentlicht)
+- Seitenleiste: Das Panel heißt auf Deutsch „Tankbuch“, in den anderen Sprachen entsprechend (nach der Systemsprache von Home Assistant, z. B. „Fuel log“).
+
 ## 0.1.75b28 (unveröffentlicht)
 - Panel: Das zuletzt gewählte Fahrzeug wird gemerkt (pro Browser) und beim nächsten Öffnen wieder ausgewählt.
 

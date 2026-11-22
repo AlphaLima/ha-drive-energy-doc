@@ -95,3 +95,20 @@ def decimal(lang: str | None) -> str:
     if code == "de":
         return ","
     return ((_CACHE.get(code) or {}).get("kw.decimal") or ("." if code == "en" else ",")).strip() or ","
+
+
+# Name des Panels in der Seitenleiste (Home Assistant erlaubt dort nur einen Text für alle Benutzer: es gilt die Systemsprache)
+PANEL_TITLE = {
+    "de": "Tankbuch", "en": "Fuel log", "fr": "Carnet de carburant", "es": "Registro de repostajes", "it": "Registro rifornimenti", "nl": "Tankboekje",
+    "pt": "Registo de abastecimentos", "pl": "Dziennik tankowań", "cs": "Kniha tankování", "sk": "Kniha tankovania", "sl": "Dnevnik točenja",
+    "hr": "Dnevnik točenja", "sr": "Дневник точења", "bs": "Dnevnik točenja", "mk": "Дневник на полнење", "bg": "Дневник на зареждането",
+    "uk": "Журнал заправок", "be": "Журнал запраўкі", "ru": "Журнал заправок", "ro": "Jurnal alimentări", "hu": "Tankolási napló",
+    "el": "Ημερολόγιο καυσίμων", "tr": "Yakıt defteri", "sq": "Ditari i karburantit", "lt": "Degalų žurnalas", "lv": "Degvielas žurnāls",
+    "et": "Tankimispäevik", "fi": "Tankkauspäiväkirja", "sv": "Tankbok", "da": "Tankbog", "nb": "Tankbok", "is": "Eldsneytisbók",
+    "ga": "Dialann breosla", "mt": "Reġistru tal-fuel", "lb": "Tankbuch", "ca": "Registre de combustible",
+}
+
+
+def panel_title(lang: str | None) -> str:
+    """Seitenleisten-Name in der Sprache ``lang`` (Standard Englisch)."""
+    return PANEL_TITLE.get(base(lang), PANEL_TITLE["en"])

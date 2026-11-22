@@ -89,7 +89,7 @@ async def _register_once(hass: HomeAssistant) -> None:
             hass,
             webcomponent_name="drive-energy-doc-panel",
             frontend_url_path=PANEL_PATH,
-            sidebar_title="Drive Energy Doc",
+            sidebar_title=messages.panel_title(hass.config.language),
             sidebar_icon="mdi:gas-station",
             module_url=f"{PANEL_URL}?v={version}",
             embed_iframe=False,

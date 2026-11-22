@@ -103,6 +103,11 @@ def test_time_and_text_from_ai():
     assert r.clean_text("Kuster Energy" + nl + " Tankstelle ", 60) == "Kuster Energy Tankstelle" and r.clean_text("null", 10) is None and r.clean_text(None, 10) is None
 
 
+def test_panel_titles_for_all_languages():
+    assert messages.panel_title("de") == "Tankbuch" and messages.panel_title("en-GB") == "Fuel log" and messages.panel_title("no") == messages.panel_title("nb")
+    assert not set(messages.languages()) - set(messages.PANEL_TITLE)
+
+
 for n, f in list(globals().items()):
     if n.startswith("test_"):
         f(); print("ok", n)

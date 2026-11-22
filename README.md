@@ -209,7 +209,7 @@ Elektroautos funktionieren genauso wie Verbrenner; die Unterschiede im Überblic
 
 ## Das Panel
 
-Nach der Einrichtung erscheint **„Drive Energy Doc“** in der Seitenleiste:
+Nach der Einrichtung erscheint das Panel in der Seitenleiste, benannt nach der Systemsprache von Home Assistant (Deutsch **„Tankbuch“**, Englisch „Fuel log“, Französisch „Carnet de carburant“ …):
 - Liste aller Tanken/Ladungen und Zubehör je Fahrzeug, Spalten verschiebbar und in der Breite änderbar.
 - Kennzeichen-Darstellung (alle europäischen Länder, EU-Ring bzw. gelb für NL/GB), Fahrzeugbild und -typ in der Kopfzeile. Bei mehreren Fahrzeugen öffnet ein Klick auf den Kopfbereich (Logo, Fahrzeugtyp, Kennzeichen) einen Auswahldialog mit allen Fahrzeugen. Kennzeichen und Land stellst du in der Konfiguration des Fahrzeugs ein.
 - Belegfotos und Tacho-Fotos mit Vorschau beim Überfahren, Löschen mit Rückfrage; Foto-Upload.
@@ -451,7 +451,7 @@ Electric cars work just like combustion cars; the differences at a glance:
 
 ## The panel
 
-After setup, **"Drive Energy Doc"** appears in the sidebar:
+After setup the panel appears in the sidebar, named after the Home Assistant system language (German **"Tankbuch"**, English "Fuel log", French "Carnet de carburant", …):
 - List of all refuellings/charges and accessories per vehicle; columns can be reordered and resized.
 - Licence plate display (all European countries, EU ring or yellow for NL/GB), vehicle picture and type in the header. With several vehicles a click on the header area (logo, vehicle type, plate) opens a dialog to choose among all vehicles. You set the plate and its country in the vehicle's configuration.
 - Receipt and odometer photos with a preview on hover (several photos: a picker), delete with confirmation, photo upload.
