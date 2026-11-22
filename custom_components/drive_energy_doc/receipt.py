@@ -195,7 +195,7 @@ async def ai_read(hass, entity_id: str, image: bytes, media_dir: Path) -> dict[s
     box = [int(float(x)) for x in re.findall(r"\d+(?:\.\d+)?", str(data.get("crop") or ""))]
     if len(box) == 4 and box[2] > box[0] and box[3] > box[1] and all(0 <= b <= 1000 for b in box):
         out["crop"] = box
-    return out if (out["quantity"] or out["total"]) else None
+    return out if (out["quantity"] or out["total"] or out["odometer"]) else None   # ein Tacho-Foto hat nur den Kilometerstand
 
 
 def auto_box(img) -> list[int] | None:
