@@ -1,7 +1,7 @@
 /* Drive-Energy-Doc-Panel: Fahrzeug-Reiter, Tankliste mit Belegfotos, Bearbeiten, CSV-Export */
 const COLS = ["date", "km", "station", "qty", "price", "total", "cons", "receipt", "note", "act"];
 
-const VERSION = "0.1.75b12";
+const VERSION = "0.1.75b13";
 
 class DriveEnergyDocPanel extends HTMLElement {
   set hass(h) {
@@ -286,9 +286,10 @@ class DriveEnergyDocPanel extends HTMLElement {
       .plate{white-space:nowrap;flex:none}
       .chip{flex:none;white-space:nowrap;background:var(--primary-color);color:var(--text-primary-color,#fff);border-radius:10px;padding:6px 14px;font-size:16px}
       .plateimg{height:40px;width:auto;flex:none}
-      .tabplate{height:34px;cursor:pointer;opacity:.55;border-radius:7px;transition:opacity .15s}.tabplate:hover{opacity:.85}.tabplate.on{opacity:1;outline:3px solid var(--primary-color);outline-offset:2px}
-      .tabname{cursor:pointer;padding:6px 12px;border:1px solid var(--divider-color);border-radius:8px;background:var(--card-background-color)}.tabname.on{background:var(--primary-color);color:var(--text-primary-color,#fff);border-color:var(--primary-color)}
-      .tabs{align-items:center}
+      .tabs{align-items:center;gap:18px}
+      .vsel{display:inline-flex;align-items:center;gap:10px;cursor:pointer;opacity:.55;transition:opacity .15s;padding:4px 6px;border-radius:10px}.vsel:hover{opacity:.85}.vsel.on{opacity:1}
+      .tabplate{height:34px;border-radius:7px}.vsel.on .tabplate{outline:3px solid var(--primary-color);outline-offset:2px}
+      .vtype{font-size:15px}.vsel.on .vtype{font-weight:600}
       .plate{display:inline-flex;align-items:stretch;border:2px solid #111;border-radius:6px;background:#fff;color:#111;font:600 16px/1.5 Arial,sans-serif;letter-spacing:1px;overflow:hidden}
       .plate i{display:flex;align-items:center;justify-content:center;min-width:16px;padding:0 5px;background:#003399;color:#fff;font:600 10px/1 Arial,sans-serif;font-style:normal;letter-spacing:0}
       .plate b{font-weight:600;padding:0 12px}
@@ -403,7 +404,7 @@ class DriveEnergyDocPanel extends HTMLElement {
     }).join("");
     this.shadowRoot.innerHTML = `<style>${css}</style>
       <div class="head"><div class="ttl"><img class="logo" src="/drive_energy_doc_static/icon.png?v=${VERSION}" alt=""><div><div class="app">Drive Energy Doc</div><h1>${this._esc(this._title(v))}</h1></div>${v.plate ? this._plate(v) : ""}</div>${pic ? `<img class="car" src="${pic}" alt="${this._esc(v.name)}">` : ""}</div>
-      ${d.length > 1 ? `<div class="tabs">${d.map((x, i) => x.plate ? this._plate(x, true).replace("<img ", `<img data-tab="${i}" title="${this._esc(x.name)}" `).replace('class="plateimg tabplate"', `class="plateimg tabplate${i === this._tab ? " on" : ""}"`) : `<span class="tabname${i === this._tab ? " on" : ""}" data-tab="${i}">${this._esc(x.name)}</span>`).join("")}</div>` : ""}
+      ${d.length > 1 ? `<div class="tabs">${d.map((x, i) => `<span class="vsel${i === this._tab ? " on" : ""}" data-tab="${i}" role="button" tabindex="0" title="${this._esc(x.name)}">${x.plate ? this._plate(x, true) : ""}<span class="vtype">${this._esc(this._title(x))}</span></span>`).join("")}</div>` : ""}
       <div class="sum">
         <div><b>${this._fmt(s.avg_consumption)}</b><span>${u}/100 ${this.T("km")} (${this.T("Ø letzte 5")})</span></div>
         <div><b>${this._fmt(s.cost_12m)} €</b><span>${this.T("Kosten 12 Monate")}</span></div>

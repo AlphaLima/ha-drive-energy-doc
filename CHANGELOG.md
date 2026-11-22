@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.1.75b13 (unveröffentlicht)
+- Panel: In der Fahrzeugauswahl wählt auch ein Klick auf den Fahrzeugtyp neben dem Kennzeichen das Fahrzeug aus.
+
 ## 0.1.75b12 (unveröffentlicht)
 - Panel: Fahrzeugauswahl nur noch über das Kennzeichen (angeklicktes Schild wird hervorgehoben, keine eigenen Knöpfe); Fahrzeuge ohne Kennzeichen erscheinen mit ihrem Namen.
 
