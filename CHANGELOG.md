@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.1.68
+- Panel (Handy): noch kompaktere Karten, Uhrzeit unter dem Datum.
+
 ## 0.1.67
 - Panel: kompakte Kartenansicht der Liste auf schmalen Bildschirmen (Handy).
 

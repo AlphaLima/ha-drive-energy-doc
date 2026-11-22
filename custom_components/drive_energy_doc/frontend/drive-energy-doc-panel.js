@@ -1,7 +1,7 @@
 /* Drive-Energy-Doc-Panel: Fahrzeug-Reiter, Tankliste mit Belegfotos, Bearbeiten, CSV-Export */
 const COLS = ["date", "km", "station", "qty", "price", "total", "cons", "receipt", "note", "act"];
 
-const VERSION = "0.1.67";
+const VERSION = "0.1.68";
 
 class DriveEnergyDocPanel extends HTMLElement {
   set hass(h) {
@@ -299,26 +299,31 @@ class DriveEnergyDocPanel extends HTMLElement {
       table.fx{table-layout:fixed}
       table.fx td,table.fx th{overflow:hidden;text-overflow:ellipsis}
       .bar{display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap}
+      .tm::before{content:", "}
       @media(max-width:700px){
-        :host{padding:10px}
-        .head{gap:12px}
-        .sum{gap:8px}.sum div{flex:1 1 42%;min-width:0;padding:8px 10px}.sum b{font-size:17px}
+        :host{padding:8px}
+        .head{gap:8px}
+        .sum{gap:6px;margin-bottom:8px}.sum div{flex:1 1 40%;min-width:0;padding:6px 10px}.sum b{font-size:16px}
+        .bar{margin-bottom:8px}
         .wrap{background:none;overflow:visible}
         table,table.fx{display:block;width:100%!important}
         colgroup,thead{display:none}
         tbody{display:block}
-        tr{display:grid;grid-template-columns:repeat(4,auto);justify-content:space-between;align-items:center;gap:2px 10px;margin-bottom:10px;padding:10px 12px;background:var(--card-background-color);border-radius:10px;
-           grid-template-areas:"date date total total" "station station station station" "qty price km cons" "receipt note act act"}
+        tr{display:grid;grid-template-columns:64px 1fr auto auto;justify-content:stretch;align-items:center;gap:1px 10px;margin-bottom:6px;padding:7px 10px;background:var(--card-background-color);border-radius:10px;
+           grid-template-areas:"date station station total" "qty price km cons" "receipt note act act"}
         td,td.n{display:block;padding:0;border:0;white-space:normal;text-align:left;overflow:visible!important;text-overflow:clip!important;min-width:0}
         td:empty{display:none}
-        td[data-c=date]{grid-area:date;color:var(--secondary-text-color);font-size:13px}
-        td[data-c=total]{grid-area:total;text-align:right;font-size:17px;font-weight:600}
-        td[data-c=station]{grid-area:station;padding:2px 0 4px}
+        td[data-c=date]{grid-area:date;color:var(--secondary-text-color);font-size:12px;line-height:1.25}
+        .tm{display:block}.tm::before{content:none}
+        td[data-c=total]{grid-area:total;text-align:right;font-size:16px;font-weight:600}
+        td[data-c=station]{grid-area:station;font-size:13px;line-height:1.25}
+        td[data-c=station] .gps,td[data-c=qty] .src,td[data-c=price] .src{display:none}
         td[data-c=qty]{grid-area:qty}td[data-c=price]{grid-area:price}td[data-c=km]{grid-area:km}td[data-c=cons]{grid-area:cons}
-        td[data-c=km]::after{content:" km"}td[data-c=cons]::after{content:" /100 km"}
-        td[data-c=receipt]{grid-area:receipt;padding-top:6px}td[data-c=note]{grid-area:note;padding-top:6px;font-size:12px}
-        td[data-c=act]{grid-area:act;justify-self:end;padding-top:6px;white-space:nowrap}
-        td[data-c=act] button{padding:5px 8px}
+        td[data-c=qty],td[data-c=price],td[data-c=km],td[data-c=cons]{font-size:12px;color:var(--secondary-text-color)}
+        td[data-c=price]::after{content:" €"}td[data-c=km]::after{content:" km"}td[data-c=cons]::after{content:" /100 km"}
+        td[data-c=receipt]{grid-area:receipt;padding-top:4px}td[data-c=note]{grid-area:note;padding-top:4px;font-size:12px}
+        td[data-c=act]{grid-area:act;justify-self:end;padding-top:4px;white-space:nowrap}
+        td[data-c=act] button{padding:3px 7px}
       }
     `;
     this._pvHide();
@@ -332,7 +337,7 @@ class DriveEnergyDocPanel extends HTMLElement {
     const order = this._order();
     const rows = v.entries.map(e => {
       const cell = {
-        date: `<td>${this._date(e.ts)}</td>`,
+        date: `<td><span>${this._date(e.ts).split(", ")[0]}</span><span class="tm">${this._date(e.ts).split(", ")[1] || ""}</span></td>`,
         km: `<td class="n">${e.odometer != null ? this._fmt(e.odometer, 0) : "–"}</td>`,
         station: `<td>${e.kind === "extra" ? `<span class="tag">${this._esc(e.item || "Zubehör")}</span> ` : ""}${this._esc(e.station || "")}<div class="src">${this._esc(e.address || "")}</div><div class="src gps">${this._gps(e)}</div></td>`,
         qty: `<td class="n">${e.quantity != null ? this._fmt(e.quantity) + " " + (e.kind === "extra" ? (e.unit || "") : u) : "–"}<div class="src">${e.level_from != null && e.level_to != null ? Math.round(e.level_from) + "→" + Math.round(e.level_to) + " %" : (e.increase != null ? "+" + Math.round(e.increase) + " %" : "")} ${this._esc(e.quantity_source || "")}</div></td>`,
