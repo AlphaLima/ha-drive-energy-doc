@@ -227,8 +227,7 @@ Nachricht einspeisen) und `drive_energy_doc.test_message`.
 
 ## Installation und Einrichtung
 
-**HACS:** Repository `AlphaLima/ha-drive-energy-doc` als benutzerdefiniertes Repository (Kategorie *Integration*) hinzufügen,
-installieren, HA neu starten. **Manuell:** den Ordner `custom_components/drive_energy_doc` nach `config/custom_components/` kopieren,
+**Marketplace / HACS:** Im Marketplace von Home Assistant (ab 2026.11; vorher in HACS) das Repository `AlphaLima/ha-drive-energy-doc` als benutzerdefiniertes Repository hinzufügen (Typ *Integration*; dafür wird ein GitHub-Konto verbunden), installieren, HA neu starten. Updates erscheinen dort, sobald ein neues Release veröffentlicht ist; Beta-Versionen sieht nur, wer Vorabversionen anzeigen lässt. **Manuell:** den Ordner `custom_components/drive_energy_doc` nach `config/custom_components/` kopieren,
 HA neu starten.
 
 Dann *Einstellungen → Geräte & Dienste → Integration hinzufügen → Drive Energy Doc*:
@@ -470,7 +469,7 @@ Per vehicle: **status**, **last refuelling**, **last price**, **consumption** (a
 
 ## Installation and setup
 
-**HACS:** add the repository `AlphaLima/ha-drive-energy-doc` as a custom repository (category *Integration*), install, restart HA. **Manually:** copy the folder `custom_components/drive_energy_doc` to `config/custom_components/` and restart HA.
+**Marketplace / HACS:** In the Home Assistant Marketplace (from 2026.11; before that in HACS) add the repository `AlphaLima/ha-drive-energy-doc` as a custom repository (type *Integration*; this connects a GitHub account), install, restart HA. Updates appear there as soon as a new release is published; beta versions are only shown to those who enable pre-releases. **Manually:** copy the folder `custom_components/drive_energy_doc` to `config/custom_components/` and restart HA.
 
 Then *Settings → Devices & services → Add integration → Drive Energy Doc*:
 

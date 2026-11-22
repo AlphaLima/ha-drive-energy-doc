@@ -20,6 +20,7 @@ DEFAULT = {
     "config_flow": True,
     "dependencies": ["http", "websocket_api", "frontend", "panel_custom", "file_upload"],
     "after_dependencies": ["ai_task"],
+    "categories": ["vehicles_transport.cars_evs", "energy.ev_charging"],
     "documentation": "https://github.com/AlphaLima/ha-drive-energy-doc",
     "integration_type": "service",
     "iot_class": "cloud_polling",
