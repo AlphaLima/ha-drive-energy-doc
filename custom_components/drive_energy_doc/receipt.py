@@ -123,21 +123,28 @@ def plausible(values: dict[str, Any]) -> bool:
 
 
 STRUCTURE = {
-    "quantity": {"description": "Getankte Menge (Liter bzw. kWh) als Zahl, Punkt als Dezimaltrenner", "required": False, "selector": {"number": {"mode": "box", "step": "any"}}},
-    "unit_price": {"description": "Preis pro Liter bzw. kWh in EUR als Zahl", "required": False, "selector": {"number": {"mode": "box", "step": "any"}}},
-    "total": {"description": "Gesamtbetrag in EUR als Zahl", "required": False, "selector": {"number": {"mode": "box", "step": "any"}}},
-    "odometer": {"description": "Kilometerstand des Fahrzeugs als Zahl, falls auf dem Beleg", "required": False, "selector": {"number": {"mode": "box", "step": "any"}}},
-    "date": {"description": "Datum des Tankvorgangs als DD.MM.YYYY, leer wenn nicht lesbar", "required": False, "selector": {"text": {}}},
-    "time": {"description": "Uhrzeit des Tankvorgangs als HH:MM, leer wenn nicht lesbar", "required": False, "selector": {"text": {}}},
-    "station": {"description": "Name der Tankstelle bzw. des Händlers, wie oben auf dem Beleg gedruckt, leer wenn nicht lesbar", "required": False, "selector": {"text": {}}},
-    "address": {"description": "Anschrift der Tankstelle einzeilig (Straße Hausnummer, PLZ Ort), wie auf dem Beleg gedruckt, leer wenn nicht lesbar", "required": False, "selector": {"text": {}}},
-    "crop": {"description": "Begrenzungsrahmen des Belegs bzw. der Anzeige im Bild: vier Zahlen von 0 bis 1000 durch Komma in der Reihenfolge ymin,xmin,ymax,xmax (Anteile von Bildhöhe und Bildbreite). IMMER angeben, auch wenn der Beleg fast das ganze Bild füllt; nur das Papier bzw. die Anzeige, ohne Tisch oder Hintergrund.", "required": False, "selector": {"text": {}}},
+    "quantity": {"description": "Amount of fuel (litres) or energy (kWh) as a number, dot as decimal separator", "required": False, "selector": {"number": {"mode": "box", "step": "any"}}},
+    "unit_price": {"description": "Price per litre or per kWh as a number (currency of the receipt, normally EUR)", "required": False, "selector": {"number": {"mode": "box", "step": "any"}}},
+    "total": {"description": "Total amount paid as a number", "required": False, "selector": {"number": {"mode": "box", "step": "any"}}},
+    "odometer": {"description": "Odometer reading in km as a number (total distance, not the trip meter), only if shown", "required": False, "selector": {"number": {"mode": "box", "step": "any"}}},
+    "date": {"description": "Date of the transaction as DD.MM.YYYY, empty if not readable", "required": False, "selector": {"text": {}}},
+    "time": {"description": "Time of the transaction as HH:MM (24 hours), empty if not readable", "required": False, "selector": {"text": {}}},
+    "station": {"description": "Name of the filling station or merchant as printed at the top of the receipt, empty if not readable", "required": False, "selector": {"text": {}}},
+    "address": {"description": "Address of the station on one line (street and number, postal code and city) as printed, empty if not readable", "required": False, "selector": {"text": {}}},
+    "crop": {"description": "Bounding box of the receipt or display in the image: four numbers from 0 to 1000 separated by commas in the order ymin,xmin,ymax,xmax (fractions of the image height and width). ALWAYS provide it, even if the receipt fills almost the whole image; only the paper or the display, without table or background.", "required": False, "selector": {"text": {}}},
 }
 
+# Anweisung auf Englisch: funktioniert mit allen KI-Anbietern zuverlässiger, die Belege selbst dürfen in jeder Sprache sein
 INSTRUCTIONS = (
-    "Das Bild zeigt einen Tankbeleg oder eine Zapfsäulen-/Ladesäulenanzeige. "
-    "Lies die getankte Menge, den Preis pro Einheit, den Gesamtbetrag, den Kilometerstand und, falls sichtbar, Datum und Uhrzeit sowie den Namen und die Anschrift der Tankstelle bzw. des Händlers (steht meist oben auf dem Beleg). "
-    "Zeigt das Bild ein Kombiinstrument (Tacho), lies den Gesamtkilometerstand (odometer), nicht den Tageskilometerzähler. Gib nur Werte zurück, die du sicher lesen kannst; sonst lass das Feld leer. Rate nicht. Gib aber immer den Bildausschnitt (crop) an, der nur den Beleg zeigt."
+    "The image shows a fuel or EV-charging receipt, a pump or charger display, or a car instrument cluster. "
+    "The text may be in any language (German, French, Dutch, Polish, Italian, Spanish, and so on). "
+    "Extract: the amount of fuel or energy (litres or kWh; on receipts often labelled Volumen, Menge, Liter, Volume, Quantité, Quantity); "
+    "the price per unit; the total amount paid (Summe, Betrag, Total, Montant); the odometer reading if it is printed on the receipt (Kilometerstand, km); "
+    "the date and time; and the name and address of the filling station or merchant (usually at the top of the receipt). "
+    "If the image shows an instrument cluster, return the total odometer reading (odometer), NOT the trip meter, and leave the other fields empty. "
+    "Numbers: dot as decimal separator, no thousands separators, no currency symbols. "
+    "Only return values you can read with certainty, otherwise leave the field empty. Never guess and never calculate missing values. "
+    "Always return the crop box that contains only the receipt or the display."
 )
 
 
@@ -160,7 +167,7 @@ async def ai_read(hass, entity_id: str, image: bytes, media_dir: Path) -> dict[s
                 "generate_data",
                 {
                     "entity_id": entity_id,
-                    "task_name": "tankbeleg",
+                    "task_name": "fuel_receipt",
                     "instructions": INSTRUCTIONS,
                     "structure": STRUCTURE,
                     "attachments": [{"media_content_id": f"media-source://media_source/local/drive_energy_doc_tmp/{name}", "media_content_type": "image/jpeg"}],

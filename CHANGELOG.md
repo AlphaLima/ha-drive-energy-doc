@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.1.75b26 (unveröffentlicht)
+- Anfrage an die KI jetzt auf Englisch (Anweisung und Feldbeschreibungen), mit Hinweisen zu Beleg-Begriffen in mehreren Sprachen; besser für andere KI-Anbieter.
+
 ## 0.1.75b25 (unveröffentlicht)
 - Beleg per KI: Name und Anschrift der Tankstelle sowie die Uhrzeit werden mitgelesen und in den Eintrag übernommen (bisher blieb die Tankstelle leer, die Zeit stand auf 12:00).
 
