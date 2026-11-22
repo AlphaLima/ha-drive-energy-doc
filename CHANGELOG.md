@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.1.75b24 (unveröffentlicht)
+- Panel: Der Warte-Dialog zeigt den Beleg, der gerade gelesen wird, mit einer wandernden Lupe.
+
 ## 0.1.75b23 (unveröffentlicht)
 - Panel: Der Warte-Dialog nach dem Upload zeigt das Bild des Fahrzeugs.
 

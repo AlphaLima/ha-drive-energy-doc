@@ -1,7 +1,7 @@
 /* Drive-Energy-Doc-Panel: Fahrzeug-Reiter, Tankliste mit Belegfotos, Bearbeiten, CSV-Export */
 const COLS = ["date", "km", "station", "qty", "price", "total", "cons", "receipt", "note", "act"];
 
-const VERSION = "0.1.75b23";
+const VERSION = "0.1.75b24";
 
 class DriveEnergyDocPanel extends HTMLElement {
   set hass(h) {
@@ -335,7 +335,10 @@ class DriveEnergyDocPanel extends HTMLElement {
       .pvp{height:60px;align-self:flex-start}
       .busy{position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;z-index:120}
       .busy .card{background:var(--card-background-color,#fff);color:var(--primary-text-color);border-radius:14px;padding:22px 28px;display:flex;flex-direction:column;align-items:center;gap:14px;font-size:16px;max-width:min(90vw,420px)}
-      .busy .brow{display:flex;align-items:center;gap:16px}.bpic{max-width:100%;max-height:150px;object-fit:contain}
+      .busy .brow{display:flex;align-items:center;gap:16px}.bpic{max-width:100%;max-height:90px;object-fit:contain}
+      .scan{position:relative;line-height:0;border-radius:8px;overflow:hidden;box-shadow:0 1px 6px #0004}.scan img{max-width:min(78vw,340px);max-height:min(38vh,300px);object-fit:contain;display:block}
+      .lupe{position:absolute;width:76px;height:76px;left:8%;top:6%;animation:lupe 4.2s ease-in-out infinite;filter:drop-shadow(0 3px 4px #0006)}
+      @keyframes lupe{0%{left:6%;top:4%}20%{left:52%;top:10%}40%{left:20%;top:34%}60%{left:56%;top:46%}80%{left:14%;top:62%}100%{left:6%;top:4%}}
       .spin{width:26px;height:26px;border:4px solid var(--divider-color);border-top-color:var(--primary-color);border-radius:50%;animation:sp 1s linear infinite}@keyframes sp{to{transform:rotate(360deg)}}
       .dlg textarea{font:inherit;min-height:120px;padding:8px 10px;border:1px solid var(--divider-color);border-radius:8px;background:var(--primary-background-color);color:inherit;resize:vertical}
       .dlg .big{justify-content:center;font-size:17px;padding:16px 12px}
@@ -566,7 +569,8 @@ class DriveEnergyDocPanel extends HTMLElement {
     const busy = document.createElement("div");
     busy.className = "busy";
     const pic = this._pic(v);
-    busy.innerHTML = `<div class="card">${pic ? `<img class="bpic" src="${pic}" alt="">` : ""}<div class="brow"><div class="spin"></div><div>${this.T("Beleg wird gelesen …")}</div></div></div>`;
+    const shot = file ? URL.createObjectURL(file) : "";   // das Foto, das gerade untersucht wird, mit wandernder Lupe
+    busy.innerHTML = `<div class="card">${pic ? `<img class="bpic" src="${pic}" alt="">` : ""}${shot ? `<div class="scan"><img src="${shot}" alt=""><svg class="lupe" viewBox="0 0 64 64" aria-hidden="true"><circle cx="26" cy="26" r="19" fill="rgba(255,255,255,.28)" stroke="#1b1b1b" stroke-width="5"/><path d="M40 40 L58 58" stroke="#1b1b1b" stroke-width="8" stroke-linecap="round"/><path d="M15 20 A13 13 0 0 1 24 12" stroke="rgba(255,255,255,.9)" stroke-width="3" fill="none" stroke-linecap="round"/></svg></div>` : ""}<div class="brow"><div class="spin"></div><div>${this.T("Beleg wird gelesen …")}</div></div></div>`;
     this.shadowRoot.appendChild(busy);
     const fd = new FormData();
     if (file) fd.append("file", file, file.name || "beleg.jpg");
@@ -581,7 +585,7 @@ class DriveEnergyDocPanel extends HTMLElement {
         if (ans) return this._send(v, null, ans);
       } else alert(msg);
     } catch (e) { alert(this.T("Upload fehlgeschlagen: ") + (e.message || e)); }
-    finally { busy.remove(); }
+    finally { busy.remove(); if (shot) URL.revokeObjectURL(shot); }
     this._load();
   }
 
