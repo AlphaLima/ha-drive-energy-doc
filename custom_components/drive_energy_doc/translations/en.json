@@ -32,7 +32,7 @@
       },
       "vehicle": {
         "title": "Add vehicle",
-        "description": "{plate_preview}\n\nChoose the country of the plate. After “OK” you see the plate drawn with the chosen country before anything is saved.",
+        "description": "You set the licence plate and its country later in the panel (the “licence plate” button above the list).",
         "data": {
           "name": "Name",
           "energy": "Fuel / drive",
@@ -41,12 +41,10 @@
           "tracker_entity": "GPS position (device_tracker, optional)",
           "capacity": "Tank / battery capacity (l / kWh)",
           "image_entity": "Vehicle picture (optional, otherwise automatic)",
-          "license_plate": "License plate (optional)",
           "vehicle_type": "Vehicle type (e.g. BMW X1 20d, optional)",
           "language": "Language of the bot's replies (empty = Home Assistant language)",
           "image_upload": "Upload a vehicle picture (alternative to the image entity, takes precedence)",
-          "image_remove": "Remove uploaded picture",
-          "plate_country": "Country of the plate"
+          "image_remove": "Remove uploaded picture"
         }
       },
       "messaging": {
@@ -78,13 +76,6 @@
               "test": "Send test message"
             }
           }
-        }
-      },
-      "plate_preview": {
-        "title": "Check the plate",
-        "description": "{plate_preview}\n\nThis is how the plate is drawn with the chosen country. Does it fit?",
-        "data": {
-          "ok": "Fits, save (untick to go back and change it)"
         }
       },
       "messaging_result": {
@@ -149,7 +140,7 @@
       },
       "basic": {
         "title": "Vehicle data",
-        "description": "{plate_preview}\n\nChoose the country of the plate. After “OK” you see the plate drawn with the chosen country before anything is saved.",
+        "description": "You set the licence plate and its country later in the panel (the “licence plate” button above the list).",
         "data": {
           "name": "Name",
           "energy": "Fuel / drive",
@@ -158,12 +149,10 @@
           "tracker_entity": "GPS position (device_tracker, optional)",
           "capacity": "Tank / battery capacity (l / kWh)",
           "image_entity": "Vehicle picture (optional, otherwise automatic)",
-          "license_plate": "License plate (optional)",
           "vehicle_type": "Vehicle type (e.g. BMW X1 20d, optional)",
           "language": "Language of the bot's replies (empty = Home Assistant language)",
           "image_upload": "Upload a vehicle picture (alternative to the image entity, takes precedence)",
-          "image_remove": "Remove uploaded picture",
-          "plate_country": "Country of the plate"
+          "image_remove": "Remove uploaded picture"
         }
       },
       "messaging": {
@@ -205,13 +194,6 @@
           "settle_seconds": "Quiet time without increase (s)",
           "min_distance": "Minimum distance from fuel stop (m)",
           "require_distance": "Require distance from fuel stop to finish"
-        }
-      },
-      "plate_preview": {
-        "title": "Check the plate",
-        "description": "{plate_preview}\n\nThis is how the plate is drawn with the chosen country. Does it fit?",
-        "data": {
-          "ok": "Fits, save (untick to go back and change it)"
         }
       },
       "messaging_result": {

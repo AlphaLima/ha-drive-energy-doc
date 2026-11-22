@@ -32,7 +32,7 @@
       },
       "vehicle": {
         "title": "Fahrzeug hinzufügen",
-        "description": "{plate_preview}\n\nWähle das Land des Kennzeichens. Nach „OK“ siehst du das Schild mit dem gewählten Land gezeichnet, bevor etwas gespeichert wird.",
+        "description": "Kennzeichen und Land stellst du später im Panel ein (Symbol „Kennzeichen“ über der Liste).",
         "data": {
           "name": "Name",
           "energy": "Kraftstoff / Antrieb",
@@ -41,12 +41,10 @@
           "tracker_entity": "GPS-Position (device_tracker, optional)",
           "capacity": "Tankgröße / Akkukapazität (l / kWh)",
           "image_entity": "Fahrzeugbild (optional, sonst automatisch)",
-          "license_plate": "Kennzeichen (optional)",
           "vehicle_type": "Fahrzeugtyp (z. B. BMW X1 20d, optional)",
           "language": "Sprache der Bot-Antworten (leer = Sprache von Home Assistant)",
           "image_upload": "Fahrzeugbild hochladen (alternativ zur Bild-Entität, hat Vorrang)",
-          "image_remove": "Hochgeladenes Bild entfernen",
-          "plate_country": "Land des Kennzeichens"
+          "image_remove": "Hochgeladenes Bild entfernen"
         }
       },
       "messaging": {
@@ -78,13 +76,6 @@
               "test": "Testnachricht senden"
             }
           }
-        }
-      },
-      "plate_preview": {
-        "title": "Kennzeichen prüfen",
-        "description": "{plate_preview}\n\nSo wird das Kennzeichen mit dem gewählten Land gezeichnet. Passt es?",
-        "data": {
-          "ok": "Passt, speichern (ohne Haken: zurück zum Ändern)"
         }
       },
       "messaging_result": {
@@ -149,7 +140,7 @@
       },
       "basic": {
         "title": "Fahrzeugdaten",
-        "description": "{plate_preview}\n\nWähle das Land des Kennzeichens. Nach „OK“ siehst du das Schild mit dem gewählten Land gezeichnet, bevor etwas gespeichert wird.",
+        "description": "Kennzeichen und Land stellst du später im Panel ein (Symbol „Kennzeichen“ über der Liste).",
         "data": {
           "name": "Name",
           "energy": "Kraftstoff / Antrieb",
@@ -158,12 +149,10 @@
           "tracker_entity": "GPS-Position (device_tracker, optional)",
           "capacity": "Tankgröße / Akkukapazität (l / kWh)",
           "image_entity": "Fahrzeugbild (optional, sonst automatisch)",
-          "license_plate": "Kennzeichen (optional)",
           "vehicle_type": "Fahrzeugtyp (z. B. BMW X1 20d, optional)",
           "language": "Sprache der Bot-Antworten (leer = Sprache von Home Assistant)",
           "image_upload": "Fahrzeugbild hochladen (alternativ zur Bild-Entität, hat Vorrang)",
-          "image_remove": "Hochgeladenes Bild entfernen",
-          "plate_country": "Land des Kennzeichens"
+          "image_remove": "Hochgeladenes Bild entfernen"
         }
       },
       "messaging": {
@@ -205,13 +194,6 @@
           "settle_seconds": "Ruhezeit ohne Zuwachs (s)",
           "min_distance": "Mindestabstand vom Tankort (m)",
           "require_distance": "Zum Beenden Entfernung vom Tankort verlangen"
-        }
-      },
-      "plate_preview": {
-        "title": "Kennzeichen prüfen",
-        "description": "{plate_preview}\n\nSo wird das Kennzeichen mit dem gewählten Land gezeichnet. Passt es?",
-        "data": {
-          "ok": "Passt, speichern (ohne Haken: zurück zum Ändern)"
         }
       },
       "messaging_result": {
