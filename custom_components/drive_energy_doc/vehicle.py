@@ -600,8 +600,14 @@ class Vehicle:
 
     async def _route(self, values: dict, photo: str | None) -> None:
         d = values.get("date")
+        photo_only = not self.o.get(CONF_LEVEL)  # ohne Füllstandssensor: jeder Beleg ohne passenden Eintrag legt einen neuen an
         if d:
             target = self._entry_on(d)
+            if not target and photo_only:
+                target = self._new_manual_entry()
+                target["ts"] = target["ts_start"] = dt_util.start_of_local_day(d).timestamp() + 12 * 3600
+                self.data["entries"].append(target)
+                self.data["entries"].sort(key=lambda x: x["ts"])
             if not target:
                 self.data["awaiting"] = {"values": {**values, "date": None}, "photo": photo, "ts": time.time()}
                 await self._say(f"Zu {d:%d.%m.%Y} gibt es keinen Tankvorgang. Antworte mit einem anderen Datum oder „neu“.")
@@ -613,6 +619,9 @@ class Vehicle:
             return
         else:
             target = self._newest_within(48 * 3600)
+        if target is None and photo_only:
+            target = self._new_manual_entry()
+            self.data["entries"].append(target)
         if target is None:
             self.data["awaiting"] = {"values": {**values, "date": None}, "photo": photo, "ts": time.time()}
             recent = ", ".join(dt_util.as_local(dt_util.utc_from_timestamp(e["ts"])).strftime("%d.%m.") for e in self.data["entries"][-3:])

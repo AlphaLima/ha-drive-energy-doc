@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.1.72
+- Fahrzeug: Füllstand-, Kilometerstand- und GPS-Sensor sind optional (reiner Foto-Betrieb); Belege ohne passenden Eintrag legen dann automatisch einen neuen an.
+
 ## 0.1.71
 - Panel: bei mehreren Fotos Auswahl per Hover/Klick, sichtbare Trennlinien an den Spaltenüberschriften (zum Verschieben der Breite).
 

@@ -86,13 +86,14 @@ def s_basic(d: dict, hass_country: str | None = None) -> vol.Schema:
     default_cc = default_cc if default_cc in PLATE_COUNTRIES else "DE"
     return vol.Schema(
         {
-            # Wichtig (Pflichtangaben): ohne sie erkennt die Integration keinen Tankvorgang
+            # Pflicht: nur Name, Antriebsart und Tank-/Akkugröße. Die Sensoren sind optional:
+            # ohne sie wird nichts automatisch erkannt, Einträge kommen dann nur per Foto/Text/Panel.
             vol.Required(CONF_NAME, default=d.get(CONF_NAME, "")): str,
             vol.Required(CONF_ENERGY, default=d.get(CONF_ENERGY, "diesel")): sel.SelectSelector(sel.SelectSelectorConfig(options=["diesel", "e5", "e10", "electric"], translation_key="energy")),
-            vol.Required(CONF_LEVEL, default=d.get(CONF_LEVEL, vol.UNDEFINED)): _ent(["sensor", "number"]),
-            vol.Required(CONF_ODOMETER, default=d.get(CONF_ODOMETER, vol.UNDEFINED)): _ent(["sensor", "number"]),
-            vol.Required(CONF_TRACKER, default=d.get(CONF_TRACKER, vol.UNDEFINED)): _ent(["device_tracker"]),
             vol.Required(CONF_CAPACITY, default=d.get(CONF_CAPACITY, 50)): _num("l / kWh", 1, 500),
+            _text(CONF_LEVEL, d): _ent(["sensor", "number"]),
+            _text(CONF_ODOMETER, d): _ent(["sensor", "number"]),
+            _text(CONF_TRACKER, d): _ent(["device_tracker"]),
             # Optional (nur Aussehen): Kennzeichen, Land, Typ, Bild
             _text(CONF_PLATE, d): str,
             vol.Optional(CONF_PLATE_COUNTRY, description={"suggested_value": d.get(CONF_PLATE_COUNTRY, default_cc)}): _country_selector(),
