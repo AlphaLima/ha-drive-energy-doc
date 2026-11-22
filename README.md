@@ -224,6 +224,12 @@ Dasselbe als Bildtext zu einem Foto hängt den Beleg an den Eintrag. Zubehör er
 aber **nicht** in den Verbrauch.
 
 ### Tacho-Kilometerstand
+**Im Zweifel wird der Kilometerstand weggelassen.** Ein von der KI aus einem **Foto** gelesener Stand wird nie geraten und nie erfragt: Passt er nicht zum Eintrag,
+liegt er unter dem vorigen Stand oder ergibt er einen unplausiblen Verbrauch, bleibt er leer und das Tacho-Foto hängt als Zusatzfoto am Eintrag. Auf Belegen
+zählt ein Kilometerstand nur, wenn eine Zeile ausdrücklich so beschriftet ist (Belegnummer, Säulen- und Kartennummer sind es nicht) und er zur Reihenfolge der
+Einträge passt (nicht unter dem vorigen, nicht über dem nächsten, höchstens 5000 km Sprung, höchstens sechs Stellen). Nachgefragt wird nur bei einem **von Hand
+getippten** Stand (`km 54210`), denn den hast du selbst eingegeben; die folgenden Absätze beschreiben diesen Fall.
+
 Foto vom Tacho oder Text wie `km 54210` senden. Der Wert wird dem Tankvorgang zugeordnet, dessen Zeit der Sendezeit am nächsten liegt
 (Fenster 24 Stunden). Bei großer Abweichung vom gespeicherten Stand (> 300 km), einem Wert kleiner als beim vorigen Tanken oder
 einem zu alten Tankvorgang fragt der Bot nach und wartet auf deine Bestätigung (`ja`).
@@ -261,8 +267,8 @@ Elektroautos funktionieren genauso wie Verbrenner; die Unterschiede im Überblic
 Nach der Einrichtung erscheint das Panel in der Seitenleiste, benannt nach der Systemsprache von Home Assistant (Deutsch **„Tankbuch“**, Englisch „Fuel log“, Französisch „Carnet de carburant“ …):
 - Liste aller Tanken/Ladungen und Zubehör je Fahrzeug, Spalten verschiebbar und in der Breite änderbar. Der Spalten-Knopf über der Liste blendet nicht benötigte Spalten aus; die Auswahl wird pro Browser gemerkt, ein Doppelklick auf einen Spaltentrenner setzt alles zurück.
 - Kennzeichen-Darstellung (alle europäischen Länder, EU-Ring bzw. gelb für NL/GB), Fahrzeugbild und -typ in der Kopfzeile. Bei mehreren Fahrzeugen öffnet ein Klick auf den Kopfbereich (Logo, Fahrzeugtyp, Kennzeichen) einen Auswahldialog mit allen Fahrzeugen. Kennzeichen und Land stellst du in der Konfiguration des Fahrzeugs ein.
-- Belegfotos und Tacho-Fotos mit Vorschau beim Überfahren, Löschen mit Rückfrage; Foto-Upload.
-- Bearbeiten, manueller Eintrag („+“), Ort mit kleiner Google-Maps-Verknüpfung.
+- Belegfotos und Tacho-Fotos mit Vorschau beim Überfahren, Löschen mit Rückfrage; Foto-Upload, auch **mehrere Fotos auf einmal** (Fortschrittsdialog mit Abbrechen, Verarbeitung nach Aufnahmezeit, Übersicht mit Warnungen am Ende). Rückfragen im Dialog haben fertige Antwort-Knöpfe (z. B. „Übernehmen“, „Neuer Eintrag“, „Abbrechen“).
+- Bearbeiten und manueller Eintrag („+“) in **einem Dialog mit allen Feldern** (Datum und Uhrzeit, Menge, Preis, Betrag, Kilometerstand, Notiz; bei „+“ auch Zubehör), Ort mit kleiner Google-Maps-Verknüpfung.
 - **CSV-Export** (Excel-tauglich) und **Druck/PDF** (Hoch- oder Querformat, mit oder ohne Belege).
 
 ## Sensoren, Ereignis und Dienste
@@ -284,7 +290,7 @@ Dann *Einstellungen → Geräte & Dienste → Integration hinzufügen → Drive 
 2. **Fahrzeug hinzufügen:** Pflicht sind nur Name, Energieart (Diesel/E5/E10/Elektro) und Tankvolumen bzw. Akkukapazität.
    **Optional:** Füllstand-Sensor (in %), Kilometerstand-Sensor, `device_tracker`. Ohne diese Sensoren gibt es keine automatische
    Erkennung; Einträge entstehen dann nur per Foto/Text oder im Panel, und jeder Beleg ohne passenden Eintrag legt automatisch
-   einen neuen an (reiner Foto-Betrieb). Ebenfalls optional: Kennzeichen und Land (vor dem Speichern siehst du das gezeichnete Schild), Fahrzeugtyp, Sprache der Bot-Antworten, Fahrzeugbild, Telegram-Chat.
+   einen neuen an (reiner Foto-Betrieb). Ebenfalls optional: Kennzeichen und Land (vor dem Speichern siehst du das gezeichnete Schild **und das Fahrzeugbild** als Vorschau), Fahrzeugtyp, Sprache der Bot-Antworten, Fahrzeugbild, Telegram-Chat.
 3. Schwellwerte (5 %, 60 s, 250 m) und Nachrichtenkanäle sind je Fahrzeug unter *Konfigurieren* änderbar.
 
 Voraussetzungen: Home Assistant ab 2025.8; für das Lesen von Belegen eine `ai_task`-Integration (Gemini, OpenAI, Anthropic …).
@@ -342,6 +348,8 @@ Panel und Bot sprechen **36 Sprachen**: Deutsch, Englisch, Französisch, Spanisc
 ## Grenzen
 - Der Füllstand muss in **Prozent** vorliegen.
 - Die Genauigkeit des Ortes hängt davon ab, wie schnell das Auto Füllstand und Position meldet (siehe oben).
+- Die KI kann Zahlen auf Fotos falsch lesen (vor allem bei schlechten Tacho-Fotos oder verwechselten Nummern auf Belegen). Deshalb gilt: Beleg-Werte haben Vorrang vor Schätzwerten, und ein zweifelhafter Kilometerstand wird weggelassen statt geraten. Prüfe die Liste gelegentlich.
+- Fotos über Telegram und WhatsApp haben kein EXIF; dort gilt die Zeit der Nachricht, schicke Paare aus Tacho und Beleg also zeitnah.
 - Die Integration ist noch jung (0.1.x); bitte Fehler als Issue melden.
 
 ## Tests
@@ -522,6 +530,12 @@ Messages run via **Telegram** (own bot, recommended), **WhatsApp** (Meta Cloud A
 Anything that costs money but is not fuel. Keyword **`+`, `e`, `x`, `extra`, `z`, `zub`** or `zubehör`, then optionally the name and the numbers: `+ 24,90`, `extra Öl 1 9,50`, `z Scheibenwischer 24,90`. Allowed are only amount, quantity amount or quantity price amount, optionally with a date. Short words without a keyword: `adblue`, `öl`, `scheibenwischer`, `scheibenwasser`, `frostschutz`. The same as the caption of a photo attaches the receipt to the entry. Accessories appear as their own row and count towards costs, but **not** towards consumption.
 
 ### Odometer reading
+**When in doubt the odometer reading is left out.** A reading the AI takes from a **photo** is never guessed and never asked about: if it does not fit the entry, is
+lower than the previous reading or gives an implausible consumption, it stays empty and the odometer photo is attached to the entry as an extra photo. On receipts a
+mileage only counts if a line is explicitly labelled as such (a receipt number, pump number or card number is not), and it must fit the order of the entries (not lower
+than the previous one, not higher than the next one, at most a 5000 km jump, at most six digits). The bot only asks about a reading you **typed by hand**
+(`km 54210`), because you entered that yourself; the following paragraphs describe that case.
+
 Send a photo of the odometer or text such as `km 54210`. The value is assigned to the refuelling whose time is closest to the sending time (24-hour window). If the value deviates a lot from the stored one (> 300 km), is lower than at the previous refuelling, or the refuelling is too old, the bot asks and waits for your confirmation (`ja`).
 It also checks the **consumption**: if the new reading, the filled quantity (plus partial refuellings in between) and the kilometres since the last full refuelling give a consumption that deviates by more than 40 % from the average of the last five full-to-full values, it warns (e.g. "would give 24.5 l/100 km over 200 km since the last refuelling, average 7.0 l/100 km") and asks whether to apply the reading anyway (`yes` or `no`). The same warning appears under a receipt whose odometer reading looks implausible. The check needs at least two earlier consumption values and only applies to full refuellings.
 
@@ -554,8 +568,8 @@ Electric cars work just like combustion cars; the differences at a glance:
 After setup the panel appears in the sidebar, named after the Home Assistant system language (German **"Tankbuch"**, English "Fuel log", French "Carnet de carburant", …):
 - List of all refuellings/charges and accessories per vehicle; columns can be reordered and resized. The columns button (above the list) hides columns you do not need; the choice is remembered per browser, a double-click on a column divider resets everything.
 - Licence plate display (all European countries, EU ring or yellow for NL/GB), vehicle picture and type in the header. With several vehicles a click on the header area (logo, vehicle type, plate) opens a dialog to choose among all vehicles. You set the plate and its country in the vehicle's configuration.
-- Receipt and odometer photos with a preview on hover (several photos: a picker), delete with confirmation, photo upload.
-- Edit, manual entry ("+"), place with a small Google Maps link, notes as an icon.
+- Receipt and odometer photos with a preview on hover (several photos: a picker), delete with confirmation, photo upload, also **several photos at once** (progress dialog with cancel, processing by capture time, summary with warnings at the end). Follow-up questions in the dialog have ready-made answer buttons (e.g. "Accept", "New entry", "Cancel").
+- Edit and manual entry ("+") in **one dialog with all fields** (date and time, quantity, price, amount, odometer, note; accessory type for "+"), place with a small Google Maps link, notes as an icon.
 - Compact card view on phones.
 - **CSV export** (Excel-friendly) and **print/PDF** (portrait or landscape, with or without receipts).
 
@@ -570,7 +584,7 @@ Per vehicle: **status**, **last refuelling**, **last price**, **consumption** (a
 Then *Settings → Devices & services → Add integration → Drive Energy Doc*:
 
 1. Create the **global settings**: price source (automatic by country or fixed), Tankerkönig key (Germany only), electricity price, AI (empty = Gemini automatically, otherwise an `ai_task` entity), message channels (Companion, Telegram, WhatsApp; the WhatsApp credentials are entered here too, the Telegram token is entered at the vehicle).
-2. **Add a vehicle:** only name, energy type (diesel/E5/E10/electric) and tank volume or battery capacity are required. **Optional:** level sensor (in %), odometer sensor, `device_tracker`. Without these sensors there is no automatic detection; entries are then created only by photo/text or in the panel, and every receipt without a matching entry automatically creates a new one (pure photo mode). Also optional: licence plate and country (before saving you see the drawn plate), vehicle type, language of the bot's replies, vehicle picture, Telegram chat.
+2. **Add a vehicle:** only name, energy type (diesel/E5/E10/electric) and tank volume or battery capacity are required. **Optional:** level sensor (in %), odometer sensor, `device_tracker`. Without these sensors there is no automatic detection; entries are then created only by photo/text or in the panel, and every receipt without a matching entry automatically creates a new one (pure photo mode). Also optional: licence plate and country (before saving you see the drawn plate and the vehicle picture as a preview), vehicle type, language of the bot's replies, vehicle picture, Telegram chat.
 3. Thresholds (5 %, 60 s, 250 m) and message channels can be changed per vehicle under *Configure*.
 
 Requirements: Home Assistant 2025.8 or newer; to read receipts an `ai_task` integration (Gemini, OpenAI, Anthropic …).
@@ -627,6 +641,8 @@ The panel and the bot speak **36 languages**: German, English, French, Spanish, 
 ## Limits
 - The level must be available in **percent**.
 - The accuracy of the place depends on how quickly the car reports level and position (see above).
+- The AI can misread numbers on photos (especially poor odometer photos or confused numbers on receipts). Therefore: receipt values win over estimates, and a doubtful odometer reading is left out instead of guessed. Check the list from time to time.
+- Photos sent via Telegram and WhatsApp have no EXIF; there the time of the message counts, so send odometer and receipt pairs promptly.
 - The integration is still young (0.1.x); please report bugs as an issue.
 
 ## Tests
