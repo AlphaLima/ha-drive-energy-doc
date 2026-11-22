@@ -2,6 +2,7 @@
 
 ## 0.1.78 (in Arbeit)
 - Kilometerstand vom Beleg wird bei unplausiblem Verbrauch nicht mehr stillschweigend übernommen: Der Beleg wird gespeichert, der Kilometerstand erst nach Rückfrage (im Panel mit Knöpfen „Übernehmen“ / „Abbrechen“, per Bot mit „ja“ / „nein“).
+- Panel: Rückfragen haben fertige Antwort-Knöpfe (Übernehmen / Abbrechen bei Ja/Nein-Fragen wie „Beleg schon eingetragen“, „Neuer Eintrag“ bzw. „Abbrechen“ bei Datumsfragen).
 
 ## 0.1.77
 - Panel: Spalten lassen sich über einen Spalten-Knopf ein- und ausblenden (pro Browser gemerkt); die Nummern-Spalte ist schmal (46 px).

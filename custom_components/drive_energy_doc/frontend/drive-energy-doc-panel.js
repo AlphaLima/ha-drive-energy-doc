@@ -2,7 +2,7 @@
 const DEFW = { nr: 46 };   // Standardbreite einzelner Spalten in px (sonst 120 bei fester Breite)
 const COLS = ["nr", "date", "km", "station", "qty", "price", "total", "cons", "receipt", "note", "act"];
 
-const VERSION = "0.1.78b1";
+const VERSION = "0.1.78b2";
 
 class DriveEnergyDocPanel extends HTMLElement {
   set hass(h) {
@@ -625,7 +625,7 @@ class DriveEnergyDocPanel extends HTMLElement {
     dlg.onkeydown = ev => { if (ev.key === "Escape") close(); };
   }
 
-  _result(v, replies, shot, awaiting, confirm) {
+  _result(v, replies, shot, awaiting, answers = []) {
     // Ergebnis des Uploads: größer und übersichtlicher als eine Browser-Meldung; bei Rückfragen mit Eingabefeld (liefert die Antwort)
     return new Promise(resolve => {
       const lines = (replies.join("\n") || this.T("Gespeichert.")).split(/\n/).map(s => s.trim()).filter(Boolean);
@@ -634,12 +634,12 @@ class DriveEnergyDocPanel extends HTMLElement {
       const pic = this._pic(v);
       const dlg = document.createElement("div");
       dlg.className = "dlg res";
-      dlg.innerHTML = `<div class="card"><div class="hd"><div class="mark${awaiting ? " q" : ""}">${awaiting ? "?" : "✓"}</div><div class="ttl">${this._esc(head)}</div></div><div class="mid">${shot ? `<img class="rshot" src="${shot}" alt="">` : ""}${rows ? `<div class="rows">${rows}</div>` : ""}${pic ? `<img class="rpic" src="${pic}" alt="">` : ""}</div>${awaiting && !confirm ? `<input id="ra" type="text" placeholder="${this._esc(this.T("Antwort (Datum z. B. 27.10. oder „neu“):"))}" autocomplete="off">` : ""}<div class="df">${confirm ? `<button data-d="no">${this.T("Abbrechen")}</button><button data-d="yes" class="pri">${this.T("Übernehmen")}</button>` : `<button data-d="ok" class="pri">OK</button>`}</div></div>`;
+      dlg.innerHTML = `<div class="card"><div class="hd"><div class="mark${awaiting ? " q" : ""}">${awaiting ? "?" : "✓"}</div><div class="ttl">${this._esc(head)}</div></div><div class="mid">${shot ? `<img class="rshot" src="${shot}" alt="">` : ""}${rows ? `<div class="rows">${rows}</div>` : ""}${pic ? `<img class="rpic" src="${pic}" alt="">` : ""}</div>${awaiting && !answers.includes("yes") ? `<input id="ra" type="text" placeholder="${this._esc(this.T("Antwort (Datum z. B. 27.10. oder „neu“):"))}" autocomplete="off">` : ""}<div class="df">${answers.includes("no") ? `<button data-d="no">${this.T("Abbrechen")}</button>` : ""}${answers.includes("new") ? `<button data-d="new">${this.T("Neuer Eintrag")}</button>` : ""}${answers.includes("yes") ? `<button data-d="yes" class="pri">${this.T("Übernehmen")}</button>` : `<button data-d="ok" class="pri">OK</button>`}</div></div>`;
       this.shadowRoot.appendChild(dlg);
       this._dlg = dlg;
       const inp = dlg.querySelector("#ra");
       const done = val => { dlg.remove(); this._dlg = null; resolve(val); };
-      dlg.onclick = ev => { ev.stopPropagation(); if (ev.target.closest("[data-d=yes]")) done("ja"); else if (ev.target.closest("[data-d=no]")) done("nein"); else if (ev.target.closest("[data-d=ok]")) done(inp ? inp.value.trim() || null : null); else if (ev.target === dlg && !awaiting) done(null); };
+      dlg.onclick = ev => { ev.stopPropagation(); if (ev.target.closest("[data-d=yes]")) done("ja"); else if (ev.target.closest("[data-d=no]")) done("nein"); else if (ev.target.closest("[data-d=new]")) done("neu"); else if (ev.target.closest("[data-d=ok]")) done(inp ? inp.value.trim() || null : null); else if (ev.target === dlg && !awaiting) done(null); };
       dlg.onkeydown = ev => { if (ev.key === "Enter" && inp) done(inp.value.trim() || null); if (ev.key === "Escape") done(null); };
       if (inp) inp.focus(); else dlg.querySelector("button").focus();
     });
@@ -676,7 +676,7 @@ class DriveEnergyDocPanel extends HTMLElement {
         let j = await this._upload(v, file, file ? text : text);
         for (let guard = 0; j.awaiting && guard < 3; guard++) {   // Rückfrage des Bots: Antwort abfragen und weiter
           busy.style.display = "none";
-          const ans = await this._result(v, j.replies || [], shot, true, j.confirm);
+          const ans = await this._result(v, j.replies || [], shot, true, j.answers || []);
           busy.style.display = "";
           if (!ans) { j = { replies: j.replies, awaiting: false }; break; }
           paint(shot, i);

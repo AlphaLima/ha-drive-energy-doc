@@ -177,8 +177,15 @@ class UploadView(HomeAssistantView):
         task = request.app["hass"].async_create_task(v.upload(image, text))
         replies = await asyncio.shield(task)
         ao = v.data.get("awaiting_odo")
-        yn = bool(v.data.get("awaiting_overwrite") or (ao and ao.get("confirm")))   # Ja/Nein-Frage: Panel zeigt Knöpfe
-        return self.json({"replies": replies, "awaiting": bool(v.data.get("awaiting") or v.data.get("awaiting_overwrite") or ao), "confirm": yn})
+        if v.data.get("awaiting_overwrite") or (ao and ao.get("confirm")):
+            answers = ["yes", "no"]   # Panel zeigt fertige Antwort-Knöpfe
+        elif v.data.get("awaiting"):
+            answers = ["new"]
+        elif ao:
+            answers = ["no"]
+        else:
+            answers = []
+        return self.json({"replies": replies, "awaiting": bool(answers), "answers": answers})
 
 
 class VehicleImageView(HomeAssistantView):
