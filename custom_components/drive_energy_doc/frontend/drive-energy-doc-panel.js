@@ -1,7 +1,7 @@
 /* Drive-Energy-Doc-Panel: Fahrzeug-Reiter, Tankliste mit Belegfotos, Bearbeiten, CSV-Export */
 const COLS = ["date", "km", "station", "qty", "price", "total", "cons", "receipt", "note", "act"];
 
-const VERSION = "0.1.66";
+const VERSION = "0.1.67";
 
 class DriveEnergyDocPanel extends HTMLElement {
   set hass(h) {
@@ -299,6 +299,27 @@ class DriveEnergyDocPanel extends HTMLElement {
       table.fx{table-layout:fixed}
       table.fx td,table.fx th{overflow:hidden;text-overflow:ellipsis}
       .bar{display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap}
+      @media(max-width:700px){
+        :host{padding:10px}
+        .head{gap:12px}
+        .sum{gap:8px}.sum div{flex:1 1 42%;min-width:0;padding:8px 10px}.sum b{font-size:17px}
+        .wrap{background:none;overflow:visible}
+        table,table.fx{display:block;width:100%!important}
+        colgroup,thead{display:none}
+        tbody{display:block}
+        tr{display:grid;grid-template-columns:repeat(4,auto);justify-content:space-between;align-items:center;gap:2px 10px;margin-bottom:10px;padding:10px 12px;background:var(--card-background-color);border-radius:10px;
+           grid-template-areas:"date date total total" "station station station station" "qty price km cons" "receipt note act act"}
+        td,td.n{display:block;padding:0;border:0;white-space:normal;text-align:left;overflow:visible!important;text-overflow:clip!important;min-width:0}
+        td:empty{display:none}
+        td[data-c=date]{grid-area:date;color:var(--secondary-text-color);font-size:13px}
+        td[data-c=total]{grid-area:total;text-align:right;font-size:17px;font-weight:600}
+        td[data-c=station]{grid-area:station;padding:2px 0 4px}
+        td[data-c=qty]{grid-area:qty}td[data-c=price]{grid-area:price}td[data-c=km]{grid-area:km}td[data-c=cons]{grid-area:cons}
+        td[data-c=km]::after{content:" km"}td[data-c=cons]::after{content:" /100 km"}
+        td[data-c=receipt]{grid-area:receipt;padding-top:6px}td[data-c=note]{grid-area:note;padding-top:6px;font-size:12px}
+        td[data-c=act]{grid-area:act;justify-self:end;padding-top:6px;white-space:nowrap}
+        td[data-c=act] button{padding:5px 8px}
+      }
     `;
     this._pvHide();
     if (this._err) { this.shadowRoot.innerHTML = `<style>${css}</style><p>${this._esc(this._err)}</p>`; return; }
@@ -322,7 +343,7 @@ class DriveEnergyDocPanel extends HTMLElement {
         note: `<td>${this._esc(e.note || "")}</td>`,
         act: `<td><button data-act="photo" title="Foto zu diesem Eintrag" aria-label="Foto hinzufügen">${this._ico("camera")}</button> <button data-act="edit" title="Bearbeiten" aria-label="Bearbeiten">${this._ico("edit")}</button> <button data-act="del" title="Eintrag löschen" aria-label="Eintrag löschen">${this._ico("trash")}</button></td>`,
       };
-      return `<tr data-id="${e.id}">${order.map(k => cell[k]).join("")}</tr>`;
+      return `<tr data-id="${e.id}">${order.map(k => cell[k].replace("<td", `<td data-c="${k}"`)).join("")}</tr>`;
     }).join("");
     this.shadowRoot.innerHTML = `<style>${css}</style>
       <div class="head"><div class="ttl"><img class="logo" src="/drive_energy_doc_static/icon.png?v=${VERSION}" alt=""><div><div class="app">Drive Energy Doc</div><h1>${this._esc(this._title(v))}</h1></div>${v.plate ? this._plate(v) : ""}</div>${pic ? `<img class="car" src="${pic}" alt="${this._esc(v.name)}">` : ""}</div>
