@@ -17,6 +17,7 @@ from homeassistant.components.http.auth import async_sign_path
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, ServiceCall
 from homeassistant.exceptions import HomeAssistantError
+from homeassistant.helpers import config_validation as cv
 from homeassistant.loader import async_get_integration
 
 from .const import CONF_KIND, CONF_PLATE, CONF_PLATE_COUNTRY, DOMAIN, KIND_SETTINGS, PANEL_PATH, PANEL_URL, PLATE_CODES, PLATE_NAMES
@@ -36,6 +37,9 @@ def _vehicle(hass: HomeAssistant, entry_id: str) -> Vehicle:
     if v is None:
         raise HomeAssistantError("Fahrzeug nicht gefunden")
     return v
+
+
+CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
 
 
 async def async_setup(hass: HomeAssistant, config) -> bool:

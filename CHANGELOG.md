@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.1.75b4 (Beta)
+- Hassfest: Manifest-Schlüssel sortiert, ungültige Länder-Übersetzung entfernt, `CONFIG_SCHEMA` ergänzt.
+
 ## 0.1.75b3 (Beta)
 - Marketplace-Vorbereitung: Kategorien im Manifest (`vehicles_transport.cars_evs`, `energy.ev_charging`), Installationshinweis für den Marketplace.
 

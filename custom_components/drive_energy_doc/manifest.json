@@ -1,6 +1,13 @@
 {
   "domain": "drive_energy_doc",
   "name": "Drive Energy Doc",
+  "after_dependencies": [
+    "ai_task"
+  ],
+  "categories": [
+    "vehicles_transport.cars_evs",
+    "energy.ev_charging"
+  ],
   "codeowners": [
     "@AlphaLima"
   ],
@@ -12,17 +19,10 @@
     "panel_custom",
     "file_upload"
   ],
-  "after_dependencies": [
-    "ai_task"
-  ],
-  "categories": [
-    "vehicles_transport.cars_evs",
-    "energy.ev_charging"
-  ],
   "documentation": "https://github.com/AlphaLima/ha-drive-energy-doc",
   "integration_type": "service",
   "iot_class": "cloud_polling",
   "issue_tracker": "https://github.com/AlphaLima/ha-drive-energy-doc/issues",
   "requirements": [],
-  "version": "0.1.75b3"
+  "version": "0.1.75b4"
 }
