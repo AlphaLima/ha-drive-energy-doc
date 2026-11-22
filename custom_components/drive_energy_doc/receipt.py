@@ -178,7 +178,7 @@ async def ai_read(hass, entity_id: str, image: bytes, media_dir: Path) -> dict[s
             timeout=120,
         )
     except Exception as err:  # noqa: BLE001 - KI-Fehler dürfen nie den Ablauf stoppen
-        _LOGGER.warning("Beleg-KI fehlgeschlagen: %s", err)
+        _LOGGER.warning("Beleg-KI fehlgeschlagen: %r", err)
         return None
     finally:
         await hass.async_add_executor_job(lambda: (folder / name).unlink(missing_ok=True))

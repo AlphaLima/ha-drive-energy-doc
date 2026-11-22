@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import csv
 import re
 import io
@@ -79,6 +80,7 @@ class Vehicle:
         )
         self._pos: tuple[float, float] | None = None
         self._capture: list[str] | None = None
+        self._upload_lock = asyncio.Lock()
         self._unsubs: list = []
         self.photo_dir = Path(hass.config.path(DOMAIN, entry.entry_id, "photos"))
         self.orig_dir = Path(hass.config.path(DOMAIN, entry.entry_id, "originals"))
@@ -283,13 +285,17 @@ class Vehicle:
 
     async def upload(self, image: bytes | None, text: str) -> list[str]:
         """Beleg aus dem Panel (Handykamera). Antworten kommen als Liste zurück statt per Messenger."""
+        async with self._upload_lock:   # nacheinander: sonst überschreiben sich die Antwortlisten zweier gleichzeitiger Uploads
+            return await self._upload_locked(image, text)
+
+    async def _upload_locked(self, image: bytes | None, text: str) -> list[str]:
         self._capture = []
         try:
             if image:
                 await self.receive_photo(image, text)
             elif text:
                 await self.receive_text(text)
-            replies = list(self._capture)
+            replies = list(self._capture or [])
             _LOGGER.info("Upload aus dem Panel (%s): Bild %s Byte, Text %r, %d Antwort(en)", self.name, len(image) if image else 0, text[:40], len(replies))
             return replies
         except Exception:

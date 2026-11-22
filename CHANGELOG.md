@@ -1,6 +1,7 @@
 # Changelog
 
 ## 0.1.78 (in Arbeit)
+- Fix: Fehlermeldung beim Hochladen mehrerer Fotos kurz nacheinander (zwei gleichzeitige Uploads überschrieben sich die Antwortliste, „NoneType is not iterable“); Uploads laufen jetzt je Fahrzeug nacheinander. KI-Fehler werden mit Typ protokolliert.
 - Tacho-Foto wird auch bei großem Zeitabstand dem Eintrag zugeordnet, wenn der Kilometerstand fast genau passt (bis 50 km) und der Eintrag noch kein Tacho-Foto hat; so entsteht bei Beleg + Tacho im selben Stapel (z. B. später hochgeladen) kein zweiter Eintrag.
 - Fix: Ein Tacho-Foto wurde nie ausgewertet, weil die KI-Auswertung ohne Menge und Betrag verworfen wurde; der gelesene Kilometerstand zählt jetzt (legt bei Foto-Betrieb sofort einen neuen Eintrag an).
 - Foto, auf dem weder Beleg noch Kilometerstand lesbar ist (und noch kein Eintrag existiert): statt „Kein Tankvorgang zum Zuordnen gefunden“ merkt sich der Bot das Foto und fragt nach dem Kilometerstand als Text (im Panel mit Eingabefeld); damit wird der Eintrag mit dem Foto angelegt.
