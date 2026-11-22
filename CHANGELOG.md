@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.1.75b20 (unveröffentlicht)
+- Konfigurieren-Menü eines Fahrzeugs: erst Fahrzeugdaten, dann Kommunikation, dann Tankerkennung.
+
 ## 0.1.75b19 (unveröffentlicht)
 - Panel: Beschriftung „Foto aus der Galerie“ jetzt auch im Panel-Code (b18 hatte nur die Übersetzungen umbenannt).
 

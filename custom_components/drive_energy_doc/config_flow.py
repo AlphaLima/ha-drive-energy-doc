@@ -415,7 +415,7 @@ class DriveEnergyDocOptionsFlow(_MessagingMixin, OptionsFlow):
     async def async_step_init(self, user_input=None) -> ConfigFlowResult:
         if self._cur().get(CONF_KIND) == KIND_SETTINGS:
             return self.async_show_menu(step_id="init", menu_options=["whatsapp", "general", "price_key"])
-        return self.async_show_menu(step_id="init", menu_options=["messaging", "basic", "thresholds"])
+        return self.async_show_menu(step_id="init", menu_options=["basic", "messaging", "thresholds"])
 
     async def _form(self, step: str, schema: vol.Schema, user_input, check=None) -> ConfigFlowResult:
         errors, detail = {}, ""
