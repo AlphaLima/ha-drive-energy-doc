@@ -58,15 +58,16 @@ def match_odometer(entries: list[dict[str, Any]], km: float, sent_ts: float, win
         return {"status": "none"}
     e = min(fuel, key=lambda x: abs(x["ts"] - sent_ts))
     dt = sent_ts - e["ts"]  # positiv: Nachricht kam nach dem Tanken
+    # Passt der Stand fast genau (bis near_km) zu einem Eintrag, der noch kein Tacho-Foto hat, gehört er dorthin: das gilt vor der Uhrzeit
+    # (Fotos werden oft später hochgeladen, oder der zeitlich nächste Eintrag ist ein anderer Tankvorgang)
+    near = [x for x in fuel if x.get("odometer") is not None and x.get("odometer_source") != "foto" and abs(km - x["odometer"]) <= near_km]
+    if near and not (e in near and abs(dt) <= window):
+        e = min(near, key=lambda x: (abs(km - x["odometer"]), -x["ts"]))
+        dt = sent_ts - e["ts"]
+        prev = [x["odometer"] for x in fuel if x["ts"] < e["ts"] and x.get("odometer") is not None]
+        prev_odo = max(prev) if prev else None
+        return {"status": "ok", "entry": e, "dt": dt, "prev_odo": prev_odo, "backwards": prev_odo is not None and km < prev_odo}
     if abs(dt) > window:
-        # Zeitlich zu weit weg (z. B. Fotos später hochgeladen): passt der Stand fast genau zu einem Eintrag, der noch kein Tacho-Foto hat, gehört er dazu
-        near = [x for x in fuel if x.get("odometer") is not None and x.get("odometer_source") != "foto" and abs(km - x["odometer"]) <= near_km]
-        if near:
-            e = max(near, key=lambda x: x["ts"])
-            dt = sent_ts - e["ts"]
-            prev = [x["odometer"] for x in fuel if x["ts"] < e["ts"] and x.get("odometer") is not None]
-            prev_odo = max(prev) if prev else None
-            return {"status": "ok", "entry": e, "dt": dt, "prev_odo": prev_odo, "backwards": prev_odo is not None and km < prev_odo}
         return {"status": "too_old", "entry": e, "dt": dt}
     prev = [x["odometer"] for x in fuel if x["ts"] < e["ts"] and x.get("odometer") is not None]
     prev_odo = max(prev) if prev else None
