@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.80
+- Panel: Die Liste lässt sich per Klick auf jede Spaltenüberschrift sortieren (erster Klick aufsteigend ▲, jeder weitere wechselt auf absteigend ▼); leere Werte stehen immer unten, die Wahl wird pro Browser gemerkt, ein Doppelklick auf einen Spaltenteiler setzt sie zurück. Standard ohne Wahl: Datum absteigend, der neueste Eintrag steht oben und trägt die höchste Nummer. Wie im Device und Entity Inventory.
+- Dokumentation: Kapitel „KI für die Belegerkennung einrichten“ (AI Task, Gemini, Links zu Home Assistant) und ein Beispiel-Ausdruck (Liste und Belege, als Bild und PDF).
+
 ## 0.1.79
 Patch-Release: nur Dokumentation und Paketpflege, keine Funktionsänderung gegenüber 0.1.78.
 - README: Hinweis auf erfundene Dummydaten, Länderübersicht der Preisportale, Beschreibung von Stapel-Upload, „im Zweifel weglassen“ und den neuen Dialogen, Badges.

@@ -2,7 +2,7 @@
 const DEFW = { nr: 46 };   // Standardbreite einzelner Spalten in px (sonst 120 bei fester Breite)
 const COLS = ["nr", "date", "km", "station", "qty", "price", "total", "cons", "receipt", "note", "act"];
 
-const VERSION = "0.1.79";
+const VERSION = "0.1.80";
 
 class DriveEnergyDocPanel extends HTMLElement {
   set hass(h) {
@@ -34,7 +34,8 @@ class DriveEnergyDocPanel extends HTMLElement {
           this._cw = {}; this._co = null;
           this._saveCw();
           this._hide = [];
-          try { localStorage.removeItem("deCo"); localStorage.removeItem("deHide"); } catch (e) { /* ignore */ }
+          this._sort = null;
+          try { localStorage.removeItem("deCo"); localStorage.removeItem("deHide"); localStorage.removeItem("deSort"); } catch (e) { /* ignore */ }
           this._render();
         }
       });
@@ -70,6 +71,8 @@ class DriveEnergyDocPanel extends HTMLElement {
     this._tab = 0;
     this._hide = [];
     try { this._hide = JSON.parse(localStorage.getItem("deHide") || "[]") || []; } catch (e) { /* ignore */ }
+    this._sort = null;   // Sortierung per Klick auf die Spaltenüberschrift: {c: Spalte, dir: 1 aufsteigend | -1 absteigend}
+    try { this._sort = JSON.parse(localStorage.getItem("deSort") || "null"); } catch (e) { /* ignore */ }
     this._cw = {};
     this._co = null;
     try { this._co = JSON.parse(localStorage.getItem("deCo") || "null"); } catch (e) { /* ignore */ }
@@ -330,6 +333,7 @@ class DriveEnergyDocPanel extends HTMLElement {
       table{border-collapse:collapse;width:100%;font-size:13px;line-height:1.3}
       th,td{padding:4px 8px;text-align:left;border-bottom:1px solid var(--divider-color);white-space:nowrap}
       td.n,th.n{text-align:right}
+      th.sortable{cursor:pointer;user-select:none}th.sortable:hover{background:var(--secondary-background-color,#f1f1f1)}.si{font-size:10px;margin-left:5px;opacity:.75}
       th{position:sticky;top:0;background:var(--card-background-color);font-weight:500}
       .src{font-size:11px;color:var(--secondary-text-color)}
       .tag{display:inline-block;padding:0 7px;border-radius:9px;background:#0ea5e9;color:#fff;font-size:11px;vertical-align:middle}
@@ -432,7 +436,17 @@ class DriveEnergyDocPanel extends HTMLElement {
     const sumW = order.reduce((t, c) => t + (cw[c] || DEFW[c] || 120), 0);
     const nums = {};
     [...v.entries].filter(x => x.kind !== "extra").sort((a, b) => a.ts - b.ts).forEach((x, i) => { nums[x.id] = i + 1; });   // laufende Nummer der Tankvorgänge, ältester = 1
-    const rows = v.entries.map(e => {
+    const sk = this._sort && COLS.includes(this._sort.c) ? this._sort : { c: "date", dir: -1 };   // Standard: neueste Einträge oben
+    const skey = (e, c) => ({ nr: nums[e.id], date: e.ts, km: e.odometer, station: (e.station || "").toLowerCase(), qty: e.quantity, price: e.unit_price, total: e.total, cons: e.consumption, receipt: (e.photo_urls || []).length, note: (e.note || "").toLowerCase() })[c];
+    const none = x => x == null || x === "" || (typeof x === "number" && isNaN(x));
+    const list = [...v.entries].sort((a, b) => {   // leere Werte stehen immer unten, egal in welche Richtung
+      const x = skey(a, sk.c), y = skey(b, sk.c);
+      if (none(x) && none(y)) return 0;
+      if (none(x)) return 1;
+      if (none(y)) return -1;
+      return (typeof x === "string" ? x.localeCompare(y, this._locale || "de") : x - y) * sk.dir;
+    });
+    const rows = list.map(e => {
       const cell = {
         nr: `<td class="n nr">${nums[e.id] || ""}</td>`,
         date: `<td data-nr="${nums[e.id] ? "#" + nums[e.id] : ""}"><span>${this._d(e.ts)}</span><span class="tm">${this._tm(e.ts)}</span></td>`,
@@ -456,13 +470,20 @@ class DriveEnergyDocPanel extends HTMLElement {
         <button class="shoot" data-act="shoot" title="${this.T("Beleg fotografieren oder hochladen")}" aria-label="${this.T("Beleg fotografieren")}">${this._ico("camera")}<span>${this.T("Beleg / km Stand fotografieren")}</span></button>
       </div>
       <div class="bar"><button data-act="csv" title="${this.T("CSV-Export")}" aria-label="${this.T("CSV-Export")}">${this._ico("csv")}</button><button data-act="print" title="${this.T("Drucken / PDF")}" aria-label="${this.T("Drucken")}">${this._ico("print")}</button><button data-act="ori" title="${this._ori === "portrait" ? this.T("Hochformat") : this.T("Querformat")} (${this.T("zum Wechseln klicken")})" aria-label="${this.T("Seitenformat")}">${this._ico(this._ori)}</button><button data-act="rcp" title="${this.T("Belege im Druck")}: ${this._rcp ? this.T("mit") : this.T("ohne")} (${this.T("zum Wechseln klicken")})" aria-label="${this.T("Belege im Druck")}" aria-pressed="${this._rcp}">${this._ico(this._rcp ? "photo" : "photoOff")}</button><button data-act="cols" title="${this.T("Spalten")}" aria-label="${this.T("Spalten")}">${this._ico("cols")}</button><button data-act="add" title="${this.T("Eintrag von Hand hinzufügen")}" aria-label="${this.T("Eintrag von Hand")}">${this._ico("plus")}</button><span class="stat"><b>${s.count}</b><span>${this.T("Einträge")}</span></span><span class="stat"><b>${this.T({ idle: "Bereit", candidate: "Anstieg erkannt", refuelling: "Tankt" }[s.status])}</b><span>${this.T("Status")}</span></span><input type="file" id="cam" accept="image/*" capture="environment" hidden><input type="file" id="pic" accept="image/*" multiple hidden></div>
-      <div class="wrap"><table class="${fixed ? "fx" : ""}" ${fixed ? `style="width:${sumW}px"` : ""}><colgroup>${order.map(c => `<col data-c="${c}" ${cw[c] || (fixed && DEFW[c]) ? `style="width:${cw[c] || DEFW[c]}px"` : ""}>`).join("")}</colgroup><thead><tr>${order.map(c => { const H = { nr: [this.T("Nr."), "n"], date: [this.T("Datum"), ""], km: [this.T("km"), "n"], station: [this.T("Tankstelle"), ""], qty: [this.T("Menge"), "n"], price: [`€/${u}`, "n"], total: [this.T("Betrag"), "n"], cons: [`${u}/100 ${this.T("km")}`, "n"], receipt: [this.T("Beleg"), ""], note: [this.T("Notiz"), ""], act: ["", ""] }[c]; return `<th data-c="${c}" class="${H[1]}" ${c === "act" ? "" : `draggable="true" title="${this.T("Auf eine andere Überschrift ziehen: Reihenfolge ändern")}"`}>${H[0]}<span class="rs" data-c="${c}" title="${this.T("Ziehen: Spaltenbreite ändern · Doppelklick: Breiten und Reihenfolge zurücksetzen")}"></span></th>`; }).join("")}</tr></thead><tbody>${rows}</tbody></table></div>
+      <div class="wrap"><table class="${fixed ? "fx" : ""}" ${fixed ? `style="width:${sumW}px"` : ""}><colgroup>${order.map(c => `<col data-c="${c}" ${cw[c] || (fixed && DEFW[c]) ? `style="width:${cw[c] || DEFW[c]}px"` : ""}>`).join("")}</colgroup><thead><tr>${order.map(c => { const H = { nr: [this.T("Nr."), "n"], date: [this.T("Datum"), ""], km: [this.T("km"), "n"], station: [this.T("Tankstelle"), ""], qty: [this.T("Menge"), "n"], price: [`€/${u}`, "n"], total: [this.T("Betrag"), "n"], cons: [`${u}/100 ${this.T("km")}`, "n"], receipt: [this.T("Beleg"), ""], note: [this.T("Notiz"), ""], act: ["", ""] }[c]; return `<th data-c="${c}" class="${H[1]}${c === "act" ? "" : " sortable"}" ${sk && sk.c === c ? `aria-sort="${sk.dir > 0 ? "ascending" : "descending"}"` : ""} ${c === "act" ? "" : `draggable="true" title="${this.T("Auf eine andere Überschrift ziehen: Reihenfolge ändern")}"`}>${H[0]}${sk && sk.c === c ? `<span class="si">${sk.dir > 0 ? "▲" : "▼"}</span>` : ""}<span class="rs" data-c="${c}" title="${this.T("Ziehen: Spaltenbreite ändern · Doppelklick: Breiten und Reihenfolge zurücksetzen")}"></span></th>`; }).join("")}</tr></thead><tbody>${rows}</tbody></table></div>
       <div class="ver">Drive Energy Doc ${VERSION}</div>`;
     this._cur = v;
     this.setAttribute("dir", this._rtl ? "rtl" : "ltr");
   }
 
   async _click(ev, v) {
+    const hth = ev.target.closest ? ev.target.closest("th[data-c]") : null;
+    if (hth && hth.dataset.c !== "act" && !ev.target.closest(".rs")) {
+      const c = hth.dataset.c, cur = this._sort || { c: "date", dir: -1 };   // ohne Wahl gilt: Datum absteigend, neueste oben
+      this._sort = { c, dir: cur.c === c ? -cur.dir : 1 };
+      try { localStorage.setItem("deSort", JSON.stringify(this._sort)); } catch (e) { /* ignore */ }
+      return this._render();
+    }
     this._pvHide();
     const old = this.shadowRoot.querySelector(".pop"); if (old) old.remove();
     if (ev.target.closest && ev.target.closest(".head") && (this._data || []).length > 1) return this._vehDlg();

@@ -279,6 +279,19 @@ Nach der Einrichtung erscheint das Panel in der Seitenleiste, benannt nach der S
 - Bearbeiten und manueller Eintrag („+“) in **einem Dialog mit allen Feldern** (Datum und Uhrzeit, Menge, Preis, Betrag, Kilometerstand, Notiz; bei „+“ auch Zubehör), Ort mit kleiner Google-Maps-Verknüpfung.
 - **CSV-Export** (Excel-tauglich) und **Druck/PDF** (Hoch- oder Querformat, mit oder ohne Belege).
 
+### Beispiel-Ausdruck
+
+Der Druck (Knopf „Drucken“ im Panel) erzeugt eine Liste aller Einträge und, wenn gewünscht, danach die Belege mit den Foto-Paaren. Das Beispiel stammt aus den [Testbildern](tests/test_images/README.md) (alles Dummydaten): 18 Einträge, nummeriert und nach Datum sortiert (der älteste ist Nr. 1), mit Summenzeile (Einträge, Liter, Kosten, Erstelldatum). Einzelne Verbrauchswerte weichen ab, etwa bei dem Ölbon (Nr. 7) oder wo ein Zwischenstopp fehlt; das sind Eigenheiten der Testdaten.
+
+<table>
+<tr>
+<td align="center"><img src="docs/beispiel-ausdruck-liste.png" alt="Beispiel-Ausdruck: Liste" width="360"><br><sub>Seite 1: die Liste</sub></td>
+<td align="center"><img src="docs/beispiel-ausdruck-belege.png" alt="Beispiel-Ausdruck: Belege" width="360"><br><sub>Seite 2: Beleg- und Tacho-Fotos je Eintrag</sub></td>
+</tr>
+</table>
+
+Das ganze Beispiel (7 Seiten) als PDF: [docs/beispiel-ausdruck.pdf](docs/beispiel-ausdruck.pdf).
+
 ## Sensoren, Ereignis und Dienste
 
 Je Fahrzeug: **Status**, **letztes Tanken**, **letzter Preis**, **Verbrauch** (Ø der letzten 5, Voll-zu-Voll), **Kosten 12 Monate**.
@@ -601,6 +614,19 @@ After setup the panel appears in the sidebar, named after the Home Assistant sys
 - Edit and manual entry ("+") in **one dialog with all fields** (date and time, quantity, price, amount, odometer, note; accessory type for "+"), place with a small Google Maps link, notes as an icon.
 - Compact card view on phones.
 - **CSV export** (Excel-friendly) and **print/PDF** (portrait or landscape, with or without receipts).
+
+### Example printout
+
+The print (button "Print" in the panel) produces a list of all entries and, if wanted, the receipts with the photo pairs after it. The example comes from the [test images](tests/test_images/README.md) (all dummy data): 18 entries, numbered and sorted by date (the oldest is no. 1), with a total line (entries, litres, cost, date created). A few consumption values deviate, for example for the oil receipt (no. 7) or where an intermediate stop is missing; those are quirks of the test data.
+
+<table>
+<tr>
+<td align="center"><img src="docs/beispiel-ausdruck-liste.png" alt="Example printout: list" width="360"><br><sub>Page 1: the list</sub></td>
+<td align="center"><img src="docs/beispiel-ausdruck-belege.png" alt="Example printout: receipts" width="360"><br><sub>Page 2: receipt and odometer photos per entry</sub></td>
+</tr>
+</table>
+
+The complete example (7 pages) as PDF: [docs/beispiel-ausdruck.pdf](docs/beispiel-ausdruck.pdf).
 
 ## Sensors, event and services
 
