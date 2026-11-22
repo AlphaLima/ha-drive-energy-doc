@@ -157,5 +157,6 @@
  "kw.decimal": ",",
  "Beleg wird gelesen …": "Lecture du justificatif …",
  "würde bei {0} km seit dem letzten Tanken {1} ergeben (Durchschnitt {2})": "donnerait {1} sur {0} km depuis le dernier plein (moyenne {2})",
- "⚠️ Verbrauch ungewöhnlich: {0} bei {1} km seit dem letzten Tanken (Durchschnitt {2}), bitte Kilometerstand prüfen.": "⚠️ Consommation inhabituelle : {0} sur {1} km depuis le dernier plein (moyenne {2}), vérifiez le kilométrage."
+ "⚠️ Verbrauch ungewöhnlich: {0} bei {1} km seit dem letzten Tanken (Durchschnitt {2}), bitte Kilometerstand prüfen.": "⚠️ Consommation inhabituelle : {0} sur {1} km depuis le dernier plein (moyenne {2}), vérifiez le kilométrage.",
+ "Zum Eintrag vom {0} ({1} km) fehlt noch der Beleg oder das Foto der Zapfsäule. Bitte schick es noch.": "Il manque encore le justificatif ou la photo de la pompe pour l'entrée du {0} ({1} km). Merci de l'envoyer."
 }

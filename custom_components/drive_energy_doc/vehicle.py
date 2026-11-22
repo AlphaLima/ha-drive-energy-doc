@@ -15,7 +15,7 @@ from typing import Any
 from homeassistant.core import Event, HomeAssistant, callback
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.dispatcher import async_dispatcher_send
-from homeassistant.helpers.event import async_track_state_change_event, async_track_time_interval
+from homeassistant.helpers.event import async_call_later, async_track_state_change_event, async_track_time_interval
 from homeassistant.helpers.storage import Store
 from homeassistant.util import dt as dt_util
 
@@ -30,6 +30,8 @@ from .telegram import get_bot
 _LOGGER = logging.getLogger(__name__)
 CHECK_EVERY = timedelta(seconds=15)
 AWAIT_TTL = 6 * 3600
+OPEN_WINDOW = 6 * 3600        # ein zuletzt angelegter Eintrag ohne Beleg bzw. ohne Kilometerstand bleibt so lange "offen"
+REMIND_AFTER = 30 * 60       # nach so vielen Sekunden wird an einen fehlenden Beleg erinnert
 CSV_FIELDS = ["fahrzeug", "kennzeichen", "art", "bezeichnung", "datum", "uhrzeit", "km", "ort", "adresse", "breitengrad", "laengengrad", "von_prozent", "bis_prozent", "menge", "einheit", "preis_pro_einheit", "betrag_eur", "quelle_menge", "quelle_preis", "beleg", "verbrauch_pro_100km", "notiz"]
 
 
@@ -563,8 +565,12 @@ class Vehicle:
             self._save()
             await self._say(self.tr("Kilometerstand {0} km vorgemerkt, er wird beim Abschluss des laufenden Tankvorgangs übernommen.", self._fmt_km(km)))
             return
+        photo_only = not self.o.get(CONF_LEVEL)
+        open_e = self._open_entry("odometer") if photo_only else None
+        if open_e:
+            sent = open_e["ts"]   # Beleg kam zuerst: der Kilometerstand gehört zu diesem Eintrag
         m = stats.match_odometer(self.data["entries"], km, sent)
-        if not self.o.get(CONF_LEVEL) and m["status"] in ("none", "too_old"):
+        if photo_only and m["status"] in ("none", "too_old"):
             # reiner Foto-Betrieb: der Tacho kommt zuerst, der Beleg wird danach (bis 48 h) diesem Eintrag zugeordnet
             e = self._new_manual_entry()
             e["ts"] = e["ts_start"] = sent
@@ -572,6 +578,7 @@ class Vehicle:
             self.data["entries"].sort(key=lambda x: x["ts"])
             await self._apply_odometer(e, km, photo, 0)
             await self._say(self.tr("Neuer Eintrag angelegt. Schick jetzt noch das Foto vom Beleg oder der Zapfsäule."))
+            self._remind_receipt(e)
             return
         if m["status"] == "none":
             await self._say(self.tr("Es gibt noch keinen Tankvorgang, dem ich den Kilometerstand zuordnen könnte."))
@@ -625,15 +632,51 @@ class Vehicle:
 
     def _new_manual_entry(self) -> dict:
         return {
-            "id": uuid.uuid4().hex[:12], "ts": time.time(), "ts_start": time.time(), "odometer": self._read_float(self.o.get(CONF_ODOMETER)),
+            "id": uuid.uuid4().hex[:12], "created": time.time(), "ts": time.time(), "ts_start": time.time(), "odometer": self._read_float(self.o.get(CONF_ODOMETER)),
             "lat": self._pos[0] if self._pos else None, "lon": self._pos[1] if self._pos else None, "station": None, "address": None,
             "station_id": None, "level_from": None, "level_to": None, "quantity": None, "quantity_source": "manuell", "unit_price": None,
             "price_source": None, "total": None, "photos": [], "receipt": False, "note": "",
         }
 
+    def _open_entry(self, need: str) -> dict | None:
+        """Zuletzt angelegter Eintrag (der letzten Stunden), dem noch der Beleg ("receipt") bzw. der Kilometerstand ("odometer") fehlt.
+        Damit gehören Tacho-Foto und Beleg zusammen, egal in welcher Reihenfolge sie kommen und welches Datum auf dem Beleg steht."""
+        es = [e for e in self.data["entries"] if e.get("kind") != "extra" and e.get("created")]
+        if not es:
+            return None
+        e = max(es, key=lambda x: x["created"])
+        if time.time() - e["created"] > OPEN_WINDOW:
+            return None
+        if need == "receipt" and not e.get("receipt") and e.get("quantity") is None:
+            return e
+        if need == "odometer" and e.get("odometer") is None:
+            return e
+        return None
+
+    def _remind_receipt(self, entry: dict, delay: float = REMIND_AFTER) -> None:
+        """Nach einer Weile einmal nachfragen, wenn zum neuen Eintrag (z. B. vom Tacho-Foto) noch kein Beleg gekommen ist."""
+        eid = entry["id"]
+
+        async def _cb(_now) -> None:
+            e = self.get_entry(eid)
+            if not e or e.get("receipt") or e.get("quantity"):
+                return
+            when = dt_util.as_local(dt_util.utc_from_timestamp(e["ts"])).strftime("%d.%m. %H:%M")
+            await self._say(self.tr("Zum Eintrag vom {0} ({1} km) fehlt noch der Beleg oder das Foto der Zapfsäule. Bitte schick es noch.", when, self._fmt_km(e.get("odometer") or 0)))
+
+        self._unsubs.append(async_call_later(self.hass, delay, _cb))
+
     async def _route(self, values: dict, photo: str | None) -> None:
         d = values.get("date")
         photo_only = not self.o.get(CONF_LEVEL)  # ohne Füllstandssensor: jeder Beleg ohne passenden Eintrag legt einen neuen an
+        open_e = self._open_entry("receipt") if photo_only else None
+        if open_e:   # das Tacho-Foto kam zuerst und hat schon eine neue Zeile angelegt: der Beleg gehört dazu (Datum und Uhrzeit vom Beleg gelten)
+            if d:
+                hm = values.get("time")
+                open_e["ts"] = open_e["ts_start"] = dt_util.start_of_local_day(d).timestamp() + ((hm[0] * 3600 + hm[1] * 60) if hm else 12 * 3600)
+                self.data["entries"].sort(key=lambda x: x["ts"])
+            await self._apply_and_report(open_e, values, photo)
+            return
         if d:
             target = self._entry_on(d)
             if not target and photo_only:

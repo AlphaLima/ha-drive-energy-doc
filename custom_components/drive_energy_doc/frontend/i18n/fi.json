@@ -157,5 +157,6 @@
  "kw.decimal": ",",
  "Beleg wird gelesen …": "Luetaan kuittia …",
  "würde bei {0} km seit dem letzten Tanken {1} ergeben (Durchschnitt {2})": "antaisi {1} {0} km:llä viimeisestä tankkauksesta (keskiarvo {2})",
- "⚠️ Verbrauch ungewöhnlich: {0} bei {1} km seit dem letzten Tanken (Durchschnitt {2}), bitte Kilometerstand prüfen.": "⚠️ Epätavallinen kulutus: {0} {1} km:llä viimeisestä tankkauksesta (keskiarvo {2}), tarkista mittarilukema."
+ "⚠️ Verbrauch ungewöhnlich: {0} bei {1} km seit dem letzten Tanken (Durchschnitt {2}), bitte Kilometerstand prüfen.": "⚠️ Epätavallinen kulutus: {0} {1} km:llä viimeisestä tankkauksesta (keskiarvo {2}), tarkista mittarilukema.",
+ "Zum Eintrag vom {0} ({1} km) fehlt noch der Beleg oder das Foto der Zapfsäule. Bitte schick es noch.": "Merkinnästä {0} ({1} km) puuttuu vielä kuitti tai kuva pumpusta. Lähetä se, kiitos."
 }

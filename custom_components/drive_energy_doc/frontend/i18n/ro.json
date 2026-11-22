@@ -157,5 +157,6 @@
  "kw.decimal": ",",
  "Beleg wird gelesen …": "Se citește bonul …",
  "würde bei {0} km seit dem letzten Tanken {1} ergeben (Durchschnitt {2})": "ar da {1} pe {0} km de la ultima alimentare (medie {2})",
- "⚠️ Verbrauch ungewöhnlich: {0} bei {1} km seit dem letzten Tanken (Durchschnitt {2}), bitte Kilometerstand prüfen.": "⚠️ Consum neobișnuit: {0} pe {1} km de la ultima alimentare (medie {2}), verificați kilometrajul."
+ "⚠️ Verbrauch ungewöhnlich: {0} bei {1} km seit dem letzten Tanken (Durchschnitt {2}), bitte Kilometerstand prüfen.": "⚠️ Consum neobișnuit: {0} pe {1} km de la ultima alimentare (medie {2}), verificați kilometrajul.",
+ "Zum Eintrag vom {0} ({1} km) fehlt noch der Beleg oder das Foto der Zapfsäule. Bitte schick es noch.": "La intrarea din {0} ({1} km) lipsește încă bonul sau fotografia pompei. Vă rugăm să-l trimiteți."
 }

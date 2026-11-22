@@ -157,5 +157,6 @@
  "kw.decimal": ",",
  "Beleg wird gelesen …": "Čitam račun …",
  "würde bei {0} km seit dem letzten Tanken {1} ergeben (Durchschnitt {2})": "dalo bi {1} na {0} km od zadnjeg točenja (prosjek {2})",
- "⚠️ Verbrauch ungewöhnlich: {0} bei {1} km seit dem letzten Tanken (Durchschnitt {2}), bitte Kilometerstand prüfen.": "⚠️ Neobična potrošnja: {0} na {1} km od zadnjeg točenja (prosjek {2}), provjerite kilometražu."
+ "⚠️ Verbrauch ungewöhnlich: {0} bei {1} km seit dem letzten Tanken (Durchschnitt {2}), bitte Kilometerstand prüfen.": "⚠️ Neobična potrošnja: {0} na {1} km od zadnjeg točenja (prosjek {2}), provjerite kilometražu.",
+ "Zum Eintrag vom {0} ({1} km) fehlt noch der Beleg oder das Foto der Zapfsäule. Bitte schick es noch.": "U unosu od {0} ({1} km) još nedostaje račun ili fotografija pumpe. Molim, pošaljite ga."
 }

@@ -157,5 +157,6 @@
  "kw.decimal": ".",
  "Beleg wird gelesen …": "Reading receipt …",
  "würde bei {0} km seit dem letzten Tanken {1} ergeben (Durchschnitt {2})": "would give {1} over {0} km since the last refuelling (average {2})",
- "⚠️ Verbrauch ungewöhnlich: {0} bei {1} km seit dem letzten Tanken (Durchschnitt {2}), bitte Kilometerstand prüfen.": "⚠️ Unusual consumption: {0} over {1} km since the last refuelling (average {2}), please check the odometer reading."
+ "⚠️ Verbrauch ungewöhnlich: {0} bei {1} km seit dem letzten Tanken (Durchschnitt {2}), bitte Kilometerstand prüfen.": "⚠️ Unusual consumption: {0} over {1} km since the last refuelling (average {2}), please check the odometer reading.",
+ "Zum Eintrag vom {0} ({1} km) fehlt noch der Beleg oder das Foto der Zapfsäule. Bitte schick es noch.": "The entry of {0} ({1} km) is still missing the receipt or a photo of the pump. Please send it."
 }

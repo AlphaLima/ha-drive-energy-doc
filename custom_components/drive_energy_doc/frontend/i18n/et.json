@@ -157,5 +157,6 @@
  "kw.decimal": ",",
  "Beleg wird gelesen …": "Tšekki loetakse …",
  "würde bei {0} km seit dem letzten Tanken {1} ergeben (Durchschnitt {2})": "annaks {0} km kohta alates viimasest tankimisest {1} (keskmine {2})",
- "⚠️ Verbrauch ungewöhnlich: {0} bei {1} km seit dem letzten Tanken (Durchschnitt {2}), bitte Kilometerstand prüfen.": "⚠️ Ebatavaline kulu: {0} {1} km kohta alates viimasest tankimisest (keskmine {2}), palun kontrollige läbisõitu."
+ "⚠️ Verbrauch ungewöhnlich: {0} bei {1} km seit dem letzten Tanken (Durchschnitt {2}), bitte Kilometerstand prüfen.": "⚠️ Ebatavaline kulu: {0} {1} km kohta alates viimasest tankimisest (keskmine {2}), palun kontrollige läbisõitu.",
+ "Zum Eintrag vom {0} ({1} km) fehlt noch der Beleg oder das Foto der Zapfsäule. Bitte schick es noch.": "{0} kirje ({1} km) juurest puudub veel tšekk või pumba foto. Palun saatke see."
 }

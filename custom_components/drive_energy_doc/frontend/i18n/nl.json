@@ -157,5 +157,6 @@
  "kw.decimal": ",",
  "Beleg wird gelesen …": "Bon wordt gelezen …",
  "würde bei {0} km seit dem letzten Tanken {1} ergeben (Durchschnitt {2})": "zou {1} opleveren over {0} km sinds de vorige tankbeurt (gemiddelde {2})",
- "⚠️ Verbrauch ungewöhnlich: {0} bei {1} km seit dem letzten Tanken (Durchschnitt {2}), bitte Kilometerstand prüfen.": "⚠️ Ongebruikelijk verbruik: {0} over {1} km sinds de vorige tankbeurt (gemiddelde {2}), controleer de kilometerstand."
+ "⚠️ Verbrauch ungewöhnlich: {0} bei {1} km seit dem letzten Tanken (Durchschnitt {2}), bitte Kilometerstand prüfen.": "⚠️ Ongebruikelijk verbruik: {0} over {1} km sinds de vorige tankbeurt (gemiddelde {2}), controleer de kilometerstand.",
+ "Zum Eintrag vom {0} ({1} km) fehlt noch der Beleg oder das Foto der Zapfsäule. Bitte schick es noch.": "Bij de invoer van {0} ({1} km) ontbreekt nog de bon of een foto van de pomp. Stuur die alsjeblieft nog."
 }

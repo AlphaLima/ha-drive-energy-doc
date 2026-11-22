@@ -157,5 +157,6 @@
  "kw.decimal": ",",
  "Beleg wird gelesen …": "Lettura del giustificativo …",
  "würde bei {0} km seit dem letzten Tanken {1} ergeben (Durchschnitt {2})": "darebbe {1} su {0} km dall'ultimo rifornimento (media {2})",
- "⚠️ Verbrauch ungewöhnlich: {0} bei {1} km seit dem letzten Tanken (Durchschnitt {2}), bitte Kilometerstand prüfen.": "⚠️ Consumo insolito: {0} su {1} km dall'ultimo rifornimento (media {2}), controlla il chilometraggio."
+ "⚠️ Verbrauch ungewöhnlich: {0} bei {1} km seit dem letzten Tanken (Durchschnitt {2}), bitte Kilometerstand prüfen.": "⚠️ Consumo insolito: {0} su {1} km dall'ultimo rifornimento (media {2}), controlla il chilometraggio.",
+ "Zum Eintrag vom {0} ({1} km) fehlt noch der Beleg oder das Foto der Zapfsäule. Bitte schick es noch.": "Alla voce del {0} ({1} km) manca ancora il giustificativo o la foto della colonnina. Per favore, inviala."
 }

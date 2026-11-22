@@ -157,5 +157,6 @@
  "kw.decimal": ",",
  "Beleg wird gelesen …": "Čtu doklad …",
  "würde bei {0} km seit dem letzten Tanken {1} ergeben (Durchschnitt {2})": "by dával {1} na {0} km od posledního tankování (průměr {2})",
- "⚠️ Verbrauch ungewöhnlich: {0} bei {1} km seit dem letzten Tanken (Durchschnitt {2}), bitte Kilometerstand prüfen.": "⚠️ Neobvyklá spotřeba: {0} na {1} km od posledního tankování (průměr {2}), zkontrolujte stav tachometru."
+ "⚠️ Verbrauch ungewöhnlich: {0} bei {1} km seit dem letzten Tanken (Durchschnitt {2}), bitte Kilometerstand prüfen.": "⚠️ Neobvyklá spotřeba: {0} na {1} km od posledního tankování (průměr {2}), zkontrolujte stav tachometru.",
+ "Zum Eintrag vom {0} ({1} km) fehlt noch der Beleg oder das Foto der Zapfsäule. Bitte schick es noch.": "U záznamu ze dne {0} ({1} km) stále chybí doklad nebo fotka stojanu. Pošlete ho prosím."
 }

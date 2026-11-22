@@ -157,5 +157,6 @@
  "kw.decimal": ",",
  "Beleg wird gelesen …": "Skaitomas čekis …",
  "würde bei {0} km seit dem letzten Tanken {1} ergeben (Durchschnitt {2})": "per {0} km nuo paskutinio pylimo duotų {1} (vidurkis {2})",
- "⚠️ Verbrauch ungewöhnlich: {0} bei {1} km seit dem letzten Tanken (Durchschnitt {2}), bitte Kilometerstand prüfen.": "⚠️ Neįprastos sąnaudos: {0} per {1} km nuo paskutinio pylimo (vidurkis {2}), patikrinkite ridą."
+ "⚠️ Verbrauch ungewöhnlich: {0} bei {1} km seit dem letzten Tanken (Durchschnitt {2}), bitte Kilometerstand prüfen.": "⚠️ Neįprastos sąnaudos: {0} per {1} km nuo paskutinio pylimo (vidurkis {2}), patikrinkite ridą.",
+ "Zum Eintrag vom {0} ({1} km) fehlt noch der Beleg oder das Foto der Zapfsäule. Bitte schick es noch.": "Prie {0} įrašo ({1} km) vis dar trūksta čekio arba kolonėlės nuotraukos. Prašome atsiųsti."
 }

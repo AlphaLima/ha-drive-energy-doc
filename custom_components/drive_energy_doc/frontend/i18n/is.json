@@ -157,5 +157,6 @@
  "kw.decimal": ",",
  "Beleg wird gelesen …": "Les kvittun …",
  "würde bei {0} km seit dem letzten Tanken {1} ergeben (Durchschnitt {2})": "myndi gefa {1} á {0} km frá síðustu áfyllingu (meðaltal {2})",
- "⚠️ Verbrauch ungewöhnlich: {0} bei {1} km seit dem letzten Tanken (Durchschnitt {2}), bitte Kilometerstand prüfen.": "⚠️ Óvenjuleg eyðsla: {0} á {1} km frá síðustu áfyllingu (meðaltal {2}), vinsamlegast athugaðu kílómetrastöðuna."
+ "⚠️ Verbrauch ungewöhnlich: {0} bei {1} km seit dem letzten Tanken (Durchschnitt {2}), bitte Kilometerstand prüfen.": "⚠️ Óvenjuleg eyðsla: {0} á {1} km frá síðustu áfyllingu (meðaltal {2}), vinsamlegast athugaðu kílómetrastöðuna.",
+ "Zum Eintrag vom {0} ({1} km) fehlt noch der Beleg oder das Foto der Zapfsäule. Bitte schick es noch.": "Færslan frá {0} ({1} km) vantar enn kvittun eða mynd af dælunni. Vinsamlegast sendu hana."
 }

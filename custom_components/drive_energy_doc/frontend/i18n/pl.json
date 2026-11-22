@@ -157,5 +157,6 @@
  "kw.decimal": ",",
  "Beleg wird gelesen …": "Odczytuję dowód …",
  "würde bei {0} km seit dem letzten Tanken {1} ergeben (Durchschnitt {2})": "dałaby {1} na {0} km od ostatniego tankowania (średnia {2})",
- "⚠️ Verbrauch ungewöhnlich: {0} bei {1} km seit dem letzten Tanken (Durchschnitt {2}), bitte Kilometerstand prüfen.": "⚠️ Nietypowe zużycie: {0} na {1} km od ostatniego tankowania (średnia {2}), sprawdź przebieg."
+ "⚠️ Verbrauch ungewöhnlich: {0} bei {1} km seit dem letzten Tanken (Durchschnitt {2}), bitte Kilometerstand prüfen.": "⚠️ Nietypowe zużycie: {0} na {1} km od ostatniego tankowania (średnia {2}), sprawdź przebieg.",
+ "Zum Eintrag vom {0} ({1} km) fehlt noch der Beleg oder das Foto der Zapfsäule. Bitte schick es noch.": "W wpisie z {0} ({1} km) nadal brakuje dowodu lub zdjęcia dystrybutora. Wyślij go, proszę."
 }

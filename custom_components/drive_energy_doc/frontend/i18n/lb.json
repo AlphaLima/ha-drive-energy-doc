@@ -157,5 +157,6 @@
  "kw.decimal": ",",
  "Beleg wird gelesen …": "Beleg gëtt gelies …",
  "würde bei {0} km seit dem letzten Tanken {1} ergeben (Durchschnitt {2})": "géif {1} op {0} km zënter dem leschte Tanken ergi (Duerchschnëtt {2})",
- "⚠️ Verbrauch ungewöhnlich: {0} bei {1} km seit dem letzten Tanken (Durchschnitt {2}), bitte Kilometerstand prüfen.": "⚠️ Ongewéinleche Verbrauch: {0} op {1} km zënter dem leschte Tanken (Duerchschnëtt {2}), w.e.g. de Kilometerstand kontrolléieren."
+ "⚠️ Verbrauch ungewöhnlich: {0} bei {1} km seit dem letzten Tanken (Durchschnitt {2}), bitte Kilometerstand prüfen.": "⚠️ Ongewéinleche Verbrauch: {0} op {1} km zënter dem leschte Tanken (Duerchschnëtt {2}), w.e.g. de Kilometerstand kontrolléieren.",
+ "Zum Eintrag vom {0} ({1} km) fehlt noch der Beleg oder das Foto der Zapfsäule. Bitte schick es noch.": "Beim Androck vum {0} ({1} km) feelt nach de Beleg oder d'Foto vun der Zapsail. Schéckt en w.e.g. nach."
 }

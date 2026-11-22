@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.1.77 (in Arbeit)
+- Foto-Betrieb: Das zuletzt angelegte, noch unvollständige Eintrag (Tacho-Foto ohne Beleg oder Beleg ohne Kilometerstand) bleibt 6 Stunden "offen"; Beleg und Tacho-Foto gehören zusammen, egal in welcher Reihenfolge und mit welchem Datum auf dem Beleg. Kommt ein Tacho-Foto zuerst, entsteht sofort eine neue Zeile, und nach 30 Minuten fragt der Bot einmal nach dem fehlenden Beleg bzw. Foto der Zapfsäule.
+
 ## 0.1.76
 Neu seit 0.1.69:
 - **36 Sprachen** für Panel und Bot (alle europäischen Sprachen und Russisch), Sprache der Bot-Antworten je Fahrzeug einstellbar, Kommandos in allen Sprachen verständlich. Die Seitenleiste heißt auf Deutsch „Tankbuch“, sonst entsprechend (nach der Systemsprache).

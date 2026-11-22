@@ -159,5 +159,6 @@
  "kw.decimal": ",",
  "Beleg wird gelesen …": "Четене на документа …",
  "würde bei {0} km seit dem letzten Tanken {1} ergeben (Durchschnitt {2})": "би дало {1} на {0} км от последното зареждане (средно {2})",
- "⚠️ Verbrauch ungewöhnlich: {0} bei {1} km seit dem letzten Tanken (Durchschnitt {2}), bitte Kilometerstand prüfen.": "⚠️ Необичаен разход: {0} на {1} км от последното зареждане (средно {2}), проверете километража."
+ "⚠️ Verbrauch ungewöhnlich: {0} bei {1} km seit dem letzten Tanken (Durchschnitt {2}), bitte Kilometerstand prüfen.": "⚠️ Необичаен разход: {0} на {1} км от последното зареждане (средно {2}), проверете километража.",
+ "Zum Eintrag vom {0} ({1} km) fehlt noch der Beleg oder das Foto der Zapfsäule. Bitte schick es noch.": "В записа от {0} ({1} км) все още липсва документът или снимка на колонката. Моля, изпратете го."
 }

@@ -157,5 +157,6 @@
  "kw.decimal": ",",
  "Beleg wird gelesen …": "Läser kvittot …",
  "würde bei {0} km seit dem letzten Tanken {1} ergeben (Durchschnitt {2})": "skulle ge {1} på {0} km sedan senaste tankningen (snitt {2})",
- "⚠️ Verbrauch ungewöhnlich: {0} bei {1} km seit dem letzten Tanken (Durchschnitt {2}), bitte Kilometerstand prüfen.": "⚠️ Ovanlig förbrukning: {0} på {1} km sedan senaste tankningen (snitt {2}), kontrollera miltalet."
+ "⚠️ Verbrauch ungewöhnlich: {0} bei {1} km seit dem letzten Tanken (Durchschnitt {2}), bitte Kilometerstand prüfen.": "⚠️ Ovanlig förbrukning: {0} på {1} km sedan senaste tankningen (snitt {2}), kontrollera miltalet.",
+ "Zum Eintrag vom {0} ({1} km) fehlt noch der Beleg oder das Foto der Zapfsäule. Bitte schick es noch.": "Posten från {0} ({1} km) saknar fortfarande kvitto eller foto av pumpen. Skicka det, tack."
 }
