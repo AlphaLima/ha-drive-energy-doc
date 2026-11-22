@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.1.71
+- Panel: bei mehreren Fotos Auswahl per Hover/Klick, sichtbare Trennlinien an den Spaltenüberschriften (zum Verschieben der Breite).
+
 ## 0.1.70
 - Panel (PC): kompaktere Tabelle, Uhrzeit unter dem Datum, Adresse und GPS in einer Zeile.
 

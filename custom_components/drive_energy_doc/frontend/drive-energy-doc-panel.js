@@ -1,7 +1,7 @@
 /* Drive-Energy-Doc-Panel: Fahrzeug-Reiter, Tankliste mit Belegfotos, Bearbeiten, CSV-Export */
 const COLS = ["date", "km", "station", "qty", "price", "total", "cons", "receipt", "note", "act"];
 
-const VERSION = "0.1.70";
+const VERSION = "0.1.71";
 
 class DriveEnergyDocPanel extends HTMLElement {
   set hass(h) {
@@ -19,7 +19,12 @@ class DriveEnergyDocPanel extends HTMLElement {
       // Beleg beim Darüberfahren vergrößern (Maus/Stift; am Handy gibt es den Foto-Viewer per Tipp)
       this.shadowRoot.addEventListener("pointerover", ev => {
         const t = ev.target;
-        if (ev.pointerType !== "touch" && t.classList && t.classList.contains("thumb")) this._pvShow(t, ev);
+        if (ev.pointerType !== "touch" && t.classList && t.classList.contains("multi")) this._selShow(t);
+        else if (ev.pointerType !== "touch" && t.classList && t.classList.contains("thumb")) this._pvShow(t, ev);
+      });
+      this.shadowRoot.addEventListener("pointerout", ev => {
+        if (ev.pointerType === "touch" || !ev.target.classList || !ev.target.classList.contains("multi")) return;
+        setTimeout(() => { const pop = this.shadowRoot.querySelector(".pop.sel"); if (pop && !pop.matches(":hover")) pop.remove(); }, 450);
       });
       this.shadowRoot.addEventListener("pointermove", ev => { if (this._pvEl && ev.pointerType !== "touch") this._pvMove(ev); });
       this.shadowRoot.addEventListener("pointerout", ev => { if (ev.target.classList && ev.target.classList.contains("thumb")) this._pvHide(); });
@@ -117,6 +122,19 @@ class DriveEnergyDocPanel extends HTMLElement {
     if (y + r.height > window.innerHeight - 8) y = Math.max(8, window.innerHeight - r.height - 8);
     box.style.left = x + "px";
     box.style.top = y + "px";
+  }
+
+  _selShow(el) {
+    const old = this.shadowRoot.querySelector(".pop"); if (old) old.remove();
+    const e = ((this._cur && this._cur.entries) || []).find(x => x.id === el.dataset.multi);
+    if (!e) return;
+    const r = el.getBoundingClientRect(), pop = document.createElement("div");
+    pop.className = "pop sel";
+    pop.innerHTML = (e.photo_urls || []).map((p, i) => `<img src="${p}" data-p="${p}" data-entry="${e.id}" data-name="${this._esc((e.photos || [])[i] || "")}" alt="Foto ${i + 1}" title="Foto ${i + 1}">`).join("");
+    pop.style.cssText = `position:fixed;z-index:98;padding:8px;border-radius:8px;background:var(--card-background-color);box-shadow:0 2px 12px #0006;border:1px solid var(--divider-color);top:${Math.min(r.bottom - 2, window.innerHeight - 90)}px;left:${Math.max(8, Math.min(r.left - 20, window.innerWidth - 380))}px`;
+    pop.addEventListener("pointerleave", ev => { if (ev.pointerType !== "touch") pop.remove(); });
+    this._pvHide();
+    this.shadowRoot.append(pop);
   }
 
   _pvHide() {
@@ -294,6 +312,9 @@ class DriveEnergyDocPanel extends HTMLElement {
       .pv{position:fixed;z-index:98;pointer-events:none;background:var(--card-background-color,#fff);border:1px solid var(--divider-color,#ccc);border-radius:8px;padding:4px;box-shadow:0 6px 24px rgba(0,0,0,.35);left:0;top:0}
       .pv img{display:block;max-width:min(440px,60vw);max-height:min(72vh,560px);border-radius:4px}
       .rs{position:absolute;top:0;right:-3px;bottom:0;width:8px;cursor:col-resize;user-select:none;touch-action:none;z-index:2}
+      .rs::after{content:"";position:absolute;left:3px;top:18%;bottom:18%;width:1px;background:var(--secondary-text-color);opacity:.5}
+      .multi{display:inline-flex;align-items:center;justify-content:center;min-width:18px;height:18px;padding:0 4px;margin-left:2px;border-radius:9px;background:var(--primary-color);color:var(--text-primary-color,#fff);font-size:11px;cursor:pointer;vertical-align:middle}
+      .sel{display:flex;gap:6px;flex-wrap:wrap;max-width:min(80vw,360px)}.sel img{height:64px;width:64px;object-fit:cover;border-radius:6px;cursor:pointer;border:1px solid var(--divider-color)}
       .rs:hover,.rs.on{background:var(--primary-color);opacity:.45}
       th[draggable=true]{cursor:grab}
       th.dropt{outline:2px dashed var(--primary-color);outline-offset:-2px}
@@ -348,7 +369,7 @@ class DriveEnergyDocPanel extends HTMLElement {
         price: `<td class="n">${this._fmt(e.unit_price, 3)}<div class="src">${this._esc(e.price_source || "")}</div></td>`,
         total: `<td class="n">${this._fmt(e.total)} €</td>`,
         cons: `<td class="n">${e.consumption != null ? this._fmt(e.consumption) : "–"}</td>`,
-        receipt: `<td>${(e.photo_urls || []).map((p, i) => `<img class="thumb" src="${p}" data-p="${p}" data-entry="${e.id}" data-name="${this._esc((e.photos || [])[i] || "")}" alt="${i === 0 && e.receipt ? "Beleg" : "Zusatzfoto"}">`).join("")}${e.receipt ? "" : `<span class="no" title="Beleg fehlt">${this._ico("warn")}</span>`}</td>`,
+        receipt: (() => { const ph = e.photo_urls || [], im = (p, k) => `<img class="${k}" src="${p}" data-p="${p}" data-entry="${e.id}" data-name="${this._esc((e.photos || [])[ph.indexOf(p)] || "")}" alt="${ph.indexOf(p) === 0 && e.receipt ? "Beleg" : "Zusatzfoto"}">`; return `<td>${ph.length ? im(ph[0], "thumb") : ""}${ph.length > 1 ? `<span class="multi" data-multi="${e.id}" tabindex="0" role="button" title="${ph.length} Fotos: auswählen" aria-label="Fotos auswählen">${ph.length}</span>` : ""}${e.receipt ? "" : `<span class="no" title="Beleg fehlt">${this._ico("warn")}</span>`}</td>`; })(),
         note: `<td>${e.note ? `<span class="notei" data-note="${this._esc(e.note)}" title="${this._esc(e.note)}" tabindex="0" role="button" aria-label="Notiz anzeigen">${this._ico("note")}</span>` : ""}</td>`,
         act: `<td><button data-act="photo" title="Foto zu diesem Eintrag" aria-label="Foto hinzufügen">${this._ico("camera")}</button> <button data-act="edit" title="Bearbeiten" aria-label="Bearbeiten">${this._ico("edit")}</button> <button data-act="del" title="Eintrag löschen" aria-label="Eintrag löschen">${this._ico("trash")}</button></td>`,
       };
@@ -372,7 +393,8 @@ class DriveEnergyDocPanel extends HTMLElement {
   async _click(ev, v) {
     this._pvHide();
     const old = this.shadowRoot.querySelector(".pop"); if (old) old.remove();
-    const t = ev.target.closest ? (ev.target.closest("button,[data-p],[data-tab],[data-note]") || ev.target) : ev.target;
+    const t = ev.target.closest ? (ev.target.closest("button,[data-p],[data-tab],[data-note],[data-multi]") || ev.target) : ev.target;
+    if (t.dataset.multi) { this._selShow(t); return; }
     if (t.dataset.note) {
       const r = t.getBoundingClientRect(), pop = document.createElement("div");
       pop.className = "pop"; pop.textContent = t.dataset.note;
