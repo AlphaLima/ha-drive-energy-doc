@@ -1,7 +1,7 @@
 /* Drive-Energy-Doc-Panel: Fahrzeug-Reiter, Tankliste mit Belegfotos, Bearbeiten, CSV-Export */
 const COLS = ["date", "km", "station", "qty", "price", "total", "cons", "receipt", "note", "act"];
 
-const VERSION = "0.1.75b4";
+const VERSION = "0.1.75b5";
 
 class DriveEnergyDocPanel extends HTMLElement {
   set hass(h) {
@@ -320,6 +320,7 @@ class DriveEnergyDocPanel extends HTMLElement {
       .dlg .card{background:var(--card-background-color,#fff);color:var(--primary-text-color);border-radius:14px;padding:16px;width:min(620px,94vw);max-height:90vh;display:flex;flex-direction:column;gap:10px;box-sizing:border-box}
       .dh{font-size:18px;font-weight:500}
       .pvp{height:60px;align-self:flex-start}
+      .dlg textarea{font:inherit;min-height:120px;padding:8px 10px;border:1px solid var(--divider-color);border-radius:8px;background:var(--primary-background-color);color:inherit;resize:vertical}
       .dlg input{font:inherit;padding:8px 10px;border:1px solid var(--divider-color);border-radius:8px;background:var(--primary-background-color);color:inherit}
       .cl{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:8px;overflow:auto;max-height:44vh;padding:2px}
       .cty{display:flex;flex-direction:column;align-items:flex-start;gap:4px;padding:8px;border-radius:10px;text-align:left}
@@ -390,7 +391,7 @@ class DriveEnergyDocPanel extends HTMLElement {
         cons: `<td class="n">${e.consumption != null ? this._fmt(e.consumption) : "–"}</td>`,
         receipt: (() => { const ph = e.photo_urls || [], im = (p, k) => `<img class="${k}" src="${p}" data-p="${p}" data-entry="${e.id}" data-name="${this._esc((e.photos || [])[ph.indexOf(p)] || "")}"${ph.length > 1 && k === "thumb" ? ` data-multi="${e.id}"` : ""} alt="${ph.indexOf(p) === 0 && e.receipt ? this.T("Beleg") : this.T("Zusatzfoto")}">`; return `<td>${ph.length ? im(ph[0], "thumb") : ""}${e.receipt ? "" : `<span class="no" title="${this.T("Beleg fehlt")}">${this._ico("warn")}</span>`}</td>`; })(),
         note: `<td>${e.note ? `<span class="notei" data-note="${this._esc(e.note)}" title="${this._esc(e.note)}" tabindex="0" role="button" aria-label="${this.T("Notiz anzeigen")}">${this._ico("note")}</span>` : ""}</td>`,
-        act: `<td><button data-act="photo" title="${this.T("Foto zu diesem Eintrag")}" aria-label="${this.T("Foto hinzufügen")}">${this._ico("camera")}</button> <button data-act="edit" title="${this.T("Bearbeiten")}" aria-label="${this.T("Bearbeiten")}">${this._ico("edit")}</button> <button data-act="del" title="${this.T("Eintrag löschen")}" aria-label="${this.T("Eintrag löschen")}">${this._ico("trash")}</button></td>`,
+        act: `<td><button data-act="note" title="${this.T("Notiz")}" aria-label="${this.T("Notiz")}">${this._ico("note")}</button> <button data-act="photo" title="${this.T("Foto zu diesem Eintrag")}" aria-label="${this.T("Foto hinzufügen")}">${this._ico("camera")}</button> <button data-act="edit" title="${this.T("Bearbeiten")}" aria-label="${this.T("Bearbeiten")}">${this._ico("edit")}</button> <button data-act="del" title="${this.T("Eintrag löschen")}" aria-label="${this.T("Eintrag löschen")}">${this._ico("trash")}</button></td>`,
       };
       return `<tr data-id="${e.id}">${order.map(k => cell[k].replace("<td", `<td data-c="${k}"`)).join("")}</tr>`;
     }).join("");
@@ -457,12 +458,39 @@ class DriveEnergyDocPanel extends HTMLElement {
       return this._render();
     }
     if (act === "shoot") return this._pick(v, null);
+    if (act === "note") return this._noteDlg(v, v.entries.find(x => x.id === t.closest("tr").dataset.id));
     if (act === "photo") return this._pick(v, v.entries.find(x => x.id === t.closest("tr").dataset.id));
     const id = t.closest("tr").dataset.id;
     const e = v.entries.find(x => x.id === id);
     if (act === "del") {
       if (confirm(this.T("Eintrag vom {0} endgültig löschen?", this._date(e.ts)))) { await this._hass.callWS({ type: "drive_energy_doc/delete", vehicle: v.id, entry: id }); this._load(); }
     } else if (act === "edit") this._form(v, e);
+  }
+
+  _noteDlg(v, e) {
+    // Notiz in einem eigenen Dialog (Textfeld), nicht über Browser-Abfragen: die funktionieren in der Handy-App oft nicht
+    if (!e) return;
+    this._pvHide();
+    const dlg = document.createElement("div");
+    dlg.className = "dlg";
+    dlg.innerHTML = `<div class="card"><div class="dh">${this.T("Notiz")} · ${this._esc(this._date(e.ts))}</div><textarea id="nt" maxlength="1000"></textarea><div class="df"><button data-d="cancel">${this.T("Abbrechen")}</button><button data-d="save" class="pri">${this.T("Speichern")}</button></div></div>`;
+    this.shadowRoot.appendChild(dlg);
+    this._dlg = dlg;
+    const ta = dlg.querySelector("#nt");
+    ta.value = e.note || "";
+    const close = () => { dlg.remove(); this._dlg = null; this._load(); };
+    dlg.onclick = async ev => {
+      ev.stopPropagation();
+      const b = ev.target.closest("[data-d]");
+      if ((b && b.dataset.d === "cancel") || ev.target === dlg) return close();
+      if (b && b.dataset.d === "save") {
+        try { await this._hass.callWS({ type: "drive_energy_doc/update", vehicle: v.id, entry: e.id, fields: { note: ta.value } }); }
+        catch (err) { alert(this.T("Speichern fehlgeschlagen: ") + (err.message || err)); return; }
+        close();
+      }
+    };
+    dlg.onkeydown = ev => { if (ev.key === "Escape") close(); };
+    ta.focus();
   }
 
   _pick(v, entry) {

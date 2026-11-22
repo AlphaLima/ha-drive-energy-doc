@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.1.75b5 (Beta)
+- Panel: Notiz hinzufügen und ändern über einen eigenen Knopf mit Textfeld-Dialog (statt Browser-Abfragen, die in der Handy-App nicht zuverlässig funktionieren).
+
 ## 0.1.75b4 (Beta)
 - Hassfest: Manifest-Schlüssel sortiert, ungültige Länder-Übersetzung entfernt, `CONFIG_SCHEMA` ergänzt.
 
