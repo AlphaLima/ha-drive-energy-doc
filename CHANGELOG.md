@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.75b10 (unveröffentlicht)
+- Kennzeichen und Land sind wieder im Konfigurationsdialog (mit Schild-Vorschau); die Länderauswahl braucht keine Übersetzungsschlüssel mehr (Hassfest).
+- Panel: Bei mehreren Fahrzeugen zeigt die Auswahl das Kennzeichen; ein Klick darauf wählt das Fahrzeug. Der Kennzeichen-Dialog im Panel entfällt.
+
 ## 0.1.75b9 (unveröffentlicht)
 - Panel: Anzahl der Einträge und Status stehen gestapelt (Wert über Beschriftung) links neben den Knöpfen.
 

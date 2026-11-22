@@ -94,7 +94,9 @@ def s_basic(d: dict, hass_country: str | None = None) -> vol.Schema:
             _text(CONF_LEVEL, d): _ent(["sensor", "number"]),
             _text(CONF_ODOMETER, d): _ent(["sensor", "number"]),
             _text(CONF_TRACKER, d): _ent(["device_tracker"]),
-            # Optional (nur Aussehen): Typ, Sprache, Bild. Kennzeichen und Land stellt man im Panel ein.
+            # Optional (nur Aussehen): Kennzeichen, Land, Typ, Bild
+            _text(CONF_PLATE, d): str,
+            vol.Optional(CONF_PLATE_COUNTRY, description={"suggested_value": d.get(CONF_PLATE_COUNTRY, default_cc)}): _country_selector(),
             _text(CONF_VEHICLE_TYPE, d): str,
             _text(CONF_LANGUAGE, d): _language_selector(),
             _text(CONF_IMAGE, d): _ent(["image", "camera"]),
@@ -259,7 +261,9 @@ async def process_image(hass: HomeAssistant, user_input: dict, old_file: str | N
 
 
 def _country_selector() -> sel.SelectSelector:
-    return sel.SelectSelector(sel.SelectSelectorConfig(options=PLATE_COUNTRIES, mode=sel.SelectSelectorMode.DROPDOWN, translation_key="plate_country", sort=True))
+    # Optionen mit eigenen Namen (keine Übersetzungsschlüssel: Großbuchstaben-Kürzel sind dort nicht erlaubt)
+    opts = [{"value": c, "label": PLATE_NAMES.get(c, c)} for c in PLATE_COUNTRIES]
+    return sel.SelectSelector(sel.SelectSelectorConfig(options=opts, mode=sel.SelectSelectorMode.DROPDOWN, sort=True))
 
 
 def _language_selector() -> sel.SelectSelector:
@@ -368,12 +372,26 @@ class DriveEnergyDocConfigFlow(_MessagingMixin, ConfigFlow, domain=DOMAIN):  # n
     async def async_step_vehicle(self, user_input=None) -> ConfigFlowResult:
         if user_input is not None:
             self._async_abort_entries_match({CONF_NAME: user_input[CONF_NAME]})
-            ui, _ = await process_image(self.hass, user_input, None)
+            self._vehicle_ui = user_input
+            return await self.async_step_plate_preview()
+        prefill = getattr(self, "_vehicle_ui", None) or {}
+        schema = s_basic({}, self.hass.config.country)
+        if prefill:  # zurück aus der Vorschau: Eingaben bleiben stehen
+            schema = self.add_suggested_values_to_schema(schema, prefill)
+        return self.async_show_form(step_id="vehicle", data_schema=schema, description_placeholders={"plate_preview": plate_md(prefill, self.hass.config.country)})
+
+    async def async_step_plate_preview(self, user_input=None) -> ConfigFlowResult:
+        """Das gezeichnete Kennzeichen mit dem gewählten Land zeigen, bevor das Fahrzeug angelegt wird."""
+        ui = self._vehicle_ui
+        if user_input is not None:
+            if not user_input.get("ok"):
+                return await self.async_step_vehicle()
+            ui, _ = await process_image(self.hass, ui, None)
             self._data = {CONF_KIND: KIND_VEHICLE, **_clean(ui)}
             if get_settings(self.hass).get(CONF_CHANNELS):
                 return await self.async_step_messaging()
             return self.async_create_entry(title=self._data[CONF_NAME], data=self._data)
-        return self.async_show_form(step_id="vehicle", data_schema=s_basic({}, self.hass.config.country))
+        return self.async_show_form(step_id="plate_preview", data_schema=vol.Schema({vol.Required("ok", default=True): bool}), description_placeholders={"plate_preview": plate_md(ui, self.hass.config.country)})
 
     def _msg_base(self) -> dict:
         return self._data
@@ -404,11 +422,8 @@ class DriveEnergyDocOptionsFlow(_MessagingMixin, OptionsFlow):
         if user_input is not None:
             drop_image = False
             if step == "basic":
-                ui, drop_image = await process_image(self.hass, user_input, self._cur().get(CONF_IMAGE_FILE))
-                out = _merge(dict(self.config_entry.options), ui, s_basic(self._cur(), self.hass.config.country))
-                if drop_image:
-                    out.pop(CONF_IMAGE_FILE, None)
-                return self.async_create_entry(data=out)
+                self._basic_ui = user_input          # erst die Vorschau des Schilds, gespeichert wird danach
+                return await self.async_step_plate_preview()
             ok, detail = await check(user_input) if check else (True, "")
             if ok:
                 out = _merge(dict(self.config_entry.options), user_input, schema)
@@ -417,7 +432,10 @@ class DriveEnergyDocOptionsFlow(_MessagingMixin, OptionsFlow):
                 return self.async_create_entry(data=out)
             errors = {"base": "wa_invalid" if step == "whatsapp" else "tg_invalid"}
             schema = self.add_suggested_values_to_schema(schema, user_input)
-        return self.async_show_form(step_id=step, data_schema=schema, errors=errors, description_placeholders={"detail": detail})
+        placeholders = {"detail": detail}
+        if step == "basic":
+            placeholders["plate_preview"] = plate_md({**self._cur(), **(getattr(self, "_basic_ui", None) or {})}, self.hass.config.country)
+        return self.async_show_form(step_id=step, data_schema=schema, errors=errors, description_placeholders=placeholders)
 
     async def async_step_general(self, user_input=None) -> ConfigFlowResult:
         return await self._form("general", s_settings(self._cur(), self.hass), user_input)
@@ -429,7 +447,23 @@ class DriveEnergyDocOptionsFlow(_MessagingMixin, OptionsFlow):
         return await self._form("whatsapp", s_whatsapp(self._cur()), user_input, lambda d: whatsapp.check(self.hass, d))
 
     async def async_step_basic(self, user_input=None) -> ConfigFlowResult:
-        return await self._form("basic", s_basic(self._cur(), self.hass.config.country), user_input)
+        schema = s_basic(self._cur(), self.hass.config.country)
+        if user_input is None and getattr(self, "_basic_ui", None):  # zurück aus der Vorschau: Eingaben bleiben stehen
+            schema = self.add_suggested_values_to_schema(schema, self._basic_ui)
+        return await self._form("basic", schema, user_input)
+
+    async def async_step_plate_preview(self, user_input=None) -> ConfigFlowResult:
+        """Das gezeichnete Kennzeichen mit dem gewählten Land zeigen, bevor die Fahrzeugdaten gespeichert werden."""
+        ui = self._basic_ui
+        if user_input is not None:
+            if not user_input.get("ok"):
+                return await self.async_step_basic()
+            ui, drop_image = await process_image(self.hass, ui, self._cur().get(CONF_IMAGE_FILE))
+            out = _merge(dict(self.config_entry.options), ui, s_basic(self._cur(), self.hass.config.country))
+            if drop_image:
+                out.pop(CONF_IMAGE_FILE, None)
+            return self.async_create_entry(data=out)
+        return self.async_show_form(step_id="plate_preview", data_schema=vol.Schema({vol.Required("ok", default=True): bool}), description_placeholders={"plate_preview": plate_md({**self._cur(), **ui}, self.hass.config.country)})
 
     def _msg_base(self) -> dict:
         return self._cur()

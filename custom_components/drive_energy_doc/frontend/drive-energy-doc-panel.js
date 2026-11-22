@@ -1,7 +1,7 @@
 /* Drive-Energy-Doc-Panel: Fahrzeug-Reiter, Tankliste mit Belegfotos, Bearbeiten, CSV-Export */
 const COLS = ["date", "km", "station", "qty", "price", "total", "cons", "receipt", "note", "act"];
 
-const VERSION = "0.1.75b9";
+const VERSION = "0.1.75b10";
 
 class DriveEnergyDocPanel extends HTMLElement {
   set hass(h) {
@@ -244,10 +244,10 @@ class DriveEnergyDocPanel extends HTMLElement {
     if (!t) return n;
     return t.toLowerCase().includes(n.toLowerCase()) ? t : `${n} · ${t}`;
   }
-  _plate(v) {
+  _plate(v, small = false) {
     // Dasselbe gezeichnete Schild wie in den Dialogen (mit Länderstreifen, Europa-Ring bei EU-Ländern)
     const src = `/api/drive_energy_doc/plate.svg?cc=${encodeURIComponent(v.plate_country || "DE")}&t=${encodeURIComponent(v.plate)}`;
-    return `<img class="plateimg pl" data-act="plate" src="${src}" alt="${this._esc(v.plate)}" title="${this.T("Kennzeichen und Land ändern")}" tabindex="0" role="button">`;
+    return `<img class="plateimg${small ? " tabplate" : ""}" src="${src}" alt="${this._esc(v.plate)}" title="${this._esc(v.plate)}">`;
   }
   _ico(n) {
     // Einfarbige Linien-Symbole (currentColor): schwarz im hellen, weiß im dunklen Design
@@ -286,7 +286,7 @@ class DriveEnergyDocPanel extends HTMLElement {
       .plate{white-space:nowrap;flex:none}
       .chip{flex:none;white-space:nowrap;background:var(--primary-color);color:var(--text-primary-color,#fff);border-radius:10px;padding:6px 14px;font-size:16px}
       .plateimg{height:40px;width:auto;flex:none}
-      .pl{cursor:pointer}.plateadd{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border:1px dashed var(--divider-color);border-radius:8px;color:var(--secondary-text-color);font-size:14px;white-space:nowrap}
+      .tabplate{height:26px;margin-left:8px;vertical-align:middle;pointer-events:none}
       .plate{display:inline-flex;align-items:stretch;border:2px solid #111;border-radius:6px;background:#fff;color:#111;font:600 16px/1.5 Arial,sans-serif;letter-spacing:1px;overflow:hidden}
       .plate i{display:flex;align-items:center;justify-content:center;min-width:16px;padding:0 5px;background:#003399;color:#fff;font:600 10px/1 Arial,sans-serif;font-style:normal;letter-spacing:0}
       .plate b{font-weight:600;padding:0 12px}
@@ -400,8 +400,8 @@ class DriveEnergyDocPanel extends HTMLElement {
       return `<tr data-id="${e.id}">${order.map(k => cell[k].replace("<td", `<td data-c="${k}"`)).join("")}</tr>`;
     }).join("");
     this.shadowRoot.innerHTML = `<style>${css}</style>
-      <div class="head"><div class="ttl"><img class="logo" src="/drive_energy_doc_static/icon.png?v=${VERSION}" alt=""><div><div class="app">Drive Energy Doc</div><h1>${this._esc(this._title(v))}</h1></div>${v.plate ? this._plate(v) : `<span class="pl plateadd" data-act="plate" title="${this.T("Kennzeichen und Land ändern")}" tabindex="0" role="button">${this._ico("plate")} ${this.T("Kennzeichen")}</span>`}</div>${pic ? `<img class="car" src="${pic}" alt="${this._esc(v.name)}">` : ""}</div>
-      ${d.length > 1 ? `<div class="tabs">${d.map((x, i) => `<button class="${i === this._tab ? "on" : ""}" data-tab="${i}">${this._esc(x.name)}${x.plate ? " · " + this._esc(x.plate) : ""}</button>`).join("")}</div>` : ""}
+      <div class="head"><div class="ttl"><img class="logo" src="/drive_energy_doc_static/icon.png?v=${VERSION}" alt=""><div><div class="app">Drive Energy Doc</div><h1>${this._esc(this._title(v))}</h1></div>${v.plate ? this._plate(v) : ""}</div>${pic ? `<img class="car" src="${pic}" alt="${this._esc(v.name)}">` : ""}</div>
+      ${d.length > 1 ? `<div class="tabs">${d.map((x, i) => `<button class="${i === this._tab ? "on" : ""}" data-tab="${i}">${this._esc(x.name)}${x.plate ? this._plate(x, true) : ""}</button>`).join("")}</div>` : ""}
       <div class="sum">
         <div><b>${this._fmt(s.avg_consumption)}</b><span>${u}/100 ${this.T("km")} (${this.T("Ø letzte 5")})</span></div>
         <div><b>${this._fmt(s.cost_12m)} €</b><span>${this.T("Kosten 12 Monate")}</span></div>

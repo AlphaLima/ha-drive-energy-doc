@@ -211,9 +211,7 @@ Elektroautos funktionieren genauso wie Verbrenner; die Unterschiede im Überblic
 
 Nach der Einrichtung erscheint **„Drive Energy Doc“** in der Seitenleiste:
 - Liste aller Tanken/Ladungen und Zubehör je Fahrzeug, Spalten verschiebbar und in der Breite änderbar.
-- Kennzeichen-Darstellung (alle europäischen Länder, EU-Ring bzw. gelb für NL/GB), Fahrzeugbild und -typ in der Kopfzeile. Das Kennzeichen wählst du im Dialog „Kennzeichen“ des Panels: Land aus der Liste, Text eingeben, das Schild zeichnet sich sofort neu.
-
-  ![Kennzeichen-Dialog im Panel](docs/plate-dialog.png)
+- Kennzeichen-Darstellung (alle europäischen Länder, EU-Ring bzw. gelb für NL/GB), Fahrzeugbild und -typ in der Kopfzeile. Bei mehreren Fahrzeugen zeigt die Auswahl oben das Kennzeichen jedes Fahrzeugs; ein Klick darauf wählt das Fahrzeug aus. Kennzeichen und Land stellst du in der Konfiguration des Fahrzeugs ein.
 - Belegfotos und Tacho-Fotos mit Vorschau beim Überfahren, Löschen mit Rückfrage; Foto-Upload.
 - Bearbeiten, manueller Eintrag („+“), Ort mit kleiner Google-Maps-Verknüpfung.
 - **CSV-Export** (Excel-tauglich) und **Druck/PDF** (Hoch- oder Querformat, mit oder ohne Belege).
@@ -237,7 +235,7 @@ Dann *Einstellungen → Geräte & Dienste → Integration hinzufügen → Drive 
 2. **Fahrzeug hinzufügen:** Pflicht sind nur Name, Energieart (Diesel/E5/E10/Elektro) und Tankvolumen bzw. Akkukapazität.
    **Optional:** Füllstand-Sensor (in %), Kilometerstand-Sensor, `device_tracker`. Ohne diese Sensoren gibt es keine automatische
    Erkennung; Einträge entstehen dann nur per Foto/Text oder im Panel, und jeder Beleg ohne passenden Eintrag legt automatisch
-   einen neuen an (reiner Foto-Betrieb). Ebenfalls optional: Fahrzeugtyp, Sprache der Bot-Antworten, Fahrzeugbild, Telegram-Chat. **Kennzeichen und Land** stellst du nicht hier, sondern im Panel ein (Symbol „Kennzeichen“ über der Liste).
+   einen neuen an (reiner Foto-Betrieb). Ebenfalls optional: Kennzeichen und Land (vor dem Speichern siehst du das gezeichnete Schild), Fahrzeugtyp, Sprache der Bot-Antworten, Fahrzeugbild, Telegram-Chat.
 3. Schwellwerte (5 %, 60 s, 250 m) und Nachrichtenkanäle sind je Fahrzeug unter *Konfigurieren* änderbar.
 
 Voraussetzungen: Home Assistant ab 2025.8; für das Lesen von Belegen eine `ai_task`-Integration (Gemini, OpenAI, Anthropic …).
@@ -455,9 +453,7 @@ Electric cars work just like combustion cars; the differences at a glance:
 
 After setup, **"Drive Energy Doc"** appears in the sidebar:
 - List of all refuellings/charges and accessories per vehicle; columns can be reordered and resized.
-- Licence plate display (all European countries, EU ring or yellow for NL/GB), vehicle picture and type in the header. You choose the plate in the panel's plate dialog: pick the country from the list, type the text, and the plate redraws instantly.
-
-  ![Licence plate dialog in the panel](docs/plate-dialog.png)
+- Licence plate display (all European countries, EU ring or yellow for NL/GB), vehicle picture and type in the header. With several vehicles the selector at the top shows each vehicle's plate; a click on it selects the vehicle. You set the plate and its country in the vehicle's configuration.
 - Receipt and odometer photos with a preview on hover (several photos: a picker), delete with confirmation, photo upload.
 - Edit, manual entry ("+"), place with a small Google Maps link, notes as an icon.
 - Compact card view on phones.
@@ -474,7 +470,7 @@ Per vehicle: **status**, **last refuelling**, **last price**, **consumption** (a
 Then *Settings → Devices & services → Add integration → Drive Energy Doc*:
 
 1. Create the **global settings**: price source (automatic by country or fixed), Tankerkönig key (Germany only), electricity price, AI (empty = Gemini automatically, otherwise an `ai_task` entity), message channels (Companion, Telegram, WhatsApp; the WhatsApp credentials are entered here too, the Telegram token is entered at the vehicle).
-2. **Add a vehicle:** only name, energy type (diesel/E5/E10/electric) and tank volume or battery capacity are required. **Optional:** level sensor (in %), odometer sensor, `device_tracker`. Without these sensors there is no automatic detection; entries are then created only by photo/text or in the panel, and every receipt without a matching entry automatically creates a new one (pure photo mode). Also optional: vehicle type, language of the bot's replies, vehicle picture, Telegram chat. The **licence plate and its country** are not set here but in the panel (the "licence plate" button above the list).
+2. **Add a vehicle:** only name, energy type (diesel/E5/E10/electric) and tank volume or battery capacity are required. **Optional:** level sensor (in %), odometer sensor, `device_tracker`. Without these sensors there is no automatic detection; entries are then created only by photo/text or in the panel, and every receipt without a matching entry automatically creates a new one (pure photo mode). Also optional: licence plate and country (before saving you see the drawn plate), vehicle type, language of the bot's replies, vehicle picture, Telegram chat.
 3. Thresholds (5 %, 60 s, 250 m) and message channels can be changed per vehicle under *Configure*.
 
 Requirements: Home Assistant 2025.8 or newer; to read receipts an `ai_task` integration (Gemini, OpenAI, Anthropic …).
