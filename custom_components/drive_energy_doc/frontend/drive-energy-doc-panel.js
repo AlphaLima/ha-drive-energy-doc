@@ -1,7 +1,7 @@
 /* Drive-Energy-Doc-Panel: Fahrzeug-Reiter, Tankliste mit Belegfotos, Bearbeiten, CSV-Export */
 const COLS = ["date", "km", "station", "qty", "price", "total", "cons", "receipt", "note", "act"];
 
-const VERSION = "0.1.75b13";
+const VERSION = "0.1.75b14";
 
 class DriveEnergyDocPanel extends HTMLElement {
   set hass(h) {
@@ -286,7 +286,8 @@ class DriveEnergyDocPanel extends HTMLElement {
       .plate{white-space:nowrap;flex:none}
       .chip{flex:none;white-space:nowrap;background:var(--primary-color);color:var(--text-primary-color,#fff);border-radius:10px;padding:6px 14px;font-size:16px}
       .plateimg{height:40px;width:auto;flex:none}
-      .tabs{align-items:center;gap:18px}
+      .head.multi{cursor:pointer}.chev{font-size:18px;color:var(--secondary-text-color);font-weight:400}
+      .vo{display:flex;align-items:center;gap:14px;padding:10px 12px;border-radius:10px;cursor:pointer;border:2px solid transparent}.vo:hover{background:var(--secondary-background-color,#0001)}.vo.on{border-color:var(--primary-color)}.vo .nm{font-size:13px;color:var(--secondary-text-color)}.vo .tt{font-size:16px}
       .vsel{display:inline-flex;align-items:center;gap:10px;cursor:pointer;opacity:.55;transition:opacity .15s;padding:4px 6px;border-radius:10px}.vsel:hover{opacity:.85}.vsel.on{opacity:1}
       .tabplate{height:34px;border-radius:7px}.vsel.on .tabplate{outline:3px solid var(--primary-color);outline-offset:2px}
       .vtype{font-size:15px}.vsel.on .vtype{font-weight:600}
@@ -403,8 +404,7 @@ class DriveEnergyDocPanel extends HTMLElement {
       return `<tr data-id="${e.id}">${order.map(k => cell[k].replace("<td", `<td data-c="${k}"`)).join("")}</tr>`;
     }).join("");
     this.shadowRoot.innerHTML = `<style>${css}</style>
-      <div class="head"><div class="ttl"><img class="logo" src="/drive_energy_doc_static/icon.png?v=${VERSION}" alt=""><div><div class="app">Drive Energy Doc</div><h1>${this._esc(this._title(v))}</h1></div>${v.plate ? this._plate(v) : ""}</div>${pic ? `<img class="car" src="${pic}" alt="${this._esc(v.name)}">` : ""}</div>
-      ${d.length > 1 ? `<div class="tabs">${d.map((x, i) => `<span class="vsel${i === this._tab ? " on" : ""}" data-tab="${i}" role="button" tabindex="0" title="${this._esc(x.name)}">${x.plate ? this._plate(x, true) : ""}<span class="vtype">${this._esc(this._title(x))}</span></span>`).join("")}</div>` : ""}
+      <div class="head${d.length > 1 ? " multi" : ""}"${d.length > 1 ? ` role="button" tabindex="0"` : ""}><div class="ttl"><img class="logo" src="/drive_energy_doc_static/icon.png?v=${VERSION}" alt=""><div><div class="app">Drive Energy Doc</div><h1>${this._esc(this._title(v))}${d.length > 1 ? ` <span class="chev">▾</span>` : ""}</h1></div>${v.plate ? this._plate(v) : ""}</div>${pic ? `<img class="car" src="${pic}" alt="${this._esc(v.name)}">` : ""}</div>
       <div class="sum">
         <div><b>${this._fmt(s.avg_consumption)}</b><span>${u}/100 ${this.T("km")} (${this.T("Ø letzte 5")})</span></div>
         <div><b>${this._fmt(s.cost_12m)} €</b><span>${this.T("Kosten 12 Monate")}</span></div>
@@ -420,6 +420,7 @@ class DriveEnergyDocPanel extends HTMLElement {
   async _click(ev, v) {
     this._pvHide();
     const old = this.shadowRoot.querySelector(".pop"); if (old) old.remove();
+    if (ev.target.closest && ev.target.closest(".head") && (this._data || []).length > 1) return this._vehDlg();
     const t = ev.target.closest ? (ev.target.closest("button,[data-p],[data-tab],[data-note],[data-multi]") || ev.target) : ev.target;
     if (t.dataset.multi) { this._selShow(t); return; }
     if (t.dataset.note) {
@@ -471,6 +472,25 @@ class DriveEnergyDocPanel extends HTMLElement {
     if (act === "del") {
       if (confirm(this.T("Eintrag vom {0} endgültig löschen?", this._date(e.ts)))) { await this._hass.callWS({ type: "drive_energy_doc/delete", vehicle: v.id, entry: id }); this._load(); }
     } else if (act === "edit") this._form(v, e);
+  }
+
+  _vehDlg() {
+    // Auswahl des Fahrzeugs: Dialog mit allen Fahrzeugen (Kennzeichen, Typ, Name)
+    this._pvHide();
+    const d = this._data || [];
+    const dlg = document.createElement("div");
+    dlg.className = "dlg";
+    dlg.innerHTML = `<div class="card">${d.map((x, i) => `<div class="vo${i === this._tab ? " on" : ""}" data-v="${i}" role="button" tabindex="0">${x.plate ? this._plate(x, true) : ""}<div><div class="tt">${this._esc(this._title(x))}</div>${x.name && this._title(x) !== x.name ? `<div class="nm">${this._esc(x.name)}</div>` : ""}</div></div>`).join("")}<div class="df"><button data-d="cancel">${this.T("Abbrechen")}</button></div></div>`;
+    this.shadowRoot.appendChild(dlg);
+    this._dlg = dlg;
+    const close = () => { dlg.remove(); this._dlg = null; };
+    dlg.onclick = ev => {
+      ev.stopPropagation();
+      const o = ev.target.closest("[data-v]");
+      if (o) { this._tab = +o.dataset.v; close(); return this._render(); }
+      if (ev.target === dlg || ev.target.closest("[data-d]")) close();
+    };
+    dlg.onkeydown = ev => { if (ev.key === "Escape") close(); };
   }
 
   _noteDlg(v, e) {

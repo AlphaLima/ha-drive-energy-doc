@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.1.75b14 (unveröffentlicht)
+- Panel: Auswahlzeile der Fahrzeuge entfällt; ein Klick auf den Kopfbereich öffnet einen Auswahldialog mit allen Fahrzeugen.
+
 ## 0.1.75b13 (unveröffentlicht)
 - Panel: In der Fahrzeugauswahl wählt auch ein Klick auf den Fahrzeugtyp neben dem Kennzeichen das Fahrzeug aus.
 

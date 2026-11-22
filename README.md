@@ -211,7 +211,7 @@ Elektroautos funktionieren genauso wie Verbrenner; die Unterschiede im Überblic
 
 Nach der Einrichtung erscheint **„Drive Energy Doc“** in der Seitenleiste:
 - Liste aller Tanken/Ladungen und Zubehör je Fahrzeug, Spalten verschiebbar und in der Breite änderbar.
-- Kennzeichen-Darstellung (alle europäischen Länder, EU-Ring bzw. gelb für NL/GB), Fahrzeugbild und -typ in der Kopfzeile. Bei mehreren Fahrzeugen wählst du das Fahrzeug mit einem Klick auf sein Kennzeichen oben aus (Fahrzeuge ohne Kennzeichen erscheinen mit ihrem Namen). Kennzeichen und Land stellst du in der Konfiguration des Fahrzeugs ein.
+- Kennzeichen-Darstellung (alle europäischen Länder, EU-Ring bzw. gelb für NL/GB), Fahrzeugbild und -typ in der Kopfzeile. Bei mehreren Fahrzeugen öffnet ein Klick auf den Kopfbereich (Logo, Fahrzeugtyp, Kennzeichen) einen Auswahldialog mit allen Fahrzeugen. Kennzeichen und Land stellst du in der Konfiguration des Fahrzeugs ein.
 - Belegfotos und Tacho-Fotos mit Vorschau beim Überfahren, Löschen mit Rückfrage; Foto-Upload.
 - Bearbeiten, manueller Eintrag („+“), Ort mit kleiner Google-Maps-Verknüpfung.
 - **CSV-Export** (Excel-tauglich) und **Druck/PDF** (Hoch- oder Querformat, mit oder ohne Belege).
@@ -453,7 +453,7 @@ Electric cars work just like combustion cars; the differences at a glance:
 
 After setup, **"Drive Energy Doc"** appears in the sidebar:
 - List of all refuellings/charges and accessories per vehicle; columns can be reordered and resized.
-- Licence plate display (all European countries, EU ring or yellow for NL/GB), vehicle picture and type in the header. With several vehicles you select a vehicle by clicking its licence plate at the top (vehicles without a plate appear with their name). You set the plate and its country in the vehicle's configuration.
+- Licence plate display (all European countries, EU ring or yellow for NL/GB), vehicle picture and type in the header. With several vehicles a click on the header area (logo, vehicle type, plate) opens a dialog to choose among all vehicles. You set the plate and its country in the vehicle's configuration.
 - Receipt and odometer photos with a preview on hover (several photos: a picker), delete with confirmation, photo upload.
 - Edit, manual entry ("+"), place with a small Google Maps link, notes as an icon.
 - Compact card view on phones.
