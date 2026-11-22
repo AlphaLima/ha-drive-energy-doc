@@ -1,3 +1,5 @@
+<p align="center"><img src="docs/logo.png" alt="Drive Energy Doc Logo" width="160"></p>
+
 # Drive Energy Doc für Home Assistant
 
 Ein **Tank- und Ladebuch für beliebig viele Fahrzeuge** (Verbrenner und Elektro), das sich weitgehend selbst führt:
