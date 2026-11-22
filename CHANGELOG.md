@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.1.75b15 (unveröffentlicht)
+- Panel: Layout-Fehler im Kopfbereich behoben (Klassenname kollidierte mit dem alten Zähler-Stil).
+
 ## 0.1.75b14 (unveröffentlicht)
 - Panel: Auswahlzeile der Fahrzeuge entfällt; ein Klick auf den Kopfbereich öffnet einen Auswahldialog mit allen Fahrzeugen.
 
