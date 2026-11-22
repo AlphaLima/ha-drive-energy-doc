@@ -29,7 +29,7 @@ Alles landet in einer Liste im Seitenmenü (mit CSV- und PDF-Druck).
 2. [Wie ein Tanken erkannt wird (genau)](#wie-ein-tanken-erkannt-wird-genau)
 3. [Welche Position und welcher Preis verwendet wird](#welche-position-und-welcher-preis-verwendet-wird)
 4. [Beleg, Zubehör und Tacho per Nachricht](#beleg-zubehör-und-tacho-per-nachricht)
-5. [Wie der Verbrauch berechnet wird](#wie-der-verbrauch-berechnet-wird)
+5. [Wie der Verbrauch berechnet wird](#wie-der-verbrauch-berechnet-wird) · [Elektrofahrzeuge](#elektrofahrzeuge)
 6. [Das Panel](#das-panel)
 7. [Sensoren, Ereignis und Dienste](#sensoren-ereignis-und-dienste)
 8. [Installation und Einrichtung](#installation-und-einrichtung)
@@ -191,6 +191,22 @@ werden alle getankten Mengen addiert und durch die gefahrenen Kilometer geteilt 
 Teilbetankungen zeigen daher keinen eigenen Verbrauch, fließen aber in die nächste volle Rechnung ein. Zubehör zählt nicht.
 Ist über den Zuwachs nichts bekannt (z. B. von Hand angelegt), gilt das Tanken als voll. Ohne Kilometerstand gibt es keine Rechnung.
 
+## Elektrofahrzeuge
+
+Elektroautos funktionieren genauso wie Verbrenner; die Unterschiede im Überblick:
+
+**Einrichtung:** Beim Fahrzeug die Energieart **Elektro** wählen und als Kapazität die **nutzbare Akkukapazität in kWh** eintragen (z. B. 58). Als Füllstand-Sensor dient der **Ladezustand (SoC) in %**, optional Kilometerstand und GPS wie beim Verbrenner. Ohne Sensoren funktioniert auch hier der [Foto-Betrieb](#foto-betrieb-ohne-auto-anbindung-flottenmanagement) (z. B. Foto der Ladesäule oder der App-Rechnung).
+
+**Erkennung:** Steigt der Ladezustand um mindestens **5 %**, wird ein Ladevorgang erkannt. Er ist beendet, wenn der Ladezustand **10 Minuten lang nicht weiter gestiegen** ist (Standard, einstellbar unter *Konfigurieren → Tankerkennung (Feintuning)*). Die **Entfernungsbedingung entfällt** (das Auto steht ja beim Laden), lässt sich aber einschalten. Viele kleine Ladungen am Tag werden einzeln als Vorgänge erfasst, sobald sie die 5 % erreichen.
+
+**Menge:** kWh = Zuwachs in % × Akkukapazität. Das ist die Energie **im Akku**; an der Steckdose oder Wallbox wird wegen der Ladeverluste meist etwas mehr verbraucht. Willst du es genau, schick den Wert vom Beleg oder der Ladesäule (z. B. `38,2 0,39 14,90`); der Beleg hat immer Vorrang.
+
+**Preis:** Es gibt keine Tankstellensuche. Stattdessen nimmt die Integration den **Strompreis je kWh** aus den *Globalen Einstellungen*: eine feste Zahl (z. B. `0,32`) oder eine Entität, die den aktuellen Preis liefert (z. B. dynamischer Tarif, Helfer oder Sensor). So bekommt jedes Laden **zu Hause** automatisch Preis und Kosten. Beim **öffentlichen Laden** schickst du die App-Rechnung oder ein Foto der Ladesäule per Telegram; die KI liest kWh, Preis und Summe, und der Beleg ersetzt den eingestellten Preis.
+
+**Verbrauch:** Gerechnet wird wie beim Verbrenner nach Voll-zu-Voll, Ergebnis in **kWh/100 km**. Als „voll“ gilt ein Ladevorgang ab **30 %** Zuwachs; kleinere Ladungen werden bis zur nächsten größeren aufaddiert. Dafür braucht es Kilometerstände (Sensor, Tacho-Foto oder `km 54210`).
+
+**Bekannte Grenzen:** Der Wallbox-Zähler wird (noch) nicht gelesen, die Menge ist akkuseitig. Meldet das Auto den Ladezustand nur alle paar Minuten, startet und endet ein Vorgang entsprechend verzögert. Zeigt der Ladezustand nur ganze Prozent, sind sehr kleine Ladungen ungenau.
+
 ## Das Panel
 
 Nach der Einrichtung erscheint **„Drive Energy Doc“** in der Seitenleiste:
@@ -218,7 +234,7 @@ HA neu starten.
 Dann *Einstellungen → Geräte & Dienste → Integration hinzufügen → Drive Energy Doc*:
 
 1. **Globale Einstellungen** anlegen: Preisquelle (automatisch nach Land oder fest), Tankerkönig-Schlüssel (nur für Deutschland),
-   Strompreis, KI (leer = Gemini automatisch, sonst eine `ai_task`-Entität), Telegram-/WhatsApp-Zugänge.
+   Strompreis, KI (leer = Gemini automatisch, sonst eine `ai_task`-Entität), Nachrichtenkanäle (Companion, Telegram, WhatsApp; WhatsApp-Zugangsdaten stehen ebenfalls hier, der Telegram-Token wird dagegen beim Fahrzeug eingetragen).
 2. **Fahrzeug hinzufügen:** Pflicht sind nur Name, Energieart (Diesel/E5/E10/Elektro) und Tankvolumen bzw. Akkukapazität.
    **Optional:** Füllstand-Sensor (in %), Kilometerstand-Sensor, `device_tracker`. Ohne diese Sensoren gibt es keine automatische
    Erkennung; Einträge entstehen dann nur per Foto/Text oder im Panel, und jeder Beleg ohne passenden Eintrag legt automatisch
@@ -228,20 +244,40 @@ Dann *Einstellungen → Geräte & Dienste → Integration hinzufügen → Drive 
 Voraussetzungen: Home Assistant ab 2025.8; für das Lesen von Belegen eine `ai_task`-Integration (Gemini, OpenAI, Anthropic …).
 
 ## Telegram einrichten
-1. Bot bei @BotFather anlegen, Token in den Globalen Einstellungen eintragen. Ein Token darf nur von **einem** Programm abgefragt werden
-   (nicht parallel in Node-RED oder `telegram_bot`).
-2. Dem Bot `/start` schreiben, er nennt die Chat-ID; diese beim Fahrzeug eintragen. Mehrere Fahrzeuge: je eigener Bot oder je eigene
-   Gruppe/Chat-ID. Nachrichten aus unbekannten Chats werden nicht verarbeitet (der Bot antwortet nur mit einem Hinweis auf die Chat-ID).
+Telegram ist der einfachste Kanal: kostenlos, ohne Firmenkonto und ohne öffentlich erreichbares Home Assistant (die Integration fragt Telegram selbst ab).
+
+**Du brauchst:** ein Telegram-Konto und etwa fünf Minuten.
+
+1. **Bot anlegen.** In Telegram den Kontakt **@BotFather** öffnen, `/newbot` senden, einen Anzeigenamen und einen Benutzernamen (muss auf `bot` enden) wählen. BotFather antwortet mit dem **Token** (sieht aus wie `123456789:ABC…`). Der Token ist wie ein Passwort: nicht weitergeben, nicht in Screenshots zeigen.
+2. **Kanal freischalten (einmalig).** *Einstellungen → Geräte & Dienste → Drive Energy Doc → „Drive Energy Doc Einstellungen“ → Konfigurieren → Kanäle, Preisquelle, KI* und bei den Kanälen **Telegram** ankreuzen.
+3. **Chat-ID herausfinden.** Dem neuen Bot in Telegram eine Nachricht schreiben (z. B. `/start`). Dann im Browser `https://api.telegram.org/bot<TOKEN>/getUpdates` öffnen (statt `<TOKEN>` deinen Token einsetzen) und die Zahl hinter `"chat":{"id":` suchen. Das ist die Chat-ID (in Gruppen negativ). Ist der Bot schon bei einem anderen Fahrzeug eingetragen, antwortet er auf `/start` aus einem neuen Chat von selbst mit der Chat-ID.
+4. **Beim Fahrzeug eintragen.** *Drive Energy Doc → Fahrzeug → Konfigurieren → Kommunikation → Telegram*: **Bot-Token** und **Chat-ID** eintragen. Mit dem Schalter **„Testnachricht senden“** prüfst du sofort, ob alles stimmt: die Nachricht kommt im Chat an und als Benachrichtigung in Home Assistant.
+5. **Benutzen.** Dem Bot Beleg-Fotos, Tacho-Fotos oder Text schicken (siehe [Beleg, Zubehör und Tacho per Nachricht](#beleg-zubehör-und-tacho-per-nachricht)). Mit `?` listet er alle Kommandos.
+
+**Mehrere Fahrzeuge oder Fahrer (Flotte):** Du kannst **einen** Bot für alle Fahrzeuge nutzen. Jedes Fahrzeug bekommt dann eine **eigene Chat-ID**: jeder Fahrer schreibt dem Bot in seinem eigenen Chat, oder du legst je Fahrzeug eine Gruppe an und fügst den Bot hinzu. Die Zuordnung zum Fahrzeug läuft allein über die Chat-ID. Alternativ legst du je Fahrzeug einen eigenen Bot an.
+
+**Wenn nichts ankommt:**
+- Antwortet der Bot gar nicht: Token prüfen, und ob ein **zweites Programm** denselben Token abfragt (Node-RED, `telegram_bot` mit Polling, ein zweites Home Assistant). Ein Token darf nur von **einem** Programm abgefragt werden.
+- Schreibt der Bot, dass die Chat-ID „keinem Fahrzeug zugeordnet“ ist: Zahl beim richtigen Fahrzeug eintragen.
+- In **Gruppen** kommen Fotos beim Bot nur an, wenn sein Datenschutzmodus aus ist: bei @BotFather `/setprivacy` → Bot wählen → **Disable**, danach den Bot aus der Gruppe entfernen und neu hinzufügen.
+- Fremde Chats werden nie verarbeitet; es werden nur Nachrichten der eingetragenen Chat-ID angenommen.
 
 ## WhatsApp einrichten (offizielle Cloud API von Meta)
-1. Auf developers.facebook.com eine App vom Typ „Business“ anlegen, Produkt „WhatsApp“ hinzufügen, Telefonnummer-ID und einen
-   **dauerhaften** Zugriffstoken (System-User) holen. Das App-Secret steht unter App-Einstellungen → Allgemein.
-2. In den Einstellungen eintragen: Token, Telefonnummern-ID, ein frei gewähltes Verify-Token, App-Secret (ohne Secret verarbeitet der Webhook nichts).
-3. Im Meta-Dashboard Webhook anlegen: Callback-URL `https://<deine-öffentliche-HA-Adresse>/api/drive_energy_doc/whatsapp`, dasselbe
-   Verify-Token, Feld `messages` abonnieren. HA muss dafür per HTTPS aus dem Internet erreichbar sein.
-4. Beim Fahrzeug die Nummer des Fahrers eintragen (mit Landesvorwahl, ohne + und Leerzeichen); nur Nachrichten dieser Nummer werden angenommen.
-5. Meldungen von sich aus erlaubt WhatsApp nur innerhalb von 24 h nach der letzten Nachricht des Fahrers. Danach nur mit freigegebener
-   Vorlage: in Meta eine Vorlage (Kategorie Utility) mit einem Text wie `Drive Energy Doc: {{1}}` anlegen und ihren Namen eintragen.
+WhatsApp ist aufwendiger als Telegram, aber praktisch, wenn die Fahrer WhatsApp ohnehin nutzen. Es wird die **offizielle WhatsApp Cloud API von Meta** verwendet.
+
+**Du brauchst:**
+- ein Meta-Entwicklerkonto (developers.facebook.com) und eine App vom Typ „Business“ mit dem Produkt „WhatsApp“,
+- eine **Telefonnummer** für den Bot: zum Ausprobieren stellt Meta eine Testnummer bereit (Empfänger müssen dort vorher eingetragen werden), für den echten Betrieb eine eigene, bei WhatsApp registrierte Nummer,
+- Home Assistant muss **aus dem Internet per HTTPS** erreichbar sein, und zwar ohne Anmeldung unter `/api/drive_energy_doc/whatsapp` (z. B. Nabu Casa, Tailscale Funnel, Cloudflare Tunnel oder ein Reverse Proxy). Meta ruft diese Adresse auf, sobald eine Nachricht eintrifft.
+
+**Schritte:**
+1. In der Meta-App unter *WhatsApp → API-Einrichtung* die **Telefonnummer-ID** notieren und einen **dauerhaften Zugriffstoken** erzeugen (über einen Systemnutzer im Business-Manager; der vorläufige Token läuft nach 24 Stunden ab). Das **App-Secret** steht unter *App-Einstellungen → Allgemein*.
+2. In Home Assistant *Drive Energy Doc → „Drive Energy Doc Einstellungen“ → Konfigurieren → WhatsApp-Zugang*: Token, Telefonnummer-ID, ein **frei gewähltes Verify-Token** und das App-Secret eintragen. Ohne App-Secret verarbeitet die Integration eingehende Nachrichten nicht (die Herkunft kann dann nicht geprüft werden). Bei den Kanälen (*Kanäle, Preisquelle, KI*) **WhatsApp** ankreuzen.
+3. In der Meta-App unter *WhatsApp → Konfiguration → Webhook* eintragen: Callback-URL `https://<deine-öffentliche-HA-Adresse>/api/drive_energy_doc/whatsapp`, dasselbe **Verify-Token**, und das Feld **`messages`** abonnieren.
+4. Beim Fahrzeug (*Konfigurieren → Kommunikation → WhatsApp*) die **Nummer des Fahrers** eintragen, mit Landesvorwahl, ohne `+` und Leerzeichen (z. B. `4917012345678`). Nur Nachrichten dieser Nummer werden angenommen. Mit dem Schalter „Testnachricht senden“ prüfst du den Weg.
+5. **Wichtig, 24-Stunden-Regel:** WhatsApp erlaubt Nachrichten von sich aus (z. B. „Tanken erkannt“) nur innerhalb von 24 Stunden nach der letzten Nachricht des Fahrers. Danach geht nur eine von Meta **freigegebene Vorlage** (Kategorie *Utility*) mit einem Text wie `Drive Energy Doc: {{1}}`. Den Vorlagennamen und den Sprachcode trägst du in den WhatsApp-Einstellungen ein. Ohne Vorlage kommt die Meldung nur im offenen Fenster an. Antworten auf Nachrichten des Fahrers sind immer möglich.
+
+Hinweis: Preise und Regeln von Meta ändern sich; informiere dich bei Meta über Kosten für Vorlagen-Nachrichten und die Anforderungen an das Business-Konto.
 
 ## Sprachen
 Panel und Bot sprechen **36 Sprachen**: Deutsch, Englisch, Französisch, Spanisch, Italienisch, Niederländisch, Portugiesisch, Polnisch, Tschechisch, Slowakisch, Slowenisch, Kroatisch, Serbisch, Bosnisch, Mazedonisch, Bulgarisch, Ukrainisch, Belarussisch, **Russisch**, Rumänisch, Ungarisch, Griechisch, Türkisch, Albanisch, Litauisch, Lettisch, Estnisch, Finnisch, Schwedisch, Dänisch, Norwegisch, Isländisch, Irisch, Maltesisch, Luxemburgisch und Katalanisch.
@@ -400,6 +436,22 @@ Send a photo of the odometer or text such as `km 54210`. The value is assigned t
 
 Method **full-to-full**: a refuelling counts as "full" if the increase is **at least 30 %**. Between two full refuellings all filled quantities are added up and divided by the kilometres driven (result per 100 km or kWh/100 km). Partial refuellings therefore show no consumption of their own, but flow into the next full calculation. Accessories do not count. If nothing is known about the increase (e.g. created by hand), the refuelling counts as full. Without a mileage there is no calculation.
 
+## Electric vehicles
+
+Electric cars work just like combustion cars; the differences at a glance:
+
+**Setup:** Choose the energy type **Electric** at the vehicle and enter the **usable battery capacity in kWh** as the capacity (e.g. 58). The level sensor is the **state of charge (SoC) in %**; odometer and GPS are optional as for combustion cars. Without sensors the [photo mode](#photo-mode-without-a-car-connection-fleet-management) works here too (e.g. a photo of the charger or of the app invoice).
+
+**Detection:** If the state of charge rises by at least **5 %**, a charging session is detected. It ends when the state of charge has **not risen further for 10 minutes** (default, adjustable under *Configure → Refuel detection (fine tuning)*). The **distance condition does not apply** (the car stays put while charging) but can be switched on. Many small charges per day are recorded as separate sessions as soon as they reach 5 %.
+
+**Quantity:** kWh = increase in % × battery capacity. This is the energy **in the battery**; at the socket or wallbox somewhat more is usually consumed because of charging losses. If you want it exact, send the value from the receipt or the charger (e.g. `38,2 0,39 14,90`); the receipt always wins.
+
+**Price:** There is no station lookup. Instead the integration uses the **electricity price per kWh** from the *global settings*: a fixed number (e.g. `0,32`) or an entity that supplies the current price (e.g. a dynamic tariff, helper or sensor). So every charge **at home** automatically gets price and cost. For **public charging** send the app invoice or a photo of the charger via Telegram; the AI reads kWh, price and total, and the receipt replaces the set price.
+
+**Consumption:** Calculated full-to-full like for combustion cars, result in **kWh/100 km**. A charging session counts as "full" from **30 %** increase; smaller charges are added up until the next larger one. This needs mileages (sensor, odometer photo or `km 54210`).
+
+**Known limits:** The wallbox meter is not read (yet); the quantity is battery-side. If the car reports the state of charge only every few minutes, a session starts and ends with the same delay. If the state of charge shows whole percent only, very small charges are imprecise.
+
 ## The panel
 
 After setup, **"Drive Energy Doc"** appears in the sidebar:
@@ -422,22 +474,47 @@ Per vehicle: **status**, **last refuelling**, **last price**, **consumption** (a
 
 Then *Settings → Devices & services → Add integration → Drive Energy Doc*:
 
-1. Create the **global settings**: price source (automatic by country or fixed), Tankerkönig key (Germany only), electricity price, AI (empty = Gemini automatically, otherwise an `ai_task` entity), Telegram/WhatsApp credentials.
+1. Create the **global settings**: price source (automatic by country or fixed), Tankerkönig key (Germany only), electricity price, AI (empty = Gemini automatically, otherwise an `ai_task` entity), message channels (Companion, Telegram, WhatsApp; the WhatsApp credentials are entered here too, the Telegram token is entered at the vehicle).
 2. **Add a vehicle:** only name, energy type (diesel/E5/E10/electric) and tank volume or battery capacity are required. **Optional:** level sensor (in %), odometer sensor, `device_tracker`. Without these sensors there is no automatic detection; entries are then created only by photo/text or in the panel, and every receipt without a matching entry automatically creates a new one (pure photo mode). Also optional: vehicle type, language of the bot's replies, vehicle picture, Telegram chat. The **licence plate and its country** are not set here but in the panel (the "licence plate" button above the list).
 3. Thresholds (5 %, 60 s, 250 m) and message channels can be changed per vehicle under *Configure*.
 
 Requirements: Home Assistant 2025.8 or newer; to read receipts an `ai_task` integration (Gemini, OpenAI, Anthropic …).
 
 ## Setting up Telegram
-1. Create a bot with @BotFather and enter the token in the global settings. A token may be polled by **one** program only (not in parallel in Node-RED or `telegram_bot`).
-2. Write `/start` to the bot; it tells you the chat ID, which you enter at the vehicle. Several vehicles: one bot each, or one group/chat ID each. Messages from unknown chats are not processed (the bot only replies with a note about the chat ID).
+Telegram is the easiest channel: free, no business account, and Home Assistant does not need to be reachable from the internet (the integration polls Telegram itself).
+
+**You need:** a Telegram account and about five minutes.
+
+1. **Create a bot.** In Telegram open the contact **@BotFather**, send `/newbot`, choose a display name and a username (must end in `bot`). BotFather replies with the **token** (looks like `123456789:ABC…`). The token is like a password: do not share it or show it in screenshots.
+2. **Enable the channel (once).** *Settings → Devices & services → Drive Energy Doc → "Drive Energy Doc settings" → Configure → Channels, price source, AI* and tick **Telegram** under channels.
+3. **Find the chat ID.** Write a message to the new bot in Telegram (e.g. `/start`). Then open `https://api.telegram.org/bot<TOKEN>/getUpdates` in a browser (put your token in place of `<TOKEN>`) and look for the number after `"chat":{"id":`. That is the chat ID (negative for groups). If the bot is already entered at another vehicle, it answers `/start` from a new chat by itself with the chat ID.
+4. **Enter it at the vehicle.** *Drive Energy Doc → vehicle → Configure → Messaging → Telegram*: enter the **bot token** and the **chat ID**. The switch **"Send test message"** checks immediately whether everything works: the message arrives in the chat and as a notification in Home Assistant.
+5. **Use it.** Send the bot receipt photos, odometer photos or text (see [Receipt, accessories and odometer by message](#receipt-accessories-and-odometer-by-message)). `?` lists all commands.
+
+**Several vehicles or drivers (fleet):** You can use **one** bot for all vehicles. Each vehicle then gets its **own chat ID**: every driver writes to the bot in their own chat, or you create one group per vehicle and add the bot. The assignment to the vehicle is done by the chat ID alone. Alternatively create one bot per vehicle.
+
+**If nothing arrives:**
+- The bot does not answer at all: check the token, and whether a **second program** polls the same token (Node-RED, `telegram_bot` with polling, a second Home Assistant). A token may be polled by **one** program only.
+- The bot says the chat ID is "not assigned to a vehicle": enter the number at the right vehicle.
+- In **groups** photos only reach the bot if its privacy mode is off: at @BotFather `/setprivacy` → choose the bot → **Disable**, then remove the bot from the group and add it again.
+- Foreign chats are never processed; only messages from the entered chat ID are accepted.
 
 ## Setting up WhatsApp (Meta's official Cloud API)
-1. On developers.facebook.com create an app of type "Business", add the product "WhatsApp", and get the phone number ID and a **permanent** access token (system user). The app secret is under App settings → Basic.
-2. Enter in the settings: token, phone number ID, a verify token of your choice, app secret (without the secret the webhook processes nothing).
-3. In the Meta dashboard create a webhook: callback URL `https://<your-public-HA-address>/api/drive_energy_doc/whatsapp`, the same verify token, subscribe to the field `messages`. HA must be reachable from the internet via HTTPS for this.
-4. Enter the driver's number at the vehicle (with country code, without + and spaces); only messages from this number are accepted.
-5. WhatsApp only allows unsolicited messages within 24 h of the driver's last message. After that only with an approved template: create a template in Meta (category Utility) with a text such as `Drive Energy Doc: {{1}}` and enter its name.
+WhatsApp takes more effort than Telegram, but is handy if your drivers use WhatsApp anyway. It uses **Meta's official WhatsApp Cloud API**.
+
+**You need:**
+- a Meta developer account (developers.facebook.com) and an app of type "Business" with the product "WhatsApp",
+- a **phone number** for the bot: to try it out Meta provides a test number (recipients have to be added there first), for real use your own number registered with WhatsApp,
+- Home Assistant must be reachable **from the internet via HTTPS**, without login, at `/api/drive_energy_doc/whatsapp` (e.g. Nabu Casa, Tailscale Funnel, Cloudflare Tunnel or a reverse proxy). Meta calls this address when a message arrives.
+
+**Steps:**
+1. In the Meta app under *WhatsApp → API setup* note the **phone number ID** and create a **permanent access token** (via a system user in the Business Manager; the temporary token expires after 24 hours). The **app secret** is under *App settings → Basic*.
+2. In Home Assistant *Drive Energy Doc → "Drive Energy Doc settings" → Configure → WhatsApp access*: enter the token, phone number ID, a **verify token of your choice** and the app secret. Without the app secret the integration does not process incoming messages (the origin cannot be verified). Tick **WhatsApp** under channels (*Channels, price source, AI*).
+3. In the Meta app under *WhatsApp → Configuration → Webhook* enter: callback URL `https://<your-public-HA-address>/api/drive_energy_doc/whatsapp`, the same **verify token**, and subscribe to the field **`messages`**.
+4. At the vehicle (*Configure → Messaging → WhatsApp*) enter the **driver's number**, with country code, without `+` and spaces (e.g. `4917012345678`). Only messages from this number are accepted. The switch "Send test message" checks the path.
+5. **Important, the 24-hour rule:** WhatsApp only allows unsolicited messages (e.g. "Refuelling detected") within 24 hours of the driver's last message. After that only an **approved template** (category *Utility*) with a text such as `Drive Energy Doc: {{1}}` works. Enter the template name and language code in the WhatsApp settings. Without a template the message only arrives while the window is open. Replies to the driver's messages are always possible.
+
+Note: Meta's prices and rules change; check with Meta for the cost of template messages and the requirements for the business account.
 
 ## Languages
 The panel and the bot speak **36 languages**: German, English, French, Spanish, Italian, Dutch, Portuguese, Polish, Czech, Slovak, Slovenian, Croatian, Serbian, Bosnian, Macedonian, Bulgarian, Ukrainian, Belarusian, **Russian**, Romanian, Hungarian, Greek, Turkish, Albanian, Lithuanian, Latvian, Estonian, Finnish, Swedish, Danish, Norwegian, Icelandic, Irish, Maltese, Luxembourgish and Catalan.
