@@ -1,6 +1,7 @@
 # Changelog
 
-## 0.1.74
+## 0.1.74b1 (Beta)
+- README zusätzlich auf Englisch.
 - Foto-Betrieb: Tacho-Foto ohne vorhandenen Eintrag legt einen neuen an; README beschreibt den Betrieb ohne Auto-Anbindung (Flottenmanagement).
 
 ## 0.1.73

@@ -2,6 +2,8 @@
 
 # Drive Energy Doc für Home Assistant
 
+🇩🇪 Deutsch · [🇬🇧 English (below)](#english)
+
 ### Das smarte, vollautomatische Tankbuch
 
 Ein **Tank- und Ladebuch für beliebig viele Fahrzeuge** (Verbrenner und Elektro), das sich weitgehend selbst führt.
@@ -252,4 +254,187 @@ Voraussetzungen: Home Assistant ab 2025.8; für das Lesen von Belegen eine `ai_t
 `python tests/test_detector.py`, `test_receipt.py`, `test_stats.py`, `test_plate.py` (ohne Home Assistant).
 
 ## Lizenz
+MIT
+
+---
+
+<a id="english"></a>
+
+# Drive Energy Doc for Home Assistant (English)
+
+### The smart, fully automatic fuel and charging log
+
+A **fuel and charging log for any number of vehicles** (combustion and electric) that largely keeps itself. There are two ways to use it, and you can mix them:
+
+- **Connected to the car (fully automatic):** Home Assistant detects refuelling or charging on its own from the car's sensors (level, odometer, GPS), creates the entry, looks up the price and calculates the consumption. The driver does not have to do anything. The receipt is only a bonus: if it is sent via Telegram, the AI reads it, the accounting becomes even more precise (real quantity, price and total) and the event is documented as well.
+- **Without any connection to the car (photo mode):** Just send a **photo of the odometer** and a **photo of the pump or the receipt** via Telegram. The AI reads mileage, quantity, price and total, the log is kept and the receipts are archived. No sensors are needed for the vehicle. This is **ideal for fleet management**: every vehicle gets its own Telegram chat (e.g. with the driver), and all vehicles end up in one list with CSV and PDF export.
+
+Everything ends up in one list in the sidebar (with CSV and PDF printing).
+
+![The panel with vehicle header, key figures and list](docs/panel.png)
+
+*The "Drive Energy Doc" panel (addresses blurred).*
+
+## What is it for?
+
+A fuel log answers questions you would otherwise only guess:
+- **What does my car really cost?** Fuel or electricity plus accessories (AdBlue, oil, wipers), per month and over 12 months.
+- **What does it really consume?** Calculated full-to-full, independent of the (often too optimistic) trip computer; changes (winter tyres, a defect, a different driving style) become visible.
+- **Receipts and proof:** Each row can hold the photo of the receipt and of the odometer, for tax, company cars, warranty or resale. The list can be exported as CSV (Excel) or printed as PDF.
+- **Several vehicles in one log**, combustion and electric treated the same, without paperwork or hand-made spreadsheets.
+
+The effort is kept as small as possible: the car reports the refuelling by itself, and at most you send a photo of the receipt.
+
+## Ways to get data into the log
+
+| Way | What you do | What happens automatically |
+|---|---|---|
+| **1. Automatic (sensors)** | nothing | Level rises, refuelling is detected; quantity, place, odometer and (if available) price are recorded |
+| **2. Receipt photo via Telegram / WhatsApp / Companion** | photograph the receipt or pump and send it to the bot | AI reads quantity/price/total/date, the photo is cropped and stored with the entry, receipt values replace the estimated ones |
+| **3. Receipt as text** | write `45,93 105,13` or `27.10. 45,93 105,13` | values are assigned to the matching refuelling (no AI) |
+| **4. Accessories** | `+ 24,90`, `extra Öl 1 9,50`, short word `adblue`, or a photo with a caption | own entry, counts towards costs, not towards consumption |
+| **5. Odometer photo / `km 54210`** | photograph the odometer or send text | mileage is assigned to the refuelling that fits in time; the bot asks if in doubt |
+| **6. Panel** | manual entry ("+"), edit an entry, upload or delete photos | – |
+| **7. Service** `drive_energy_doc.submit_text` | feed text in, e.g. from an automation or script | like ways 3–5 |
+| **8. Import (one-off)** | put old data at `config/drive_energy_doc/import/<vehicle name>/entries.json` (optionally with `photos/`, `originals/`) | entries including photos are taken over at the next start |
+
+The **receipt always wins** over the automatic values: the car estimates, the receipt is right. All ways lead into the same log; mix them as you like.
+
+## Photo mode without a car connection (fleet management)
+
+When adding the vehicle, only name, energy type and tank size are required. If you leave the level, odometer and GPS sensors empty, the vehicle works purely through messages:
+
+1. The driver sends the bot a **photo of the odometer** (or `km 54210` as text). A new entry with this mileage is created.
+2. Then they send the **photo of the receipt or the pump** (up to 48 hours later). The AI reads quantity, price, total and date; the photo is cropped and archived with the entry. The order does not matter: if the receipt comes first it creates the entry and the odometer completes it.
+3. Accessories (AdBlue, oil …) work the same way with `+ 24,90` or a photo with a caption.
+
+Consumption (full-to-full) is calculated from the mileages and quantities. Because without sensors it is not known whether the tank was filled up, every refuelling counts as full. For a **fleet**, create one entry per vehicle with its own Telegram chat; the assignment is done via the chat ID.
+
+## How it works (overview)
+
+```
+Car sensors (level %, odometer, GPS)
+        │
+        ▼
+ Detection: level rises → refuelling → quiet + distance → "done"
+        │
+        ├─► look up the price (fuel price service, optional)
+        ├─► create the log entry (time, quantity, price, cost, odometer, place)
+        └─► message via Telegram/WhatsApp/Companion app: "Refuelling detected – send the receipt if you like"
+                   │
+                   ▼
+        Photo of receipt / pump / text  ─►  AI reads quantity, price, total, date
+                   │                         (photo is cropped and stored with the entry)
+                   ▼
+        The receipt always wins: its values replace the estimated ones
+```
+
+Each vehicle is its own entry in the integration. In addition there is one **"Global settings"** entry for everything that is the same for all vehicles (price sources, electricity price, AI choice, Telegram/WhatsApp credentials). Each vehicle has its own configuration (sensors, fuel type, thresholds, chat), its own log and its own sensors.
+
+## How a refuelling is detected (in detail)
+
+The detection is a small state machine. It runs on every change of the **level sensor** (in %) and additionally checks the time every 15 seconds. There are four states:
+
+1. **Idle.** Nothing happens while the level stays the same or falls (driving uses fuel).
+2. **Candidate.** As soon as the level **rises**, the integration remembers the value before it (`level from`), the time and the **position**. Further rises are added up into *one* event (many cars report the fill in several small steps).
+3. **Valid.** Once the total increase reaches **at least 5 %** (adjustable), the event counts as a real refuelling. Smaller fluctuations (tilt sensor, hills, noise) are ignored this way. From here on the price is fetched (see below).
+4. **Done.** The refuelling is completed when **both** are true:
+   - the level has **not risen further for 60 seconds** (adjustable), and
+   - the car is **more than 250 m away from the filling place** (adjustable, straight-line distance to the start position).
+
+   Why the distance? The level often rises with a delay; someone still standing at the pump should not trigger an entry yet. Only when the car has driven away is it certain that the refuelling is over. Only then does the message arrive in which you can submit the receipt if you like (optional; the entry is complete even without a receipt).
+
+   **Exception, electric cars:** the distance condition does not apply (the car stays put while charging). The default is **10 minutes of quiet** without a further rise; this is adjustable too. The distance rule can also be switched off for combustion cars.
+
+**Cancel.** If the increase does not grow after 10 minutes and never becomes valid (below the threshold), the candidate is discarded. If Home Assistant restarts meanwhile, an event in progress is kept (it is stored) and continued afterwards.
+
+**What ends up in the entry:** time, level from/to, from that the quantity (increase × tank volume or battery capacity), mileage (from the odometer sensor, if present), place and the price (if available). The tank volume is entered once per vehicle.
+
+## Which position and which price is used
+
+**Position:** The **last known GPS position of the vehicle (`device_tracker`) at the moment the first level rise arrives** is used. The car is then standing at the pump. Important: if the car reports the new level late, the last reported position may still be from the way there. The entry then shows the wrong place and the price comes from the wrong station; the receipt corrects the price in any case.
+
+**Price:** Optional. At the transition to "valid" the integration uses the start position to find the **nearest open station within 400 m** and takes the price of the chosen fuel type (diesel, E5, E10). Sources:
+
+| Country | Service | Key |
+|---|---|---|
+| Germany | Tankerkönig | personal, free API key |
+| Austria | E-Control | none needed |
+| France | prix-carburants (data.gouv.fr) | none needed |
+
+The source depends on the country of the position (or is fixed by choice). Without any source everything still works; the price then comes from the receipt. **Electric:** a fixed price per kWh or a sensor/helper that supplies the electricity price (e.g. a dynamic tariff).
+
+**The receipt always wins.** Quantity, price and total from the receipt overwrite the estimated values. An entry is only marked as "receipt checked" when at least quantity, price or total came from the receipt.
+
+## Receipt, accessories and odometer by message
+
+Messages run via **Telegram** (own bot, recommended), **WhatsApp** (Meta Cloud API) or the **Companion app** (push message; photo upload then in the panel). Per vehicle you choose which channels are used. With `?`, `h`, `help` or `hilfe` (also `/help`, `/start`) the bot lists all commands. The bot's replies and its keywords (`zusatz`, `neu`, `ja`, `adblue`, `öl` …) are in German.
+
+### Receipt for refuelling
+- Send a **photo** of the receipt or the pump. The AI reads quantity, price, total, date and, if visible, the mileage. The photo is **cropped to the receipt** (the AI gives the frame; without an AI answer a simple detection of tall, bright paper receipts takes over). The original is kept and can be viewed in the panel.
+- **Text:** `45,93 105,13` (quantity amount), `45,93 2,289 105,13` (quantity price amount) or with a date in front `27.10. 45,93 105,13`.
+- **Another photo** for the last refuelling: a photo with the word `zusatz` in the caption.
+- If a value is implausible or unreadable, the bot replies with a note instead of saving something wrong.
+
+### Accessories (AdBlue, oil, wipers …)
+Anything that costs money but is not fuel. Keyword **`+`, `e`, `x`, `extra`, `z`, `zub`** or `zubehör`, then optionally the name and the numbers: `+ 24,90`, `extra Öl 1 9,50`, `z Scheibenwischer 24,90`. Allowed are only amount, quantity amount or quantity price amount, optionally with a date. Short words without a keyword: `adblue`, `öl`, `scheibenwischer`, `scheibenwasser`, `frostschutz`. The same as the caption of a photo attaches the receipt to the entry. Accessories appear as their own row and count towards costs, but **not** towards consumption.
+
+### Odometer reading
+Send a photo of the odometer or text such as `km 54210`. The value is assigned to the refuelling whose time is closest to the sending time (24-hour window). If the value deviates a lot from the stored one (> 300 km), is lower than at the previous refuelling, or the refuelling is too old, the bot asks and waits for your confirmation (`ja`).
+
+## How consumption is calculated
+
+Method **full-to-full**: a refuelling counts as "full" if the increase is **at least 30 %**. Between two full refuellings all filled quantities are added up and divided by the kilometres driven (result per 100 km or kWh/100 km). Partial refuellings therefore show no consumption of their own, but flow into the next full calculation. Accessories do not count. If nothing is known about the increase (e.g. created by hand), the refuelling counts as full. Without a mileage there is no calculation.
+
+## The panel
+
+After setup, **"Drive Energy Doc"** appears in the sidebar:
+- List of all refuellings/charges and accessories per vehicle; columns can be reordered and resized.
+- Licence plate display (all European countries, EU ring or yellow for NL/GB), vehicle picture and type in the header.
+- Receipt and odometer photos with a preview on hover (several photos: a picker), delete with confirmation, photo upload.
+- Edit, manual entry ("+"), place with a small Google Maps link, notes as an icon.
+- Compact card view on phones.
+- **CSV export** (Excel-friendly) and **print/PDF** (portrait or landscape, with or without receipts).
+
+## Sensors, event and services
+
+Per vehicle: **status**, **last refuelling**, **last price**, **consumption** (average of the last 5, full-to-full), **cost 12 months**. On every detected refuelling the event `drive_energy_doc_refuel` is fired (for your own automations). Services: `drive_energy_doc.export_csv` (writes `config/drive_energy_doc/<name>.csv`), `drive_energy_doc.submit_text` (feed text in like a message) and `drive_energy_doc.test_message`.
+
+## Installation and setup
+
+**HACS:** add the repository `AlphaLima/ha-drive-energy-doc` as a custom repository (category *Integration*), install, restart HA. **Manually:** copy the folder `custom_components/drive_energy_doc` to `config/custom_components/` and restart HA.
+
+Then *Settings → Devices & services → Add integration → Drive Energy Doc*:
+
+1. Create the **global settings**: price source (automatic by country or fixed), Tankerkönig key (Germany only), electricity price, AI (empty = Gemini automatically, otherwise an `ai_task` entity), Telegram/WhatsApp credentials.
+2. **Add a vehicle:** only name, energy type (diesel/E5/E10/electric) and tank volume or battery capacity are required. **Optional:** level sensor (in %), odometer sensor, `device_tracker`. Without these sensors there is no automatic detection; entries are then created only by photo/text or in the panel, and every receipt without a matching entry automatically creates a new one (pure photo mode). Also optional: licence plate, country, vehicle type, vehicle picture, Telegram chat.
+3. Thresholds (5 %, 60 s, 250 m) and message channels can be changed per vehicle under *Configure*.
+
+Requirements: Home Assistant 2025.8 or newer; to read receipts an `ai_task` integration (Gemini, OpenAI, Anthropic …).
+
+## Setting up Telegram
+1. Create a bot with @BotFather and enter the token in the global settings. A token may be polled by **one** program only (not in parallel in Node-RED or `telegram_bot`).
+2. Write `/start` to the bot; it tells you the chat ID, which you enter at the vehicle. Several vehicles: one bot each, or one group/chat ID each. Messages from unknown chats are not processed (the bot only replies with a note about the chat ID).
+
+## Setting up WhatsApp (Meta's official Cloud API)
+1. On developers.facebook.com create an app of type "Business", add the product "WhatsApp", and get the phone number ID and a **permanent** access token (system user). The app secret is under App settings → Basic.
+2. Enter in the settings: token, phone number ID, a verify token of your choice, app secret (without the secret the webhook processes nothing).
+3. In the Meta dashboard create a webhook: callback URL `https://<your-public-HA-address>/api/drive_energy_doc/whatsapp`, the same verify token, subscribe to the field `messages`. HA must be reachable from the internet via HTTPS for this.
+4. Enter the driver's number at the vehicle (with country code, without + and spaces); only messages from this number are accepted.
+5. WhatsApp only allows unsolicited messages within 24 h of the driver's last message. After that only with an approved template: create a template in Meta (category Utility) with a text such as `Drive Energy Doc: {{1}}` and enter its name.
+
+## Data and privacy
+- All entries and photos are stored **locally** in your HA installation (`.storage` and `config/drive_energy_doc/`). There is no server run by the author.
+- Only the following leave your system: the price query (position ≈ surroundings of a station, sent to the price service), messages to Telegram/WhatsApp, and receipt photos to the AI you chose (`ai_task`).
+- Tokens and keys are stored in the integration's configuration; do not share diagnostics or backups without checking them.
+
+## Limits
+- The level must be available in **percent**.
+- The accuracy of the place depends on how quickly the car reports level and position (see above).
+- The integration is still young (0.1.x); please report bugs as an issue.
+
+## Tests
+`python tests/test_detector.py`, `test_receipt.py`, `test_stats.py`, `test_plate.py` (without Home Assistant).
+
+## License
 MIT
