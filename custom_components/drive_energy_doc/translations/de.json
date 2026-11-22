@@ -32,7 +32,7 @@
       },
       "vehicle": {
         "title": "Fahrzeug hinzufügen",
-        "description": "{plate_preview}\n\nWähle das Land des Kennzeichens. Nach „OK“ siehst du das Schild mit dem gewählten Land gezeichnet, bevor etwas gespeichert wird.",
+        "description": "{plate_preview}\n\n{image_preview}\n\nWähle das Land des Kennzeichens. Nach „OK“ siehst du das Schild mit dem gewählten Land gezeichnet, bevor etwas gespeichert wird.",
         "data": {
           "name": "Name",
           "energy": "Kraftstoff / Antrieb",
@@ -82,7 +82,7 @@
       },
       "plate_preview": {
         "title": "Kennzeichen prüfen",
-        "description": "{plate_preview}\n\nSo wird das Kennzeichen mit dem gewählten Land gezeichnet. Passt es?",
+        "description": "{plate_preview}\n\n{image_preview}\n\nSo wird das Kennzeichen mit dem gewählten Land gezeichnet. Passt es?",
         "data": {
           "ok": "Passt, speichern (ohne Haken: zurück zum Ändern)"
         }
@@ -149,7 +149,7 @@
       },
       "basic": {
         "title": "Fahrzeugdaten",
-        "description": "{plate_preview}\n\nWähle das Land des Kennzeichens. Nach „OK“ siehst du das Schild mit dem gewählten Land gezeichnet, bevor etwas gespeichert wird.",
+        "description": "{plate_preview}\n\n{image_preview}\n\nWähle das Land des Kennzeichens. Nach „OK“ siehst du das Schild mit dem gewählten Land gezeichnet, bevor etwas gespeichert wird.",
         "data": {
           "name": "Name",
           "energy": "Kraftstoff / Antrieb",
@@ -209,7 +209,7 @@
       },
       "plate_preview": {
         "title": "Kennzeichen prüfen",
-        "description": "{plate_preview}\n\nSo wird das Kennzeichen mit dem gewählten Land gezeichnet. Passt es?",
+        "description": "{plate_preview}\n\n{image_preview}\n\nSo wird das Kennzeichen mit dem gewählten Land gezeichnet. Passt es?",
         "data": {
           "ok": "Passt, speichern (ohne Haken: zurück zum Ändern)"
         }

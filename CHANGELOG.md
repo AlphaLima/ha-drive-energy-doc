@@ -1,6 +1,7 @@
 # Changelog
 
-## 0.1.78 (in Arbeit)
+## 0.1.78
+- Konfigurationsdialog (Fahrzeug): Vorschau des Fahrzeugbilds (hochgeladenes Bild oder gewählte Bild-Entität) neben dem Kennzeichen, auch direkt nach dem Auswählen einer Datei.
 - Im Zweifel wird ein aus einem Foto gelesener Kilometerstand weggelassen, ohne Rückfrage: passt er nicht zum Eintrag, liegt er unter dem vorigen Stand oder ergibt er einen unplausiblen Verbrauch, bleibt das Tacho-Foto als Zusatzfoto am Eintrag, der Kilometerstand bleibt leer (Beleg: Beleg wird übernommen, der Stand nicht). Nachgefragt wird nur noch bei von Hand getippten Ständen.
 - Stapel-Upload: Die Fotos werden chronologisch nach Aufnahmezeit (EXIF, sonst Änderungsdatum der Datei) verarbeitet, nicht nach Dateiname oder Auswahlreihenfolge; Kameras vergeben Dateinamen beliebig.
 - Robustere Kilometerstand-Erkennung: Der KI-Auftrag verlangt für Belege eine ausdrücklich beschriftete Zeile (Belegnummer, Säulen-, Kartennummer zählen nicht). Ein gelesener Stand wird gegen die Reihenfolge der Einträge geprüft (nicht unter dem vorigen, nicht über dem nächsten, höchstens 5000 km Sprung, höchstens sechs Stellen) und sonst ignoriert. Beim Start werden unmögliche, nicht von Hand gesetzte Stände aus älteren Fassungen entfernt.

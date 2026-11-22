@@ -232,8 +232,74 @@ async def check_telegram(hass: HomeAssistant, token: str | None) -> tuple[bool, 
         return False, str(e) or "Telegram nicht erreichbar"
 
 
-async def process_image(hass: HomeAssistant, user_input: dict, old_file: str | None) -> tuple[dict, bool]:
-    """Upload-Feld auswerten: neues Bild speichern (altes löschen) bzw. entfernen. Rückgabe (bereinigte Eingabe, Bild entfernt)."""
+async def image_md(hass: HomeAssistant, d: dict) -> str:
+    """Markdown-Vorschau des Fahrzeugbilds für die Dialoge: hochgeladene Datei (Vorrang) oder gewählte Bild-Entität. Leer, wenn keins da ist.
+
+    Die hochgeladene Datei wird als kleines JPEG direkt eingebettet (data-URI): die Bildansicht verlangt eine Anmeldung, die ein Bild im Dialog nicht mitsenden kann."""
+    f = d.get(CONF_IMAGE_FILE)
+    if f and re.fullmatch(r"[0-9a-f]{32}\.(jpg|png)", str(f)):
+        def _thumb() -> str:
+            import base64
+            import io
+            from pathlib import Path
+
+            from PIL import Image
+
+            im = Image.open(Path(hass.config.path(DOMAIN, "images", f)))
+            im.thumbnail((420, 300))
+            if im.mode != "RGB":   # Transparenz auf Weiß, damit das JPEG sauber aussieht
+                bg = Image.new("RGB", im.size, (255, 255, 255))
+                bg.paste(im.convert("RGBA"), mask=im.convert("RGBA").split()[-1])
+                im = bg
+            buf = io.BytesIO()
+            im.save(buf, "JPEG", quality=80)
+            return base64.b64encode(buf.getvalue()).decode()
+
+        try:
+            return f"![Fahrzeugbild](data:image/jpeg;base64,{await hass.async_add_executor_job(_thumb)})"
+        except Exception:  # noqa: BLE001 - Vorschau ist nur Beiwerk
+            return ""
+    state = hass.states.get(d.get(CONF_IMAGE)) if d.get(CONF_IMAGE) else None
+    pic = state.attributes.get("entity_picture") if state else None
+    return f"![Fahrzeugbild]({pic})" if pic else ""
+
+
+async def store_upload(hass: HomeAssistant, file_id: str) -> str:
+    """Hochgeladenes Bild verkleinern und speichern (nur einmal je Upload möglich); Rückgabe: Dateiname."""
+    from pathlib import Path
+
+    from homeassistant.components.file_upload import process_uploaded_file
+
+    folder = Path(hass.config.path(DOMAIN, "images"))
+
+    def _store() -> str:
+        with process_uploaded_file(hass, file_id) as path:
+            return receipt.save_vehicle_image(Path(path).read_bytes(), folder)
+
+    return await hass.async_add_executor_job(_store)
+
+
+async def drop_image_file(hass: HomeAssistant, name: str | None) -> None:
+    from pathlib import Path
+
+    if name and re.fullmatch(r"[0-9a-f]{32}\.(jpg|png)", name):
+        await hass.async_add_executor_job(lambda: (Path(hass.config.path(DOMAIN, "images")) / name).unlink(missing_ok=True))
+
+
+async def preview_image(hass: HomeAssistant, flow, ui: dict) -> dict:
+    """Für die Vorschau: ein gewähltes Bild sofort speichern (Dateiname in flow._pv), damit es im Dialog erscheint; ein anderes Bild ersetzt das vorige."""
+    fid = ui.get("image_upload")
+    pv = getattr(flow, "_pv", None)
+    if fid and (not pv or pv[0] != fid):
+        if pv:
+            await drop_image_file(hass, pv[1])
+        flow._pv = (fid, await store_upload(hass, fid))
+    pv = getattr(flow, "_pv", None)
+    return {**ui, CONF_IMAGE_FILE: pv[1]} if fid and pv else ui
+
+
+async def process_image(hass: HomeAssistant, user_input: dict, old_file: str | None, stored: str | None = None) -> tuple[dict, bool]:
+    """Upload-Feld auswerten: neues Bild speichern (altes löschen) bzw. entfernen. Rückgabe (bereinigte Eingabe, Bild entfernt). ``stored``: für die Vorschau schon gespeichertes Bild."""
     from pathlib import Path
 
     from homeassistant.components.file_upload import process_uploaded_file
@@ -252,7 +318,7 @@ async def process_image(hass: HomeAssistant, user_input: dict, old_file: str | N
             with process_uploaded_file(hass, file_id) as path:
                 return receipt.save_vehicle_image(Path(path).read_bytes(), folder)
 
-        data[CONF_IMAGE_FILE] = await hass.async_add_executor_job(_store)
+        data[CONF_IMAGE_FILE] = stored or await hass.async_add_executor_job(_store)
         await hass.async_add_executor_job(_drop, old_file)
         return data, False
     if remove:
@@ -378,7 +444,7 @@ class DriveEnergyDocConfigFlow(_MessagingMixin, ConfigFlow, domain=DOMAIN):  # n
         schema = s_basic({}, self.hass.config.country)
         if prefill:  # zurück aus der Vorschau: Eingaben bleiben stehen
             schema = self.add_suggested_values_to_schema(schema, prefill)
-        return self.async_show_form(step_id="vehicle", data_schema=schema, description_placeholders={"plate_preview": plate_md(prefill, self.hass.config.country)})
+        return self.async_show_form(step_id="vehicle", data_schema=schema, description_placeholders={"plate_preview": plate_md(prefill, self.hass.config.country), "image_preview": await image_md(self.hass, await preview_image(self.hass, self, prefill))})
 
     async def async_step_plate_preview(self, user_input=None) -> ConfigFlowResult:
         """Das gezeichnete Kennzeichen mit dem gewählten Land zeigen, bevor das Fahrzeug angelegt wird."""
@@ -386,12 +452,14 @@ class DriveEnergyDocConfigFlow(_MessagingMixin, ConfigFlow, domain=DOMAIN):  # n
         if user_input is not None:
             if not user_input.get("ok"):
                 return await self.async_step_vehicle()
-            ui, _ = await process_image(self.hass, ui, None)
+            pv = getattr(self, "_pv", None)
+            ui, _ = await process_image(self.hass, ui, None, pv[1] if pv and pv[0] == ui.get("image_upload") else None)
             self._data = {CONF_KIND: KIND_VEHICLE, **_clean(ui)}
             if get_settings(self.hass).get(CONF_CHANNELS):
                 return await self.async_step_messaging()
             return self.async_create_entry(title=self._data[CONF_NAME], data=self._data)
-        return self.async_show_form(step_id="plate_preview", data_schema=vol.Schema({vol.Required("ok", default=True): bool}), description_placeholders={"plate_preview": plate_md(ui, self.hass.config.country)})
+        shown = await preview_image(self.hass, self, ui)
+        return self.async_show_form(step_id="plate_preview", data_schema=vol.Schema({vol.Required("ok", default=True): bool}), description_placeholders={"plate_preview": plate_md(ui, self.hass.config.country), "image_preview": await image_md(self.hass, shown)})
 
     def _msg_base(self) -> dict:
         return self._data
@@ -434,7 +502,9 @@ class DriveEnergyDocOptionsFlow(_MessagingMixin, OptionsFlow):
             schema = self.add_suggested_values_to_schema(schema, user_input)
         placeholders = {"detail": detail}
         if step == "basic":
-            placeholders["plate_preview"] = plate_md({**self._cur(), **(getattr(self, "_basic_ui", None) or {})}, self.hass.config.country)
+            cur = {**self._cur(), **(getattr(self, "_basic_ui", None) or {})}
+            placeholders["plate_preview"] = plate_md(cur, self.hass.config.country)
+            placeholders["image_preview"] = await image_md(self.hass, await preview_image(self.hass, self, cur) if cur.get("image_upload") else cur)
         return self.async_show_form(step_id=step, data_schema=schema, errors=errors, description_placeholders=placeholders)
 
     async def async_step_general(self, user_input=None) -> ConfigFlowResult:
@@ -458,12 +528,14 @@ class DriveEnergyDocOptionsFlow(_MessagingMixin, OptionsFlow):
         if user_input is not None:
             if not user_input.get("ok"):
                 return await self.async_step_basic()
-            ui, drop_image = await process_image(self.hass, ui, self._cur().get(CONF_IMAGE_FILE))
+            pv = getattr(self, "_pv", None)
+            ui, drop_image = await process_image(self.hass, ui, self._cur().get(CONF_IMAGE_FILE), pv[1] if pv and pv[0] == ui.get("image_upload") else None)
             out = _merge(dict(self.config_entry.options), ui, s_basic(self._cur(), self.hass.config.country))
             if drop_image:
                 out.pop(CONF_IMAGE_FILE, None)
             return self.async_create_entry(data=out)
-        return self.async_show_form(step_id="plate_preview", data_schema=vol.Schema({vol.Required("ok", default=True): bool}), description_placeholders={"plate_preview": plate_md({**self._cur(), **ui}, self.hass.config.country)})
+        shown = await preview_image(self.hass, self, {**self._cur(), **ui})
+        return self.async_show_form(step_id="plate_preview", data_schema=vol.Schema({vol.Required("ok", default=True): bool}), description_placeholders={"plate_preview": plate_md({**self._cur(), **ui}, self.hass.config.country), "image_preview": await image_md(self.hass, shown if not ui.get("image_remove") else {**shown, CONF_IMAGE_FILE: None})})
 
     def _msg_base(self) -> dict:
         return self._cur()
