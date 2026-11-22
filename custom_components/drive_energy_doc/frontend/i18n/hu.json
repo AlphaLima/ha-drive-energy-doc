@@ -158,5 +158,9 @@
  "Beleg wird gelesen …": "Bizonylat olvasása …",
  "würde bei {0} km seit dem letzten Tanken {1} ergeben (Durchschnitt {2})": "{0} km alatt {1} fogyasztást adna az utolsó tankolás óta (átlag {2})",
  "⚠️ Verbrauch ungewöhnlich: {0} bei {1} km seit dem letzten Tanken (Durchschnitt {2}), bitte Kilometerstand prüfen.": "⚠️ Szokatlan fogyasztás: {0} {1} km alatt az utolsó tankolás óta (átlag {2}), ellenőrizze a kilométeróra-állást.",
- "Zum Eintrag vom {0} ({1} km) fehlt noch der Beleg oder das Foto der Zapfsäule. Bitte schick es noch.": "A(z) {0} napi bejegyzéshez ({1} km) még hiányzik a bizonylat vagy a kútoszlop fotója. Kérem, küldje el."
+ "Zum Eintrag vom {0} ({1} km) fehlt noch der Beleg oder das Foto der Zapfsäule. Bitte schick es noch.": "A(z) {0} napi bejegyzéshez ({1} km) még hiányzik a bizonylat vagy a kútoszlop fotója. Kérem, küldje el.",
+ "Es gibt schon einen Beleg-Eintrag vom {0} ({1}). Antworte „ja“, um ihn mit dem neuen Beleg zu überschreiben, oder „nein“.": "Már van bizonylatos bejegyzés ebből a napból: {0} ({1}). Válaszoljon „igen”-nel, hogy felülírjam az új bizonylattal, vagy „nem”-mel.",
+ "Dieser Beleg ist schon eingetragen (Eintrag vom {0}: {1}). Antworte „ja“, um ihn trotzdem zu überschreiben, oder „nein“.": "Ez a bizonylat már rögzítve van ({0} napi bejegyzés: {1}). Válaszoljon „igen”-nel, hogy mégis felülírjam, vagy „nem”-mel.",
+ "Gut, der neue Beleg wurde nicht übernommen.": "Rendben, az új bizonylatot nem érvényesítettem.",
+ "Nr.": "Sz."
 }

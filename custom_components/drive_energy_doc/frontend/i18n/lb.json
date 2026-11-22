@@ -158,5 +158,9 @@
  "Beleg wird gelesen …": "Beleg gëtt gelies …",
  "würde bei {0} km seit dem letzten Tanken {1} ergeben (Durchschnitt {2})": "géif {1} op {0} km zënter dem leschte Tanken ergi (Duerchschnëtt {2})",
  "⚠️ Verbrauch ungewöhnlich: {0} bei {1} km seit dem letzten Tanken (Durchschnitt {2}), bitte Kilometerstand prüfen.": "⚠️ Ongewéinleche Verbrauch: {0} op {1} km zënter dem leschte Tanken (Duerchschnëtt {2}), w.e.g. de Kilometerstand kontrolléieren.",
- "Zum Eintrag vom {0} ({1} km) fehlt noch der Beleg oder das Foto der Zapfsäule. Bitte schick es noch.": "Beim Androck vum {0} ({1} km) feelt nach de Beleg oder d'Foto vun der Zapsail. Schéckt en w.e.g. nach."
+ "Zum Eintrag vom {0} ({1} km) fehlt noch der Beleg oder das Foto der Zapfsäule. Bitte schick es noch.": "Beim Androck vum {0} ({1} km) feelt nach de Beleg oder d'Foto vun der Zapsail. Schéckt en w.e.g. nach.",
+ "Es gibt schon einen Beleg-Eintrag vom {0} ({1}). Antworte „ja“, um ihn mit dem neuen Beleg zu überschreiben, oder „nein“.": "Et gëtt schonn en Androck mat Beleg vum {0} ({1}). Äntwert „jawuel“, fir en mam neie Beleg ze iwwerschreiwen, oder „nee“.",
+ "Dieser Beleg ist schon eingetragen (Eintrag vom {0}: {1}). Antworte „ja“, um ihn trotzdem zu überschreiben, oder „nein“.": "Dëse Beleg ass schonn ageschriwwen (Androck vum {0}: {1}). Äntwert „jawuel“, fir en trotzdem ze iwwerschreiwen, oder „nee“.",
+ "Gut, der neue Beleg wurde nicht übernommen.": "Gutt, deen neie Beleg gouf net ugewannt.",
+ "Nr.": "Nr."
 }

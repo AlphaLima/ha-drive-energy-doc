@@ -158,5 +158,9 @@
  "Beleg wird gelesen …": "Skaitomas čekis …",
  "würde bei {0} km seit dem letzten Tanken {1} ergeben (Durchschnitt {2})": "per {0} km nuo paskutinio pylimo duotų {1} (vidurkis {2})",
  "⚠️ Verbrauch ungewöhnlich: {0} bei {1} km seit dem letzten Tanken (Durchschnitt {2}), bitte Kilometerstand prüfen.": "⚠️ Neįprastos sąnaudos: {0} per {1} km nuo paskutinio pylimo (vidurkis {2}), patikrinkite ridą.",
- "Zum Eintrag vom {0} ({1} km) fehlt noch der Beleg oder das Foto der Zapfsäule. Bitte schick es noch.": "Prie {0} įrašo ({1} km) vis dar trūksta čekio arba kolonėlės nuotraukos. Prašome atsiųsti."
+ "Zum Eintrag vom {0} ({1} km) fehlt noch der Beleg oder das Foto der Zapfsäule. Bitte schick es noch.": "Prie {0} įrašo ({1} km) vis dar trūksta čekio arba kolonėlės nuotraukos. Prašome atsiųsti.",
+ "Es gibt schon einen Beleg-Eintrag vom {0} ({1}). Antworte „ja“, um ihn mit dem neuen Beleg zu überschreiben, oder „nein“.": "{0} įrašas su čekiu jau yra ({1}). Atsakykite „taip“, kad jį perrašyčiau nauju čekiu, arba „ne“.",
+ "Dieser Beleg ist schon eingetragen (Eintrag vom {0}: {1}). Antworte „ja“, um ihn trotzdem zu überschreiben, oder „nein“.": "Šis čekis jau įvestas ({0} įrašas: {1}). Atsakykite „taip“, kad vis tiek perrašyčiau, arba „ne“.",
+ "Gut, der neue Beleg wurde nicht übernommen.": "Gerai, naujo čekio nepritaikiau.",
+ "Nr.": "Nr."
 }

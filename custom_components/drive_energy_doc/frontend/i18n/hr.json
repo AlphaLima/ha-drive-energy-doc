@@ -158,5 +158,9 @@
  "Beleg wird gelesen …": "Čitam račun …",
  "würde bei {0} km seit dem letzten Tanken {1} ergeben (Durchschnitt {2})": "dalo bi {1} na {0} km od zadnjeg točenja (prosjek {2})",
  "⚠️ Verbrauch ungewöhnlich: {0} bei {1} km seit dem letzten Tanken (Durchschnitt {2}), bitte Kilometerstand prüfen.": "⚠️ Neobična potrošnja: {0} na {1} km od zadnjeg točenja (prosjek {2}), provjerite kilometražu.",
- "Zum Eintrag vom {0} ({1} km) fehlt noch der Beleg oder das Foto der Zapfsäule. Bitte schick es noch.": "U unosu od {0} ({1} km) još nedostaje račun ili fotografija pumpe. Molim, pošaljite ga."
+ "Zum Eintrag vom {0} ({1} km) fehlt noch der Beleg oder das Foto der Zapfsäule. Bitte schick es noch.": "U unosu od {0} ({1} km) još nedostaje račun ili fotografija pumpe. Molim, pošaljite ga.",
+ "Es gibt schon einen Beleg-Eintrag vom {0} ({1}). Antworte „ja“, um ihn mit dem neuen Beleg zu überschreiben, oder „nein“.": "Unos s računom od {0} ({1}) već postoji. Odgovorite „da“ da ga prepišem novim računom, ili „ne“.",
+ "Dieser Beleg ist schon eingetragen (Eintrag vom {0}: {1}). Antworte „ja“, um ihn trotzdem zu überschreiben, oder „nein“.": "Ovaj račun je već unesen (unos od {0}: {1}). Odgovorite „da“ da ga svejedno prepišem, ili „ne“.",
+ "Gut, der neue Beleg wurde nicht übernommen.": "U redu, novi račun nisam primijenio.",
+ "Nr.": "Br."
 }

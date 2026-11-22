@@ -198,6 +198,10 @@ Zusätzlich prüft er den **Verbrauch**: Ergeben der neue Stand, die getankte Me
 Methode **Voll-zu-Voll**: Ein Tanken zählt als „voll“, wenn der Zuwachs **mindestens 30 %** beträgt. Zwischen zwei vollen Tanken
 werden alle getankten Mengen addiert und durch die gefahrenen Kilometer geteilt (Ergebnis je 100 km bzw. kWh/100 km).
 Teilbetankungen zeigen daher keinen eigenen Verbrauch, fließen aber in die nächste volle Rechnung ein. Zubehör zählt nicht.
+
+**Nummerierung:** Jeder Tankvorgang bekommt in der Liste eine laufende Nummer (der älteste ist Nr. 1, Zubehör hat keine). Die Nummer steht auch im CSV-Export und im Ausdruck.
+
+**Doppelte Belege:** Gibt es zu einem Tag schon einen Eintrag mit Beleg, meldet der Bot das und fragt, ob er ihn mit dem neuen Beleg überschreiben soll (`ja` oder `nein`). Ist es derselbe Beleg (gleiche Menge und Summe), sagt er das ausdrücklich. Bei `nein` wird das neue Foto wieder gelöscht.
 Ist über den Zuwachs nichts bekannt (z. B. von Hand angelegt), gilt das Tanken als voll. Ohne Kilometerstand gibt es keine Rechnung.
 
 ## Elektrofahrzeuge
@@ -451,7 +455,11 @@ It also checks the **consumption**: if the new reading, the filled quantity (plu
 
 ## How consumption is calculated
 
-Method **full-to-full**: a refuelling counts as "full" if the increase is **at least 30 %**. Between two full refuellings all filled quantities are added up and divided by the kilometres driven (result per 100 km or kWh/100 km). Partial refuellings therefore show no consumption of their own, but flow into the next full calculation. Accessories do not count. If nothing is known about the increase (e.g. created by hand), the refuelling counts as full. Without a mileage there is no calculation.
+Method **full-to-full**: a refuelling counts as "full" if the increase is **at least 30 %**. Between two full refuellings all filled quantities are added up and divided by the kilometres driven (result per 100 km or kWh/100 km). Partial refuellings therefore show no consumption of their own, but flow into the next full calculation. Accessories do not count.
+
+**Numbering:** Every refuelling gets a running number in the list (the oldest is no. 1, accessories have none). The number is also in the CSV export and the printout.
+
+**Duplicate receipts:** If an entry with a receipt already exists for that day, the bot says so and asks whether to overwrite it with the new receipt (`yes` or `no`). If it is the same receipt (same quantity and total) it says that explicitly. With `no` the new photo is deleted again. If nothing is known about the increase (e.g. created by hand), the refuelling counts as full. Without a mileage there is no calculation.
 
 ## Electric vehicles
 

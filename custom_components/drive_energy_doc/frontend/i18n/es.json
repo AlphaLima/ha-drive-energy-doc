@@ -158,5 +158,9 @@
  "Beleg wird gelesen …": "Leyendo el justificante …",
  "würde bei {0} km seit dem letzten Tanken {1} ergeben (Durchschnitt {2})": "daría {1} en {0} km desde el último repostaje (media {2})",
  "⚠️ Verbrauch ungewöhnlich: {0} bei {1} km seit dem letzten Tanken (Durchschnitt {2}), bitte Kilometerstand prüfen.": "⚠️ Consumo inusual: {0} en {1} km desde el último repostaje (media {2}), revisa el kilometraje.",
- "Zum Eintrag vom {0} ({1} km) fehlt noch der Beleg oder das Foto der Zapfsäule. Bitte schick es noch.": "A la entrada del {0} ({1} km) todavía le falta el justificante o la foto del surtidor. Por favor, envíalo."
+ "Zum Eintrag vom {0} ({1} km) fehlt noch der Beleg oder das Foto der Zapfsäule. Bitte schick es noch.": "A la entrada del {0} ({1} km) todavía le falta el justificante o la foto del surtidor. Por favor, envíalo.",
+ "Es gibt schon einen Beleg-Eintrag vom {0} ({1}). Antworte „ja“, um ihn mit dem neuen Beleg zu überschreiben, oder „nein“.": "Ya existe una entrada con justificante del {0} ({1}). Responde «sí» para sobrescribirla con el nuevo justificante, o «no».",
+ "Dieser Beleg ist schon eingetragen (Eintrag vom {0}: {1}). Antworte „ja“, um ihn trotzdem zu überschreiben, oder „nein“.": "Este justificante ya está registrado (entrada del {0}: {1}). Responde «sí» para sobrescribirla de todos modos, o «no».",
+ "Gut, der neue Beleg wurde nicht übernommen.": "De acuerdo, el nuevo justificante no se aplicó.",
+ "Nr.": "N.º"
 }

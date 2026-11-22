@@ -158,5 +158,9 @@
  "Beleg wird gelesen …": "Čítam doklad …",
  "würde bei {0} km seit dem letzten Tanken {1} ergeben (Durchschnitt {2})": "by dával {1} na {0} km od posledného tankovania (priemer {2})",
  "⚠️ Verbrauch ungewöhnlich: {0} bei {1} km seit dem letzten Tanken (Durchschnitt {2}), bitte Kilometerstand prüfen.": "⚠️ Nezvyčajná spotreba: {0} na {1} km od posledného tankovania (priemer {2}), skontrolujte stav tachometra.",
- "Zum Eintrag vom {0} ({1} km) fehlt noch der Beleg oder das Foto der Zapfsäule. Bitte schick es noch.": "V zázname zo dňa {0} ({1} km) stále chýba doklad alebo fotka stojana. Pošlite ho, prosím."
+ "Zum Eintrag vom {0} ({1} km) fehlt noch der Beleg oder das Foto der Zapfsäule. Bitte schick es noch.": "V zázname zo dňa {0} ({1} km) stále chýba doklad alebo fotka stojana. Pošlite ho, prosím.",
+ "Es gibt schon einen Beleg-Eintrag vom {0} ({1}). Antworte „ja“, um ihn mit dem neuen Beleg zu überschreiben, oder „nein“.": "Záznam s dokladom zo dňa {0} ({1}) už existuje. Odpovedzte „áno“, ak ho prepísať novým dokladom, alebo „nie“.",
+ "Dieser Beleg ist schon eingetragen (Eintrag vom {0}: {1}). Antworte „ja“, um ihn trotzdem zu überschreiben, oder „nein“.": "Tento doklad je už zapísaný (záznam zo dňa {0}: {1}). Odpovedzte „áno“, ak ho aj tak prepísať, alebo „nie“.",
+ "Gut, der neue Beleg wurde nicht übernommen.": "Dobre, nový doklad som nepreberal.",
+ "Nr.": "Č."
 }

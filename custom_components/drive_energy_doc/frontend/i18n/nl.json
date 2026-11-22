@@ -158,5 +158,9 @@
  "Beleg wird gelesen …": "Bon wordt gelezen …",
  "würde bei {0} km seit dem letzten Tanken {1} ergeben (Durchschnitt {2})": "zou {1} opleveren over {0} km sinds de vorige tankbeurt (gemiddelde {2})",
  "⚠️ Verbrauch ungewöhnlich: {0} bei {1} km seit dem letzten Tanken (Durchschnitt {2}), bitte Kilometerstand prüfen.": "⚠️ Ongebruikelijk verbruik: {0} over {1} km sinds de vorige tankbeurt (gemiddelde {2}), controleer de kilometerstand.",
- "Zum Eintrag vom {0} ({1} km) fehlt noch der Beleg oder das Foto der Zapfsäule. Bitte schick es noch.": "Bij de invoer van {0} ({1} km) ontbreekt nog de bon of een foto van de pomp. Stuur die alsjeblieft nog."
+ "Zum Eintrag vom {0} ({1} km) fehlt noch der Beleg oder das Foto der Zapfsäule. Bitte schick es noch.": "Bij de invoer van {0} ({1} km) ontbreekt nog de bon of een foto van de pomp. Stuur die alsjeblieft nog.",
+ "Es gibt schon einen Beleg-Eintrag vom {0} ({1}). Antworte „ja“, um ihn mit dem neuen Beleg zu überschreiben, oder „nein“.": "Er bestaat al een invoer met bon van {0} ({1}). Antwoord \"ja\" om hem met de nieuwe bon te overschrijven, of \"nee\".",
+ "Dieser Beleg ist schon eingetragen (Eintrag vom {0}: {1}). Antworte „ja“, um ihn trotzdem zu überschreiben, oder „nein“.": "Deze bon is al vastgelegd (invoer van {0}: {1}). Antwoord \"ja\" om hem toch te overschrijven, of \"nee\".",
+ "Gut, der neue Beleg wurde nicht übernommen.": "Goed, de nieuwe bon is niet overgenomen.",
+ "Nr.": "Nr."
 }

@@ -158,5 +158,9 @@
  "Beleg wird gelesen …": "Читам сметка …",
  "würde bei {0} km seit dem letzten Tanken {1} ergeben (Durchschnitt {2})": "би дало {1} на {0} km од последното полнење (просек {2})",
  "⚠️ Verbrauch ungewöhnlich: {0} bei {1} km seit dem letzten Tanken (Durchschnitt {2}), bitte Kilometerstand prüfen.": "⚠️ Невообичаена потрошувачка: {0} на {1} km од последното полнење (просек {2}), проверете ја километражата.",
- "Zum Eintrag vom {0} ({1} km) fehlt noch der Beleg oder das Foto der Zapfsäule. Bitte schick es noch.": "Во записот од {0} ({1} km) сè уште недостасува сметката или фотографијата од пумпата. Ве молиме, испратете ја."
+ "Zum Eintrag vom {0} ({1} km) fehlt noch der Beleg oder das Foto der Zapfsäule. Bitte schick es noch.": "Во записот од {0} ({1} km) сè уште недостасува сметката или фотографијата од пумпата. Ве молиме, испратете ја.",
+ "Es gibt schon einen Beleg-Eintrag vom {0} ({1}). Antworte „ja“, um ihn mit dem neuen Beleg zu überschreiben, oder „nein“.": "Запис со сметка од {0} ({1}) веќе постои. Одговорете „да“ за да го препишам со новата сметка, или „не“.",
+ "Dieser Beleg ist schon eingetragen (Eintrag vom {0}: {1}). Antworte „ja“, um ihn trotzdem zu überschreiben, oder „nein“.": "Оваа сметка е веќе внесена (запис од {0}: {1}). Одговорете „да“ за сепак да го препишам, или „не“.",
+ "Gut, der neue Beleg wurde nicht übernommen.": "Во ред, новата сметка не ја применив.",
+ "Nr.": "Бр."
 }

@@ -158,5 +158,9 @@
  "Beleg wird gelesen …": "Ag léamh na admhála …",
  "würde bei {0} km seit dem letzten Tanken {1} ergeben (Durchschnitt {2})": "thabharfadh sé {1} thar {0} km ón athbhreoslú is déanaí (meán {2})",
  "⚠️ Verbrauch ungewöhnlich: {0} bei {1} km seit dem letzten Tanken (Durchschnitt {2}), bitte Kilometerstand prüfen.": "⚠️ Ídiú neamhghnách: {0} thar {1} km ón athbhreoslú is déanaí (meán {2}), seiceáil an míleáiste le do thoil.",
- "Zum Eintrag vom {0} ({1} km) fehlt noch der Beleg oder das Foto der Zapfsäule. Bitte schick es noch.": "Tá an admháil nó grianghraf den chaidéal fós ar iarraidh ón iontráil ón {0} ({1} km). Seol é, le do thoil."
+ "Zum Eintrag vom {0} ({1} km) fehlt noch der Beleg oder das Foto der Zapfsäule. Bitte schick es noch.": "Tá an admháil nó grianghraf den chaidéal fós ar iarraidh ón iontráil ón {0} ({1} km). Seol é, le do thoil.",
+ "Es gibt schon einen Beleg-Eintrag vom {0} ({1}). Antworte „ja“, um ihn mit dem neuen Beleg zu überschreiben, oder „nein“.": "Tá iontráil le admháil ón {0} ann cheana ({1}). Freagair \"tá\" chun é a athscríobh leis an admháil nua, nó \"níl\".",
+ "Dieser Beleg ist schon eingetragen (Eintrag vom {0}: {1}). Antworte „ja“, um ihn trotzdem zu überschreiben, oder „nein“.": "Tá an admháil seo taifeadta cheana (iontráil ón {0}: {1}). Freagair \"tá\" chun é a athscríobh ar aon nós, nó \"níl\".",
+ "Gut, der neue Beleg wurde nicht übernommen.": "Ceart go leor, níor cuireadh an admháil nua i bhfeidhm.",
+ "Nr.": "Uimh."
 }

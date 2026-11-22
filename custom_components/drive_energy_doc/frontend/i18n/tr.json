@@ -158,5 +158,9 @@
  "Beleg wird gelesen …": "Belge okunuyor …",
  "würde bei {0} km seit dem letzten Tanken {1} ergeben (Durchschnitt {2})": "son yakıt alımından bu yana {0} km'de {1} verirdi (ortalama {2})",
  "⚠️ Verbrauch ungewöhnlich: {0} bei {1} km seit dem letzten Tanken (Durchschnitt {2}), bitte Kilometerstand prüfen.": "⚠️ Alışılmadık tüketim: son yakıt alımından bu yana {1} km'de {0} (ortalama {2}), lütfen kilometreyi kontrol edin.",
- "Zum Eintrag vom {0} ({1} km) fehlt noch der Beleg oder das Foto der Zapfsäule. Bitte schick es noch.": "{0} tarihli kayıtta ({1} km) belge veya pompa fotoğrafı hâlâ eksik. Lütfen gönderin."
+ "Zum Eintrag vom {0} ({1} km) fehlt noch der Beleg oder das Foto der Zapfsäule. Bitte schick es noch.": "{0} tarihli kayıtta ({1} km) belge veya pompa fotoğrafı hâlâ eksik. Lütfen gönderin.",
+ "Es gibt schon einen Beleg-Eintrag vom {0} ({1}). Antworte „ja“, um ihn mit dem neuen Beleg zu überschreiben, oder „nein“.": "{0} tarihli belgeli bir kayıt zaten var ({1}). Yeni belgeyle üzerine yazmak için \"evet\", aksi halde \"hayır\" yazın.",
+ "Dieser Beleg ist schon eingetragen (Eintrag vom {0}: {1}). Antworte „ja“, um ihn trotzdem zu überschreiben, oder „nein“.": "Bu belge zaten kaydedilmiş ({0} tarihli kayıt: {1}). Yine de üzerine yazmak için \"evet\", aksi halde \"hayır\" yazın.",
+ "Gut, der neue Beleg wurde nicht übernommen.": "Tamam, yeni belge uygulanmadı.",
+ "Nr.": "No"
 }

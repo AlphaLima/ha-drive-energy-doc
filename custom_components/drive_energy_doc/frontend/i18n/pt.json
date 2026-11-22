@@ -158,5 +158,9 @@
  "Beleg wird gelesen …": "A ler o comprovativo …",
  "würde bei {0} km seit dem letzten Tanken {1} ergeben (Durchschnitt {2})": "daria {1} em {0} km desde o último abastecimento (média {2})",
  "⚠️ Verbrauch ungewöhnlich: {0} bei {1} km seit dem letzten Tanken (Durchschnitt {2}), bitte Kilometerstand prüfen.": "⚠️ Consumo invulgar: {0} em {1} km desde o último abastecimento (média {2}), verifique a quilometragem.",
- "Zum Eintrag vom {0} ({1} km) fehlt noch der Beleg oder das Foto der Zapfsäule. Bitte schick es noch.": "Falta ainda o comprovativo ou a foto da bomba na entrada de {0} ({1} km). Envie-o, por favor."
+ "Zum Eintrag vom {0} ({1} km) fehlt noch der Beleg oder das Foto der Zapfsäule. Bitte schick es noch.": "Falta ainda o comprovativo ou a foto da bomba na entrada de {0} ({1} km). Envie-o, por favor.",
+ "Es gibt schon einen Beleg-Eintrag vom {0} ({1}). Antworte „ja“, um ihn mit dem neuen Beleg zu überschreiben, oder „nein“.": "Já existe uma entrada com comprovativo de {0} ({1}). Responda «sim» para a substituir pelo novo comprovativo, ou «não».",
+ "Dieser Beleg ist schon eingetragen (Eintrag vom {0}: {1}). Antworte „ja“, um ihn trotzdem zu überschreiben, oder „nein“.": "Este comprovativo já está registado (entrada de {0}: {1}). Responda «sim» para a substituir na mesma, ou «não».",
+ "Gut, der neue Beleg wurde nicht übernommen.": "Certo, o novo comprovativo não foi aplicado.",
+ "Nr.": "N.º"
 }

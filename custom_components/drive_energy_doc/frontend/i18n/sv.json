@@ -158,5 +158,9 @@
  "Beleg wird gelesen …": "Läser kvittot …",
  "würde bei {0} km seit dem letzten Tanken {1} ergeben (Durchschnitt {2})": "skulle ge {1} på {0} km sedan senaste tankningen (snitt {2})",
  "⚠️ Verbrauch ungewöhnlich: {0} bei {1} km seit dem letzten Tanken (Durchschnitt {2}), bitte Kilometerstand prüfen.": "⚠️ Ovanlig förbrukning: {0} på {1} km sedan senaste tankningen (snitt {2}), kontrollera miltalet.",
- "Zum Eintrag vom {0} ({1} km) fehlt noch der Beleg oder das Foto der Zapfsäule. Bitte schick es noch.": "Posten från {0} ({1} km) saknar fortfarande kvitto eller foto av pumpen. Skicka det, tack."
+ "Zum Eintrag vom {0} ({1} km) fehlt noch der Beleg oder das Foto der Zapfsäule. Bitte schick es noch.": "Posten från {0} ({1} km) saknar fortfarande kvitto eller foto av pumpen. Skicka det, tack.",
+ "Es gibt schon einen Beleg-Eintrag vom {0} ({1}). Antworte „ja“, um ihn mit dem neuen Beleg zu überschreiben, oder „nein“.": "Det finns redan en post med kvitto från {0} ({1}). Svara ”ja” för att skriva över den med det nya kvittot, eller ”nej”.",
+ "Dieser Beleg ist schon eingetragen (Eintrag vom {0}: {1}). Antworte „ja“, um ihn trotzdem zu überschreiben, oder „nein“.": "Det här kvittot är redan registrerat (post från {0}: {1}). Svara ”ja” för att ändå skriva över, eller ”nej”.",
+ "Gut, der neue Beleg wurde nicht übernommen.": "Okej, det nya kvittot tillämpades inte.",
+ "Nr.": "Nr"
 }

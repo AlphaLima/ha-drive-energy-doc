@@ -158,5 +158,9 @@
  "Beleg wird gelesen …": "Les kvittun …",
  "würde bei {0} km seit dem letzten Tanken {1} ergeben (Durchschnitt {2})": "myndi gefa {1} á {0} km frá síðustu áfyllingu (meðaltal {2})",
  "⚠️ Verbrauch ungewöhnlich: {0} bei {1} km seit dem letzten Tanken (Durchschnitt {2}), bitte Kilometerstand prüfen.": "⚠️ Óvenjuleg eyðsla: {0} á {1} km frá síðustu áfyllingu (meðaltal {2}), vinsamlegast athugaðu kílómetrastöðuna.",
- "Zum Eintrag vom {0} ({1} km) fehlt noch der Beleg oder das Foto der Zapfsäule. Bitte schick es noch.": "Færslan frá {0} ({1} km) vantar enn kvittun eða mynd af dælunni. Vinsamlegast sendu hana."
+ "Zum Eintrag vom {0} ({1} km) fehlt noch der Beleg oder das Foto der Zapfsäule. Bitte schick es noch.": "Færslan frá {0} ({1} km) vantar enn kvittun eða mynd af dælunni. Vinsamlegast sendu hana.",
+ "Es gibt schon einen Beleg-Eintrag vom {0} ({1}). Antworte „ja“, um ihn mit dem neuen Beleg zu überschreiben, oder „nein“.": "Færsla með kvittun frá {0} er þegar til ({1}). Svaraðu „já“ til að skrifa yfir hana með nýju kvittuninni, eða „nei“.",
+ "Dieser Beleg ist schon eingetragen (Eintrag vom {0}: {1}). Antworte „ja“, um ihn trotzdem zu überschreiben, oder „nein“.": "Þessi kvittun hefur þegar verið skráð (færsla frá {0}: {1}). Svaraðu „já“ til að skrifa samt yfir, eða „nei“.",
+ "Gut, der neue Beleg wurde nicht übernommen.": "Í lagi, nýja kvittunin var ekki notuð.",
+ "Nr.": "Nr."
 }

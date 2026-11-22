@@ -158,5 +158,9 @@
  "Beleg wird gelesen …": "Se citește bonul …",
  "würde bei {0} km seit dem letzten Tanken {1} ergeben (Durchschnitt {2})": "ar da {1} pe {0} km de la ultima alimentare (medie {2})",
  "⚠️ Verbrauch ungewöhnlich: {0} bei {1} km seit dem letzten Tanken (Durchschnitt {2}), bitte Kilometerstand prüfen.": "⚠️ Consum neobișnuit: {0} pe {1} km de la ultima alimentare (medie {2}), verificați kilometrajul.",
- "Zum Eintrag vom {0} ({1} km) fehlt noch der Beleg oder das Foto der Zapfsäule. Bitte schick es noch.": "La intrarea din {0} ({1} km) lipsește încă bonul sau fotografia pompei. Vă rugăm să-l trimiteți."
+ "Zum Eintrag vom {0} ({1} km) fehlt noch der Beleg oder das Foto der Zapfsäule. Bitte schick es noch.": "La intrarea din {0} ({1} km) lipsește încă bonul sau fotografia pompei. Vă rugăm să-l trimiteți.",
+ "Es gibt schon einen Beleg-Eintrag vom {0} ({1}). Antworte „ja“, um ihn mit dem neuen Beleg zu überschreiben, oder „nein“.": "Există deja o intrare cu bon din {0} ({1}). Răspundeți „da” pentru a o suprascrie cu noul bon, sau „nu”.",
+ "Dieser Beleg ist schon eingetragen (Eintrag vom {0}: {1}). Antworte „ja“, um ihn trotzdem zu überschreiben, oder „nein“.": "Acest bon este deja înregistrat (intrarea din {0}: {1}). Răspundeți „da” pentru a-l suprascrie oricum, sau „nu”.",
+ "Gut, der neue Beleg wurde nicht übernommen.": "Bine, noul bon nu a fost aplicat.",
+ "Nr.": "Nr."
 }

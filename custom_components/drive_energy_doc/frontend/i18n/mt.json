@@ -158,5 +158,9 @@
  "Beleg wird gelesen …": "Qed naqra r-riċevuta …",
  "würde bei {0} km seit dem letzten Tanken {1} ergeben (Durchschnitt {2})": "tagħti {1} fuq {0} km mill-aħħar mili (medja {2})",
  "⚠️ Verbrauch ungewöhnlich: {0} bei {1} km seit dem letzten Tanken (Durchschnitt {2}), bitte Kilometerstand prüfen.": "⚠️ Konsum mhux tas-soltu: {0} fuq {1} km mill-aħħar mili (medja {2}), jekk jogħġbok iċċekkja l-kilometraġġ.",
- "Zum Eintrag vom {0} ({1} km) fehlt noch der Beleg oder das Foto der Zapfsäule. Bitte schick es noch.": "Fid-daħla tal-{0} ({1} km) għad nieqsa r-riċevuta jew ritratt tal-pompa. Jekk jogħġbok ibgħatha."
+ "Zum Eintrag vom {0} ({1} km) fehlt noch der Beleg oder das Foto der Zapfsäule. Bitte schick es noch.": "Fid-daħla tal-{0} ({1} km) għad nieqsa r-riċevuta jew ritratt tal-pompa. Jekk jogħġbok ibgħatha.",
+ "Es gibt schon einen Beleg-Eintrag vom {0} ({1}). Antworte „ja“, um ihn mit dem neuen Beleg zu überschreiben, oder „nein“.": "Diġà teżisti daħla b'riċevuta tal-{0} ({1}). Wieġeb \"iva\" biex tikteb fuqha bir-riċevuta l-ġdida, jew \"le\".",
+ "Dieser Beleg ist schon eingetragen (Eintrag vom {0}: {1}). Antworte „ja“, um ihn trotzdem zu überschreiben, oder „nein“.": "Din ir-riċevuta diġà ġiet irreġistrata (daħla tal-{0}: {1}). Wieġeb \"iva\" biex tikteb fuqha xorta, jew \"le\".",
+ "Gut, der neue Beleg wurde nicht übernommen.": "Tajjeb, ir-riċevuta l-ġdida ma ġietx applikata.",
+ "Nr.": "Nru"
 }

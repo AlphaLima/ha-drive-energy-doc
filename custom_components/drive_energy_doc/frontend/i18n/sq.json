@@ -158,5 +158,9 @@
  "Beleg wird gelesen …": "Po lexohet fatura …",
  "würde bei {0} km seit dem letzten Tanken {1} ergeben (Durchschnitt {2})": "do të jepte {1} për {0} km që nga furnizimi i fundit (mesatarja {2})",
  "⚠️ Verbrauch ungewöhnlich: {0} bei {1} km seit dem letzten Tanken (Durchschnitt {2}), bitte Kilometerstand prüfen.": "⚠️ Konsum i pazakontë: {0} për {1} km që nga furnizimi i fundit (mesatarja {2}), ju lutem kontrolloni kilometrazhin.",
- "Zum Eintrag vom {0} ({1} km) fehlt noch der Beleg oder das Foto der Zapfsäule. Bitte schick es noch.": "Te regjistrimi i {0} ({1} km) mungon ende fatura ose foto e pompës. Ju lutem dërgojeni."
+ "Zum Eintrag vom {0} ({1} km) fehlt noch der Beleg oder das Foto der Zapfsäule. Bitte schick es noch.": "Te regjistrimi i {0} ({1} km) mungon ende fatura ose foto e pompës. Ju lutem dërgojeni.",
+ "Es gibt schon einen Beleg-Eintrag vom {0} ({1}). Antworte „ja“, um ihn mit dem neuen Beleg zu überschreiben, oder „nein“.": "Ekziston tashmë një regjistrim me faturë i {0} ({1}). Përgjigjuni «po» për ta mbishkruar me faturën e re, ose «jo».",
+ "Dieser Beleg ist schon eingetragen (Eintrag vom {0}: {1}). Antworte „ja“, um ihn trotzdem zu überschreiben, oder „nein“.": "Kjo faturë është regjistruar tashmë (regjistrimi i {0}: {1}). Përgjigjuni «po» për ta mbishkruar prapë, ose «jo».",
+ "Gut, der neue Beleg wurde nicht übernommen.": "Në rregull, fatura e re nuk u zbatua.",
+ "Nr.": "Nr."
 }

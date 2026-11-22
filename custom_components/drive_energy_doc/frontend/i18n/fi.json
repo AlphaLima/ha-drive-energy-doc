@@ -158,5 +158,9 @@
  "Beleg wird gelesen …": "Luetaan kuittia …",
  "würde bei {0} km seit dem letzten Tanken {1} ergeben (Durchschnitt {2})": "antaisi {1} {0} km:llä viimeisestä tankkauksesta (keskiarvo {2})",
  "⚠️ Verbrauch ungewöhnlich: {0} bei {1} km seit dem letzten Tanken (Durchschnitt {2}), bitte Kilometerstand prüfen.": "⚠️ Epätavallinen kulutus: {0} {1} km:llä viimeisestä tankkauksesta (keskiarvo {2}), tarkista mittarilukema.",
- "Zum Eintrag vom {0} ({1} km) fehlt noch der Beleg oder das Foto der Zapfsäule. Bitte schick es noch.": "Merkinnästä {0} ({1} km) puuttuu vielä kuitti tai kuva pumpusta. Lähetä se, kiitos."
+ "Zum Eintrag vom {0} ({1} km) fehlt noch der Beleg oder das Foto der Zapfsäule. Bitte schick es noch.": "Merkinnästä {0} ({1} km) puuttuu vielä kuitti tai kuva pumpusta. Lähetä se, kiitos.",
+ "Es gibt schon einen Beleg-Eintrag vom {0} ({1}). Antworte „ja“, um ihn mit dem neuen Beleg zu überschreiben, oder „nein“.": "Kuitillinen merkintä ({0}, {1}) on jo olemassa. Vastaa ”kyllä” korvataksesi sen uudella kuitilla, tai ”ei”.",
+ "Dieser Beleg ist schon eingetragen (Eintrag vom {0}: {1}). Antworte „ja“, um ihn trotzdem zu überschreiben, oder „nein“.": "Tämä kuitti on jo kirjattu (merkintä {0}: {1}). Vastaa ”kyllä” korvataksesi sen silti, tai ”ei”.",
+ "Gut, der neue Beleg wurde nicht übernommen.": "Selvä, uutta kuittia ei otettu käyttöön.",
+ "Nr.": "Nro"
 }

@@ -158,5 +158,9 @@
  "Beleg wird gelesen …": "Чытаю чэк …",
  "würde bei {0} km seit dem letzten Tanken {1} ergeben (Durchschnitt {2})": "дало б {1} на {0} км ад апошняй запраўкі (сярэдняе {2})",
  "⚠️ Verbrauch ungewöhnlich: {0} bei {1} km seit dem letzten Tanken (Durchschnitt {2}), bitte Kilometerstand prüfen.": "⚠️ Незвычайны расход: {0} на {1} км ад апошняй запраўкі (сярэдняе {2}), праверце прабег.",
- "Zum Eintrag vom {0} ({1} km) fehlt noch der Beleg oder das Foto der Zapfsäule. Bitte schick es noch.": "У запісе ад {0} ({1} км) пакуль няма чэка або фота калонкі. Калі ласка, дашліце яго."
+ "Zum Eintrag vom {0} ({1} km) fehlt noch der Beleg oder das Foto der Zapfsäule. Bitte schick es noch.": "У запісе ад {0} ({1} км) пакуль няма чэка або фота калонкі. Калі ласка, дашліце яго.",
+ "Es gibt schon einen Beleg-Eintrag vom {0} ({1}). Antworte „ja“, um ihn mit dem neuen Beleg zu überschreiben, oder „nein“.": "Запіс з чэкам ад {0} ({1}) ужо існуе. Адкажыце «так», каб перазапісаць яго новым чэкам, або «не».",
+ "Dieser Beleg ist schon eingetragen (Eintrag vom {0}: {1}). Antworte „ja“, um ihn trotzdem zu überschreiben, oder „nein“.": "Гэты чэк ужо ўнесены (запіс ад {0}: {1}). Адкажыце «так», каб усё роўна перазапісаць, або «не».",
+ "Gut, der neue Beleg wurde nicht übernommen.": "Добра, новы чэк не прыняты.",
+ "Nr.": "№"
 }

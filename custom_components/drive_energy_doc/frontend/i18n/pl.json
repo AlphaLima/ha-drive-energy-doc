@@ -158,5 +158,9 @@
  "Beleg wird gelesen …": "Odczytuję dowód …",
  "würde bei {0} km seit dem letzten Tanken {1} ergeben (Durchschnitt {2})": "dałaby {1} na {0} km od ostatniego tankowania (średnia {2})",
  "⚠️ Verbrauch ungewöhnlich: {0} bei {1} km seit dem letzten Tanken (Durchschnitt {2}), bitte Kilometerstand prüfen.": "⚠️ Nietypowe zużycie: {0} na {1} km od ostatniego tankowania (średnia {2}), sprawdź przebieg.",
- "Zum Eintrag vom {0} ({1} km) fehlt noch der Beleg oder das Foto der Zapfsäule. Bitte schick es noch.": "W wpisie z {0} ({1} km) nadal brakuje dowodu lub zdjęcia dystrybutora. Wyślij go, proszę."
+ "Zum Eintrag vom {0} ({1} km) fehlt noch der Beleg oder das Foto der Zapfsäule. Bitte schick es noch.": "W wpisie z {0} ({1} km) nadal brakuje dowodu lub zdjęcia dystrybutora. Wyślij go, proszę.",
+ "Es gibt schon einen Beleg-Eintrag vom {0} ({1}). Antworte „ja“, um ihn mit dem neuen Beleg zu überschreiben, oder „nein“.": "Istnieje już wpis z dowodem z dnia {0} ({1}). Odpowiedz „tak”, aby zastąpić go nowym dowodem, lub „nie”.",
+ "Dieser Beleg ist schon eingetragen (Eintrag vom {0}: {1}). Antworte „ja“, um ihn trotzdem zu überschreiben, oder „nein“.": "Ten dowód jest już zapisany (wpis z {0}: {1}). Odpowiedz „tak”, aby mimo to go zastąpić, lub „nie”.",
+ "Gut, der neue Beleg wurde nicht übernommen.": "Dobrze, nowy dowód nie został zastosowany.",
+ "Nr.": "Nr"
 }

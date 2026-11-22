@@ -442,6 +442,19 @@ class Vehicle:
     async def receive_text(self, text: str, sent_ts: float | None = None) -> None:
         if text.strip().lower() in messages.keywords("help"):
             return await self._say(self._help())
+        ow = self.data.get("awaiting_overwrite")
+        if ow and time.time() - ow["ts"] < AWAIT_TTL:
+            low = text.strip().lower()
+            e = self.get_entry(ow["id"])
+            if low in messages.keywords("yes") and e:
+                self.data["awaiting_overwrite"] = None
+                return await self._apply_and_report(e, ow["values"], ow.get("photo"))
+            if low in messages.keywords("no"):
+                self.data["awaiting_overwrite"] = None
+                if ow.get("photo"):
+                    await self._remove_files([ow["photo"]])
+                self._save()
+                return await self._say(self.tr("Gut, der neue Beleg wurde nicht übernommen."))
         px = receipt.parse_extra(text)
         if px:
             return await self._extra(px[0], px[1], None)
@@ -704,6 +717,15 @@ class Vehicle:
             recent = ", ".join(dt_util.as_local(dt_util.utc_from_timestamp(e["ts"])).strftime("%d.%m.") for e in self.data["entries"][-3:])
             await self._say(self.tr("Dazu habe ich keinen offenen Tankvorgang.") + (" " + self.tr("Letzte: {0}.", recent) if recent else "") + " " + self.tr("Antworte mit dem Datum (z. B. 27.10.) oder „neu“ für einen neuen Eintrag."))
             return
+        if target.get("receipt") and (values.get("quantity") or values.get("total")):
+            same = abs((target.get("quantity") or 0) - (values.get("quantity") or 0)) < 0.011 and abs((target.get("total") or 0) - (values.get("total") or 0)) < 0.011
+            when = dt_util.as_local(dt_util.utc_from_timestamp(target["ts"])).strftime("%d.%m.%Y %H:%M")
+            have = ", ".join(x for x in (self._dec(f"{target['quantity']:.2f}") + f" {self.unit}" if target.get("quantity") else "", self._dec(f"{target['total']:.2f}") + " €" if target.get("total") else "") if x)
+            self.data["awaiting_overwrite"] = {"id": target["id"], "values": {k: (v if k != "date" else None) for k, v in values.items()}, "photo": photo, "ts": time.time()}
+            self._save()
+            key = "Dieser Beleg ist schon eingetragen (Eintrag vom {0}: {1}). Antworte „ja“, um ihn trotzdem zu überschreiben, oder „nein“." if same else "Es gibt schon einen Beleg-Eintrag vom {0} ({1}). Antworte „ja“, um ihn mit dem neuen Beleg zu überschreiben, oder „nein“."
+            await self._say(self.tr(key, when, have))
+            return
         await self._apply_and_report(target, values, photo)
 
     async def _apply_and_report(self, entry: dict, values: dict, photo: str | None) -> None:
@@ -824,17 +846,23 @@ class Vehicle:
             "status": "idle" if not self.detector.pending else ("refuelling" if self.detector.pending.valid else "candidate"),
         }
 
+    def numbers(self) -> dict[str, int]:
+        """Laufende Nummer der Tankvorgänge (ältester = 1); Zubehör bekommt keine Nummer."""
+        fuel = sorted((e for e in self.data["entries"] if e.get("kind") != "extra"), key=lambda x: x["ts"])
+        return {e["id"]: i + 1 for i, e in enumerate(fuel)}
+
     def to_csv(self) -> str:
         buf = io.StringIO()
         w = csv.writer(buf, delimiter=";")
-        w.writerow([self.tr(f) for f in CSV_FIELDS])
+        w.writerow([self.tr(f) for f in ["nr"] + CSV_FIELDS])
+        numbers = self.numbers()
 
         def n(v, d=2):
             return "" if v is None else self._dec(f"{v:.{d}f}")
 
         for e in self.entries_with_stats():
             t = dt_util.as_local(dt_util.utc_from_timestamp(e["ts"]))
-            w.writerow([self.name, self.plate, self.tr("Zubehör") if e.get("kind") == "extra" else (self.tr("Strom") if self.electric else self.tr("Kraftstoff")), e.get("item") or "", t.strftime("%d.%m.%Y"), t.strftime("%H:%M"), n(e.get("odometer"), 0), e.get("station") or "", e.get("address") or "", n(e.get("lat"), 6), n(e.get("lon"), 6), n(e.get("level_from"), 0), n(e.get("level_to"), 0), n(e.get("quantity")), (e.get("unit") or "") if e.get("kind") == "extra" else self.unit, n(e.get("unit_price"), 3), n(e.get("total")), e.get("quantity_source") or "", e.get("price_source") or "", "ja" if e.get("receipt") else "nein", n(e.get("consumption")), e.get("note") or ""])
+            w.writerow([numbers.get(e["id"], ""), self.name, self.plate, self.tr("Zubehör") if e.get("kind") == "extra" else (self.tr("Strom") if self.electric else self.tr("Kraftstoff")), e.get("item") or "", t.strftime("%d.%m.%Y"), t.strftime("%H:%M"), n(e.get("odometer"), 0), e.get("station") or "", e.get("address") or "", n(e.get("lat"), 6), n(e.get("lon"), 6), n(e.get("level_from"), 0), n(e.get("level_to"), 0), n(e.get("quantity")), (e.get("unit") or "") if e.get("kind") == "extra" else self.unit, n(e.get("unit_price"), 3), n(e.get("total")), e.get("quantity_source") or "", e.get("price_source") or "", "ja" if e.get("receipt") else "nein", n(e.get("consumption")), e.get("note") or ""])
         return buf.getvalue()
 
     # ---------------------------------------------------------------- Speichern

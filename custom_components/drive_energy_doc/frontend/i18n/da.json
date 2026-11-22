@@ -158,5 +158,9 @@
  "Beleg wird gelesen …": "Læser kvitteringen …",
  "würde bei {0} km seit dem letzten Tanken {1} ergeben (Durchschnitt {2})": "ville give {1} på {0} km siden sidste tankning (gennemsnit {2})",
  "⚠️ Verbrauch ungewöhnlich: {0} bei {1} km seit dem letzten Tanken (Durchschnitt {2}), bitte Kilometerstand prüfen.": "⚠️ Usædvanligt forbrug: {0} på {1} km siden sidste tankning (gennemsnit {2}), tjek kilometerstanden.",
- "Zum Eintrag vom {0} ({1} km) fehlt noch der Beleg oder das Foto der Zapfsäule. Bitte schick es noch.": "Posten fra {0} ({1} km) mangler stadig kvittering eller foto af pumpen. Send den venligst."
+ "Zum Eintrag vom {0} ({1} km) fehlt noch der Beleg oder das Foto der Zapfsäule. Bitte schick es noch.": "Posten fra {0} ({1} km) mangler stadig kvittering eller foto af pumpen. Send den venligst.",
+ "Es gibt schon einen Beleg-Eintrag vom {0} ({1}). Antworte „ja“, um ihn mit dem neuen Beleg zu überschreiben, oder „nein“.": "Der findes allerede en post med kvittering fra {0} ({1}). Svar \"ja\" for at overskrive den med den nye kvittering, eller \"nej\".",
+ "Dieser Beleg ist schon eingetragen (Eintrag vom {0}: {1}). Antworte „ja“, um ihn trotzdem zu überschreiben, oder „nein“.": "Denne kvittering er allerede registreret (post fra {0}: {1}). Svar \"ja\" for alligevel at overskrive, eller \"nej\".",
+ "Gut, der neue Beleg wurde nicht übernommen.": "Okay, den nye kvittering blev ikke anvendt.",
+ "Nr.": "Nr."
 }

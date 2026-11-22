@@ -158,5 +158,9 @@
  "Beleg wird gelesen …": "Čeks tiek lasīts …",
  "würde bei {0} km seit dem letzten Tanken {1} ergeben (Durchschnitt {2})": "{0} km laikā kopš pēdējās uzpildes dotu {1} (vidēji {2})",
  "⚠️ Verbrauch ungewöhnlich: {0} bei {1} km seit dem letzten Tanken (Durchschnitt {2}), bitte Kilometerstand prüfen.": "⚠️ Neparasts patēriņš: {0} uz {1} km kopš pēdējās uzpildes (vidēji {2}), lūdzu, pārbaudiet nobraukumu.",
- "Zum Eintrag vom {0} ({1} km) fehlt noch der Beleg oder das Foto der Zapfsäule. Bitte schick es noch.": "Pie {0} ieraksta ({1} km) joprojām trūkst čeka vai kolonnas fotoattēla. Lūdzu, nosūtiet to."
+ "Zum Eintrag vom {0} ({1} km) fehlt noch der Beleg oder das Foto der Zapfsäule. Bitte schick es noch.": "Pie {0} ieraksta ({1} km) joprojām trūkst čeka vai kolonnas fotoattēla. Lūdzu, nosūtiet to.",
+ "Es gibt schon einen Beleg-Eintrag vom {0} ({1}). Antworte „ja“, um ihn mit dem neuen Beleg zu überschreiben, oder „nein“.": "Ieraksts ar čeku no {0} jau pastāv ({1}). Atbildiet „jā“, lai to pārrakstītu ar jauno čeku, vai „nē“.",
+ "Dieser Beleg ist schon eingetragen (Eintrag vom {0}: {1}). Antworte „ja“, um ihn trotzdem zu überschreiben, oder „nein“.": "Šis čeks jau ir ievadīts (ieraksts no {0}: {1}). Atbildiet „jā“, lai tomēr pārrakstītu, vai „nē“.",
+ "Gut, der neue Beleg wurde nicht übernommen.": "Labi, jauno čeku nepiemēroju.",
+ "Nr.": "Nr."
 }
