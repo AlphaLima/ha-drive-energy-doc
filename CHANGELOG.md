@@ -1,6 +1,7 @@
 # Changelog
 
 ## 0.1.78 (in Arbeit)
+- Tacho-Foto mit unplausiblem Verbrauch: In der Rückfrage gibt es zusätzlich „Neuer Eintrag“ (Panel-Knopf bzw. Antwort „neu“), wenn das Foto zu keinem vorhandenen Tankvorgang gehört.
 - Panel: Der Fortschrittsdialog bei mehreren Fotos zeigt alle Fotos als Leiste (fertige mit Haken, aktuelles hervorgehoben), den Zähler „(2 / 3)“ und einen Fortschrittsbalken; Vorschau und Zähler wechseln mit jedem Foto.
 - Fix: Fehlermeldung beim Hochladen mehrerer Fotos kurz nacheinander (zwei gleichzeitige Uploads überschrieben sich die Antwortliste, „NoneType is not iterable“); Uploads laufen jetzt je Fahrzeug nacheinander. KI-Fehler werden mit Typ protokolliert.
 - Tacho-Foto: Passt der Kilometerstand fast genau (bis 50 km) zu einem Eintrag ohne Tacho-Foto, geht er vor der Uhrzeit dorthin (auch wenn ein anderer Tankvorgang zeitlich näher liegt oder die Fotos später hochgeladen werden); so entsteht bei Beleg + Tacho im selben Stapel (z. B. später hochgeladen) kein zweiter Eintrag.

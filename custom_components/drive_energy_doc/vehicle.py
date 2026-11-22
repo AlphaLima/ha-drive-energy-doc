@@ -275,6 +275,8 @@ class Vehicle:
             x = self.data.get(k)
             return x if x and time.time() - x["ts"] < AWAIT_TTL else None
         ao = live("awaiting_odo")
+        if ao and ao.get("confirm") and ao.get("photo") and not live("awaiting_overwrite"):
+            return ["yes", "new", "no"]   # Tacho-Foto: statt „trotzdem übernehmen“ auch „neuer Eintrag“
         if live("awaiting_overwrite") or (ao and ao.get("confirm")):
             return ["yes", "no"]
         if live("awaiting"):
@@ -487,6 +489,15 @@ class Vehicle:
         ao = self.data.get("awaiting_odo")
         if ao and time.time() - ao["ts"] < AWAIT_TTL:
             low = text.lower().strip()
+            if ao.get("confirm") and ao.get("photo") and low in messages.keywords("new"):   # Tacho-Foto gehört zu keinem vorhandenen Eintrag: neuen anlegen
+                self.data["awaiting_odo"] = None
+                e = self._new_manual_entry()
+                self.data["entries"].append(e)
+                await self._apply_odometer(e, ao["km"], ao["photo"], 0)
+                if not self.o.get(CONF_LEVEL):
+                    await self._say(self.tr("Neuer Eintrag angelegt. Schick jetzt noch das Foto vom Beleg oder der Zapfsäule."))
+                    self._remind_receipt(e)
+                return
             if ao.get("confirm") and low in messages.keywords("yes"):
                 self.data["awaiting_odo"] = None
                 e = self.get_entry(ao["id"])
