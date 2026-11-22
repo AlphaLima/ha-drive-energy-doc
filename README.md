@@ -5,8 +5,10 @@
 Ein **Tank- und Ladebuch für beliebig viele Fahrzeuge** (Verbrenner und Elektro), das sich weitgehend selbst führt.
 Es gibt zwei Arten, es zu nutzen, die sich auch mischen lassen:
 
-- **Mit Verbindung zum Auto:** Home Assistant erkennt das Tanken oder Laden aus den Sensoren des Autos (Füllstand, Kilometerstand, GPS),
-  holt den Preis, bittet per Telegram um den Beleg, liest ihn per KI und rechnet den Verbrauch aus.
+- **Mit Verbindung zum Auto (völlig automatisch):** Home Assistant erkennt das Tanken oder Laden selbst aus den Sensoren des Autos
+  (Füllstand, Kilometerstand, GPS), legt den Eintrag an, holt den Preis und rechnet den Verbrauch aus. Der Fahrer muss nichts tun.
+  Der Beleg ist hier nur eine Zugabe: Schickt man ihn per Telegram, liest ihn die KI, und die Abrechnung wird noch präziser
+  (echte Menge, Preis und Summe) und der Vorgang zusätzlich dokumentiert.
 - **Ganz ohne Verbindung zum Auto (Foto-Betrieb):** Es genügt, ein **Foto vom Tachostand** und ein **Foto von der Zapfsäule oder dem Beleg**
   per Telegram zu schicken. Die KI liest Kilometerstand, Menge, Preis und Summe, das Tankbuch wird geführt und die Belege werden archiviert.
   Dafür sind beim Fahrzeug keinerlei Sensoren nötig. Das ist **ideal für ein Flottenmanagement**: jedes Fahrzeug bekommt einen eigenen
@@ -88,7 +90,7 @@ Auto-Sensoren (Füllstand %, Kilometerstand, GPS)
         │
         ├─► Preis nachschlagen (Tankstellen-Dienst, optional)
         ├─► Eintrag im Buch anlegen (Zeit, Menge, Preis, Kosten, Kilometerstand, Ort)
-        └─► Nachricht per Telegram/WhatsApp/Companion-App: "Tanken erkannt – bitte Beleg senden"
+        └─► Nachricht per Telegram/WhatsApp/Companion-App: "Tanken erkannt – Beleg bei Bedarf nachreichen"
                    │
                    ▼
         Foto vom Bon / Zapfsäule / Text  ─►  KI liest Menge, Preis, Summe, Datum
@@ -116,7 +118,7 @@ zusätzlich die Zeit prüft. Es sind vier Zustände:
    - das Auto ist **mehr als 250 m vom Tankort entfernt** (einstellbar, per Luftlinie zur Startposition).
 
    Warum der Abstand? Der Füllstand steigt oft verzögert; wer noch an der Zapfsäule steht, soll nicht schon einen Eintrag auslösen.
-   Erst wenn das Auto losgefahren ist, steht fest, dass das Tanken beendet ist. Erst dann kommt die Nachricht mit der Bitte um den Beleg.
+   Erst wenn das Auto losgefahren ist, steht fest, dass das Tanken beendet ist. Erst dann kommt die Nachricht, in der du bei Bedarf den Beleg nachreichen kannst (optional; der Eintrag ist auch ohne Beleg vollständig).
 
    **Ausnahme Elektroauto:** Hier entfällt die Entfernungsbedingung (das Auto bleibt beim Laden stehen). Standard ist **10 Minuten
    Ruhe** ohne weiteren Anstieg; auch das ist einstellbar. Die Abstandsregel lässt sich auch bei Verbrennern abschalten.
