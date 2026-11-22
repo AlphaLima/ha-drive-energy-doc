@@ -267,6 +267,18 @@ class Vehicle:
             await self._say(self._summary(entry, self.tr("Tankvorgang erkannt")) + "\n\n" + self.tr("Bitte schick mir den Beleg (Foto vom Bon oder der Zapfsäule) oder tippe: Menge Betrag, z. B. 45,93 105,13") + "\n" + self.tr("Zubehör gekauft (AdBlue, Öl, Scheibenwischer …)? Schreib: extra 24,90 oder x Öl 1 9,50 (auch als Bildtext zum Foto). Alle Kommandos: ? oder hilfe."))
 
     # ---------------------------------------------------------------- Nachrichten
+    def pending_answers(self) -> list[str]:
+        """Offene Rückfrage (nicht abgelaufen) und die dazu passenden fertigen Antworten (yes/no/new) fürs Panel."""
+        def live(k: str) -> dict | None:
+            x = self.data.get(k)
+            return x if x and time.time() - x["ts"] < AWAIT_TTL else None
+        ao = live("awaiting_odo")
+        if live("awaiting_overwrite") or (ao and ao.get("confirm")):
+            return ["yes", "no"]
+        if live("awaiting"):
+            return ["new"]
+        return ["no"] if ao else []
+
     async def upload(self, image: bytes | None, text: str) -> list[str]:
         """Beleg aus dem Panel (Handykamera). Antworten kommen als Liste zurück statt per Messenger."""
         self._capture = []
@@ -487,14 +499,14 @@ class Vehicle:
             if low in messages.keywords("new"):
                 entry = self._new_manual_entry()
                 self.data["entries"].append(entry)
-                self.data["awaiting"] = None
+                self.data["awaiting"] = self.data["awaiting_overwrite"] = self.data["awaiting_odo"] = None
                 await self._apply_and_report(entry, aw["values"], aw.get("photo"))
                 return
             d = receipt.parse_date_hint(text)
             if d:
                 entry = self._entry_on(d)
                 if entry:
-                    self.data["awaiting"] = None
+                    self.data["awaiting"] = self.data["awaiting_overwrite"] = self.data["awaiting_odo"] = None
                     await self._apply_and_report(entry, aw["values"], aw.get("photo"))
                 else:
                     await self._say(self.tr("Zu {0} habe ich keinen Tankvorgang. Anderes Datum oder „neu“.", f"{d:%d.%m.%Y}"))
@@ -519,6 +531,8 @@ class Vehicle:
         await self._route(values, None)
 
     async def receive_photo(self, image: bytes, caption: str = "", sent_ts: float | None = None) -> None:
+        for k in ("awaiting", "awaiting_overwrite", "awaiting_odo"):   # ein neues Foto ersetzt alte, unbeantwortete Rückfragen (sonst kreisen sie)
+            self.data[k] = None
         image = await self.hass.async_add_executor_job(receipt.normalize, image)
         low = caption.lower().strip()
         px = receipt.parse_extra(caption)

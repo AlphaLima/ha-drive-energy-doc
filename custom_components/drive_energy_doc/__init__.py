@@ -176,15 +176,7 @@ class UploadView(HomeAssistantView):
         # als eigene Aufgabe laufen lassen: bricht der Browser die Verbindung ab (Netz, Seitenwechsel), wird der Beleg trotzdem fertig verarbeitet
         task = request.app["hass"].async_create_task(v.upload(image, text))
         replies = await asyncio.shield(task)
-        ao = v.data.get("awaiting_odo")
-        if v.data.get("awaiting_overwrite") or (ao and ao.get("confirm")):
-            answers = ["yes", "no"]   # Panel zeigt fertige Antwort-Knöpfe
-        elif v.data.get("awaiting"):
-            answers = ["new"]
-        elif ao:
-            answers = ["no"]
-        else:
-            answers = []
+        answers = v.pending_answers()
         return self.json({"replies": replies, "awaiting": bool(answers), "answers": answers})
 
 

@@ -1,6 +1,7 @@
 # Changelog
 
 ## 0.1.78 (in Arbeit)
+- Fix: Rückfragen kreisten, weil alte unbeantwortete Fragen (Überschreiben, Kilometerstand, Datum) stehen blieben. Ein neues Foto ersetzt jetzt offene Rückfragen, abgelaufene zählen nicht mehr, und eine beantwortete Frage räumt die übrigen ab.
 - Kilometerstand vom Beleg wird bei unplausiblem Verbrauch nicht mehr stillschweigend übernommen: Der Beleg wird gespeichert, der Kilometerstand erst nach Rückfrage (im Panel mit Knöpfen „Übernehmen“ / „Abbrechen“, per Bot mit „ja“ / „nein“).
 - Panel: Rückfragen haben fertige Antwort-Knöpfe (Übernehmen / Abbrechen bei Ja/Nein-Fragen wie „Beleg schon eingetragen“, „Neuer Eintrag“ bzw. „Abbrechen“ bei Datumsfragen).
 
