@@ -273,7 +273,12 @@ class Vehicle:
                 await self.receive_photo(image, text)
             elif text:
                 await self.receive_text(text)
-            return list(self._capture)
+            replies = list(self._capture)
+            _LOGGER.info("Upload aus dem Panel (%s): Bild %s Byte, Text %r, %d Antwort(en)", self.name, len(image) if image else 0, text[:40], len(replies))
+            return replies
+        except Exception:
+            _LOGGER.exception("Upload aus dem Panel (%s) fehlgeschlagen", self.name)
+            raise
         finally:
             self._capture = None
 

@@ -154,5 +154,6 @@
  "kw.photo": "additional|another|zusatz",
  "kw.km": "km|odometer|mileage|kilometres|kilometers",
  "kw.items": "adblue=AdBlue=l|ad blue=AdBlue=l|oil=Oil=l|engine oil=Engine oil=l|wipers=Wipers|washer fluid=Washer fluid=l|antifreeze=Antifreeze=l",
- "kw.decimal": "."
+ "kw.decimal": ".",
+ "Beleg wird gelesen …": "Reading receipt …"
 }

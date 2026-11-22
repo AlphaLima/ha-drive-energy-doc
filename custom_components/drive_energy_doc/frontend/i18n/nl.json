@@ -154,5 +154,6 @@
  "kw.photo": "extrafoto|bijfoto",
  "kw.km": "km|kilometerstand|teller",
  "kw.items": "olie=Olie=l|motorolie=Motorolie=l|ruitenwissers=Ruitenwissers|ruitenwisser=Ruitenwissers|ruitensproeiervloeistof=Ruitensproeiervloeistof=l|antivries=Antivries=l",
- "kw.decimal": ","
+ "kw.decimal": ",",
+ "Beleg wird gelesen …": "Bon wordt gelezen …"
 }

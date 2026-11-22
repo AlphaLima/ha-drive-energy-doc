@@ -154,5 +154,6 @@
  "kw.photo": "aggiuntiva|aggiuntivo",
  "kw.km": "km|chilometri|chilometraggio|contachilometri",
  "kw.items": "olio=Olio=l|olio motore=Olio motore=l|tergicristalli=Tergicristalli|liquido lavavetri=Liquido lavavetri=l|antigelo=Antigelo=l",
- "kw.decimal": ","
+ "kw.decimal": ",",
+ "Beleg wird gelesen …": "Lettura del giustificativo …"
 }

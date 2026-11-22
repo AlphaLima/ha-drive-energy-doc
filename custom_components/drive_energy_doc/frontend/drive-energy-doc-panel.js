@@ -1,7 +1,7 @@
 /* Drive-Energy-Doc-Panel: Fahrzeug-Reiter, Tankliste mit Belegfotos, Bearbeiten, CSV-Export */
 const COLS = ["date", "km", "station", "qty", "price", "total", "cons", "receipt", "note", "act"];
 
-const VERSION = "0.1.75b21";
+const VERSION = "0.1.75b22";
 
 class DriveEnergyDocPanel extends HTMLElement {
   set hass(h) {
@@ -333,6 +333,9 @@ class DriveEnergyDocPanel extends HTMLElement {
       .dlg .card{background:var(--card-background-color,#fff);color:var(--primary-text-color);border-radius:14px;padding:16px;width:min(620px,94vw);max-height:90vh;display:flex;flex-direction:column;gap:10px;box-sizing:border-box}
       .dh{font-size:18px;font-weight:500}
       .pvp{height:60px;align-self:flex-start}
+      .busy{position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;z-index:120}
+      .busy .card{background:var(--card-background-color,#fff);color:var(--primary-text-color);border-radius:14px;padding:22px 28px;display:flex;align-items:center;gap:16px;font-size:16px}
+      .spin{width:26px;height:26px;border:4px solid var(--divider-color);border-top-color:var(--primary-color);border-radius:50%;animation:sp 1s linear infinite}@keyframes sp{to{transform:rotate(360deg)}}
       .dlg textarea{font:inherit;min-height:120px;padding:8px 10px;border:1px solid var(--divider-color);border-radius:8px;background:var(--primary-background-color);color:inherit;resize:vertical}
       .dlg .big{justify-content:center;font-size:17px;padding:16px 12px}
       .dlg input{font:inherit;padding:8px 10px;border:1px solid var(--divider-color);border-radius:8px;background:var(--primary-background-color);color:inherit}
@@ -559,6 +562,10 @@ class DriveEnergyDocPanel extends HTMLElement {
   }
 
   async _send(v, file, text) {
+    const busy = document.createElement("div");
+    busy.className = "busy";
+    busy.innerHTML = `<div class="card"><div class="spin"></div><div>${this.T("Beleg wird gelesen …")}</div></div>`;
+    this.shadowRoot.appendChild(busy);
     const fd = new FormData();
     if (file) fd.append("file", file, file.name || "beleg.jpg");
     fd.append("text", text || "");
@@ -572,6 +579,7 @@ class DriveEnergyDocPanel extends HTMLElement {
         if (ans) return this._send(v, null, ans);
       } else alert(msg);
     } catch (e) { alert(this.T("Upload fehlgeschlagen: ") + (e.message || e)); }
+    finally { busy.remove(); }
     this._load();
   }
 

@@ -154,5 +154,6 @@
  "kw.photo": "tillæg|tillaeg",
  "kw.km": "km|kilometerstand|kilometertæller",
  "kw.items": "olie=Olie=l|motorolie=Motorolie=l|viskerblade=Viskerblade|sprinklervæske=Sprinklervæske=l|frostvæske=Frostvæske=l",
- "kw.decimal": ","
+ "kw.decimal": ",",
+ "Beleg wird gelesen …": "Læser kvitteringen …"
 }

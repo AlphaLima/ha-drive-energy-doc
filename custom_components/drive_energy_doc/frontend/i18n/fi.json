@@ -154,5 +154,6 @@
  "kw.photo": "lisä|lisakuva",
  "kw.km": "km|mittarilukema|matkamittari",
  "kw.items": "öljy=Öljy=l|moottoriöljy=Moottoriöljy=l|pyyhkijänsulat=Pyyhkijänsulat|tuulilasinpesuneste=Tuulilasinpesuneste=l|jäätymisenesto=Jäätymisenesto=l",
- "kw.decimal": ","
+ "kw.decimal": ",",
+ "Beleg wird gelesen …": "Luetaan kuittia …"
 }

@@ -154,5 +154,6 @@
  "kw.photo": "dodatkowe|dodatkowa",
  "kw.km": "km|przebieg|licznik",
  "kw.items": "olej=Olej=l|olej silnikowy=Olej silnikowy=l|wycieraczki=Wycieraczki|płyn do spryskiwaczy=Płyn do spryskiwaczy=l|płyn niezamarzający=Płyn niezamarzający=l",
- "kw.decimal": ","
+ "kw.decimal": ",",
+ "Beleg wird gelesen …": "Odczytuję dowód …"
 }

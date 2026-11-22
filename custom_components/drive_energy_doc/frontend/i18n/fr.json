@@ -154,5 +154,6 @@
  "kw.photo": "supplément|complément",
  "kw.km": "km|kilométrage|compteur",
  "kw.items": "huile=Huile=l|huile moteur=Huile moteur=l|essuie-glace=Essuie-glaces|essuie-glaces=Essuie-glaces|lave-glace=Lave-glace=l|antigel=Antigel=l",
- "kw.decimal": ","
+ "kw.decimal": ",",
+ "Beleg wird gelesen …": "Lecture du justificatif …"
 }

@@ -154,5 +154,6 @@
  "kw.photo": "adicional|complemento",
  "kw.km": "km|kilometraje|cuentakilómetros",
  "kw.items": "aceite=Aceite=l|aceite motor=Aceite motor=l|limpiaparabrisas=Limpiaparabrisas|lavaparabrisas=Lavaparabrisas=l|anticongelante=Anticongelante=l",
- "kw.decimal": ","
+ "kw.decimal": ",",
+ "Beleg wird gelesen …": "Leyendo el justificante …"
 }

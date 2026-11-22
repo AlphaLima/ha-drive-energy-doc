@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import logging
 from datetime import timedelta
 from pathlib import Path
@@ -172,7 +173,9 @@ class UploadView(HomeAssistantView):
                 image = b"".join(chunks) or None
             elif part.name == "text":
                 text = (await part.text())[:500]
-        replies = await v.upload(image, text)
+        # als eigene Aufgabe laufen lassen: bricht der Browser die Verbindung ab (Netz, Seitenwechsel), wird der Beleg trotzdem fertig verarbeitet
+        task = request.app["hass"].async_create_task(v.upload(image, text))
+        replies = await asyncio.shield(task)
         return self.json({"replies": replies, "awaiting": bool(v.data.get("awaiting"))})
 
 

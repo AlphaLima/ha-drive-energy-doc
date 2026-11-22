@@ -154,5 +154,6 @@
  "kw.photo": "zousätzlech|zousaetzlech",
  "kw.km": "km|kilometerstand|tachometer",
  "kw.items": "ueleg=Ueleg=l|motorueleg=Motorueleg=l|scheiwewëscher=Scheiwewëscher|scheiwewaasser=Scheiwewaasser=l|frostschutz=Frostschutz=l",
- "kw.decimal": ","
+ "kw.decimal": ",",
+ "Beleg wird gelesen …": "Beleg gëtt gelies …"
 }
