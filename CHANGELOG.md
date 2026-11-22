@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.1.75b12 (unveröffentlicht)
+- Panel: Fahrzeugauswahl nur noch über das Kennzeichen (angeklicktes Schild wird hervorgehoben, keine eigenen Knöpfe); Fahrzeuge ohne Kennzeichen erscheinen mit ihrem Namen.
+
 ## 0.1.75b11 (unveröffentlicht)
 - Panel: Foto-Kachel heißt „Beleg / km Stand fotografieren“ (in allen Sprachen übersetzt).
 

@@ -1,7 +1,7 @@
 /* Drive-Energy-Doc-Panel: Fahrzeug-Reiter, Tankliste mit Belegfotos, Bearbeiten, CSV-Export */
 const COLS = ["date", "km", "station", "qty", "price", "total", "cons", "receipt", "note", "act"];
 
-const VERSION = "0.1.75b10";
+const VERSION = "0.1.75b12";
 
 class DriveEnergyDocPanel extends HTMLElement {
   set hass(h) {
@@ -286,7 +286,9 @@ class DriveEnergyDocPanel extends HTMLElement {
       .plate{white-space:nowrap;flex:none}
       .chip{flex:none;white-space:nowrap;background:var(--primary-color);color:var(--text-primary-color,#fff);border-radius:10px;padding:6px 14px;font-size:16px}
       .plateimg{height:40px;width:auto;flex:none}
-      .tabplate{height:26px;margin-left:8px;vertical-align:middle;pointer-events:none}
+      .tabplate{height:34px;cursor:pointer;opacity:.55;border-radius:7px;transition:opacity .15s}.tabplate:hover{opacity:.85}.tabplate.on{opacity:1;outline:3px solid var(--primary-color);outline-offset:2px}
+      .tabname{cursor:pointer;padding:6px 12px;border:1px solid var(--divider-color);border-radius:8px;background:var(--card-background-color)}.tabname.on{background:var(--primary-color);color:var(--text-primary-color,#fff);border-color:var(--primary-color)}
+      .tabs{align-items:center}
       .plate{display:inline-flex;align-items:stretch;border:2px solid #111;border-radius:6px;background:#fff;color:#111;font:600 16px/1.5 Arial,sans-serif;letter-spacing:1px;overflow:hidden}
       .plate i{display:flex;align-items:center;justify-content:center;min-width:16px;padding:0 5px;background:#003399;color:#fff;font:600 10px/1 Arial,sans-serif;font-style:normal;letter-spacing:0}
       .plate b{font-weight:600;padding:0 12px}
@@ -401,11 +403,11 @@ class DriveEnergyDocPanel extends HTMLElement {
     }).join("");
     this.shadowRoot.innerHTML = `<style>${css}</style>
       <div class="head"><div class="ttl"><img class="logo" src="/drive_energy_doc_static/icon.png?v=${VERSION}" alt=""><div><div class="app">Drive Energy Doc</div><h1>${this._esc(this._title(v))}</h1></div>${v.plate ? this._plate(v) : ""}</div>${pic ? `<img class="car" src="${pic}" alt="${this._esc(v.name)}">` : ""}</div>
-      ${d.length > 1 ? `<div class="tabs">${d.map((x, i) => `<button class="${i === this._tab ? "on" : ""}" data-tab="${i}">${this._esc(x.name)}${x.plate ? this._plate(x, true) : ""}</button>`).join("")}</div>` : ""}
+      ${d.length > 1 ? `<div class="tabs">${d.map((x, i) => x.plate ? this._plate(x, true).replace("<img ", `<img data-tab="${i}" title="${this._esc(x.name)}" `).replace('class="plateimg tabplate"', `class="plateimg tabplate${i === this._tab ? " on" : ""}"`) : `<span class="tabname${i === this._tab ? " on" : ""}" data-tab="${i}">${this._esc(x.name)}</span>`).join("")}</div>` : ""}
       <div class="sum">
         <div><b>${this._fmt(s.avg_consumption)}</b><span>${u}/100 ${this.T("km")} (${this.T("Ø letzte 5")})</span></div>
         <div><b>${this._fmt(s.cost_12m)} €</b><span>${this.T("Kosten 12 Monate")}</span></div>
-        <button class="shoot" data-act="shoot" title="${this.T("Beleg fotografieren oder hochladen")}" aria-label="${this.T("Beleg fotografieren")}">${this._ico("camera")}<span>${this.T("Beleg fotografieren")}</span></button>
+        <button class="shoot" data-act="shoot" title="${this.T("Beleg fotografieren oder hochladen")}" aria-label="${this.T("Beleg fotografieren")}">${this._ico("camera")}<span>${this.T("Beleg / km Stand fotografieren")}</span></button>
       </div>
       <div class="bar"><button data-act="csv" title="${this.T("CSV-Export")}" aria-label="${this.T("CSV-Export")}">${this._ico("csv")}</button><button data-act="print" title="${this.T("Drucken / PDF")}" aria-label="${this.T("Drucken")}">${this._ico("print")}</button><button data-act="ori" title="${this._ori === "portrait" ? this.T("Hochformat") : this.T("Querformat")} (${this.T("zum Wechseln klicken")})" aria-label="${this.T("Seitenformat")}">${this._ico(this._ori)}</button><button data-act="rcp" title="${this.T("Belege im Druck")}: ${this._rcp ? this.T("mit") : this.T("ohne")} (${this.T("zum Wechseln klicken")})" aria-label="${this.T("Belege im Druck")}" aria-pressed="${this._rcp}">${this._ico(this._rcp ? "photo" : "photoOff")}</button><button data-act="add" title="${this.T("Eintrag von Hand hinzufügen")}" aria-label="${this.T("Eintrag von Hand")}">${this._ico("plus")}</button><span class="stat"><b>${s.count}</b><span>${this.T("Einträge")}</span></span><span class="stat"><b>${this.T({ idle: "Bereit", candidate: "Anstieg erkannt", refuelling: "Tankt" }[s.status])}</b><span>${this.T("Status")}</span></span><input type="file" id="cam" accept="image/*" capture="environment" hidden><input type="file" id="pic" accept="image/*" hidden></div>
       <div class="wrap"><table class="${fixed ? "fx" : ""}" ${fixed ? `style="width:${sumW}px"` : ""}><colgroup>${order.map(c => `<col data-c="${c}" ${cw[c] ? `style="width:${cw[c]}px"` : ""}>`).join("")}</colgroup><thead><tr>${order.map(c => { const H = { date: [this.T("Datum"), ""], km: [this.T("km"), "n"], station: [this.T("Tankstelle"), ""], qty: [this.T("Menge"), "n"], price: [`€/${u}`, "n"], total: [this.T("Betrag"), "n"], cons: [`${u}/100 ${this.T("km")}`, "n"], receipt: [this.T("Beleg"), ""], note: [this.T("Notiz"), ""], act: ["", ""] }[c]; return `<th data-c="${c}" class="${H[1]}" ${c === "act" ? "" : `draggable="true" title="${this.T("Auf eine andere Überschrift ziehen: Reihenfolge ändern")}"`}>${H[0]}<span class="rs" data-c="${c}" title="${this.T("Ziehen: Spaltenbreite ändern · Doppelklick: Breiten und Reihenfolge zurücksetzen")}"></span></th>`; }).join("")}</tr></thead><tbody>${rows}</tbody></table></div>
