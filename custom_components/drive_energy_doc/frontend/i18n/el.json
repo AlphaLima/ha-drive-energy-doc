@@ -155,5 +155,7 @@
  "kw.km": "km|χιλιόμετρα|χλμ",
  "kw.items": "λάδι=Λάδι=l|λαδι=Λάδι=l|υαλοκαθαριστήρες=Υαλοκαθαριστήρες|υγρό παρμπρίζ=Υγρό παρμπρίζ=l|αντιψυκτικό=Αντιψυκτικό=l",
  "kw.decimal": ",",
- "Beleg wird gelesen …": "Ανάγνωση απόδειξης …"
+ "Beleg wird gelesen …": "Ανάγνωση απόδειξης …",
+ "würde bei {0} km seit dem letzten Tanken {1} ergeben (Durchschnitt {2})": "θα έδινε {1} σε {0} km από τον τελευταίο ανεφοδιασμό (μέσος όρος {2})",
+ "⚠️ Verbrauch ungewöhnlich: {0} bei {1} km seit dem letzten Tanken (Durchschnitt {2}), bitte Kilometerstand prüfen.": "⚠️ Ασυνήθιστη κατανάλωση: {0} σε {1} km από τον τελευταίο ανεφοδιασμό (μέσος όρος {2}), ελέγξτε τα χιλιόμετρα."
 }

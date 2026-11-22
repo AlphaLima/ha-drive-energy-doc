@@ -155,5 +155,7 @@
  "kw.km": "km|kilometraje|cuentakilómetros",
  "kw.items": "aceite=Aceite=l|aceite motor=Aceite motor=l|limpiaparabrisas=Limpiaparabrisas|lavaparabrisas=Lavaparabrisas=l|anticongelante=Anticongelante=l",
  "kw.decimal": ",",
- "Beleg wird gelesen …": "Leyendo el justificante …"
+ "Beleg wird gelesen …": "Leyendo el justificante …",
+ "würde bei {0} km seit dem letzten Tanken {1} ergeben (Durchschnitt {2})": "daría {1} en {0} km desde el último repostaje (media {2})",
+ "⚠️ Verbrauch ungewöhnlich: {0} bei {1} km seit dem letzten Tanken (Durchschnitt {2}), bitte Kilometerstand prüfen.": "⚠️ Consumo inusual: {0} en {1} km desde el último repostaje (media {2}), revisa el kilometraje."
 }

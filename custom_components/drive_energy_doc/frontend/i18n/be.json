@@ -155,5 +155,7 @@
  "kw.km": "км|km|прабег",
  "kw.items": "масла=Масла=л|маторнае масла=Маторнае масла=л|шчоткі=Шчоткі|амывалка=Амывалка=л|антыфрыз=Антыфрыз=л",
  "kw.decimal": ",",
- "Beleg wird gelesen …": "Чытаю чэк …"
+ "Beleg wird gelesen …": "Чытаю чэк …",
+ "würde bei {0} km seit dem letzten Tanken {1} ergeben (Durchschnitt {2})": "дало б {1} на {0} км ад апошняй запраўкі (сярэдняе {2})",
+ "⚠️ Verbrauch ungewöhnlich: {0} bei {1} km seit dem letzten Tanken (Durchschnitt {2}), bitte Kilometerstand prüfen.": "⚠️ Незвычайны расход: {0} на {1} км ад апошняй запраўкі (сярэдняе {2}), праверце прабег."
 }

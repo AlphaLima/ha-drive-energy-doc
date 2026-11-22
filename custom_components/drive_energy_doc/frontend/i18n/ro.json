@@ -155,5 +155,7 @@
  "kw.km": "km|kilometraj|kilometri",
  "kw.items": "ulei=Ulei=l|ulei motor=Ulei motor=l|ștergătoare=Ștergătoare|stergatoare=Ștergătoare|lichid de parbriz=Lichid de parbriz=l|antigel=Antigel=l",
  "kw.decimal": ",",
- "Beleg wird gelesen …": "Se citește bonul …"
+ "Beleg wird gelesen …": "Se citește bonul …",
+ "würde bei {0} km seit dem letzten Tanken {1} ergeben (Durchschnitt {2})": "ar da {1} pe {0} km de la ultima alimentare (medie {2})",
+ "⚠️ Verbrauch ungewöhnlich: {0} bei {1} km seit dem letzten Tanken (Durchschnitt {2}), bitte Kilometerstand prüfen.": "⚠️ Consum neobișnuit: {0} pe {1} km de la ultima alimentare (medie {2}), verificați kilometrajul."
 }

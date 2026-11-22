@@ -155,5 +155,7 @@
  "kw.km": "km|kilometraġġ|kilometragg",
  "kw.items": "żejt=Żejt=l|zejt=Żejt=l|wipers=Wipers|ilma tal-wipers=Ilma tal-wipers=l|antifriża=Antifriża=l",
  "kw.decimal": ",",
- "Beleg wird gelesen …": "Qed naqra r-riċevuta …"
+ "Beleg wird gelesen …": "Qed naqra r-riċevuta …",
+ "würde bei {0} km seit dem letzten Tanken {1} ergeben (Durchschnitt {2})": "tagħti {1} fuq {0} km mill-aħħar mili (medja {2})",
+ "⚠️ Verbrauch ungewöhnlich: {0} bei {1} km seit dem letzten Tanken (Durchschnitt {2}), bitte Kilometerstand prüfen.": "⚠️ Konsum mhux tas-soltu: {0} fuq {1} km mill-aħħar mili (medja {2}), jekk jogħġbok iċċekkja l-kilometraġġ."
 }

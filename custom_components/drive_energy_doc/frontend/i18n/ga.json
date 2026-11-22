@@ -155,5 +155,7 @@
  "kw.km": "km|míleáiste|mileaiste",
  "kw.items": "ola=Ola=l|ola innill=Ola innill=l|scriosáin=Scriosáin|leacht níocháin=Leacht níocháin=l|frithreo=Frithreo=l",
  "kw.decimal": ".",
- "Beleg wird gelesen …": "Ag léamh na admhála …"
+ "Beleg wird gelesen …": "Ag léamh na admhála …",
+ "würde bei {0} km seit dem letzten Tanken {1} ergeben (Durchschnitt {2})": "thabharfadh sé {1} thar {0} km ón athbhreoslú is déanaí (meán {2})",
+ "⚠️ Verbrauch ungewöhnlich: {0} bei {1} km seit dem letzten Tanken (Durchschnitt {2}), bitte Kilometerstand prüfen.": "⚠️ Ídiú neamhghnách: {0} thar {1} km ón athbhreoslú is déanaí (meán {2}), seiceáil an míleáiste le do thoil."
 }

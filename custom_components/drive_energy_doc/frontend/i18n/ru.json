@@ -157,5 +157,7 @@
  "kw.km": "км|km|пробег|одометр",
  "kw.items": "масло=Масло=л|моторное масло=Моторное масло=л|дворники=Дворники|омывайка=Омывайка=л|стеклоомыватель=Стеклоомыватель=л|антифриз=Антифриз=л",
  "kw.decimal": ",",
- "Beleg wird gelesen …": "Читаю чек …"
+ "Beleg wird gelesen …": "Читаю чек …",
+ "würde bei {0} km seit dem letzten Tanken {1} ergeben (Durchschnitt {2})": "дал бы {1} на {0} км с последней заправки (в среднем {2})",
+ "⚠️ Verbrauch ungewöhnlich: {0} bei {1} km seit dem letzten Tanken (Durchschnitt {2}), bitte Kilometerstand prüfen.": "⚠️ Необычный расход: {0} на {1} км с последней заправки (в среднем {2}), проверьте пробег."
 }

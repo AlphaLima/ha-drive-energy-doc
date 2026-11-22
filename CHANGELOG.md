@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.1.75b30 (unveröffentlicht)
+- Tacho/Kilometerstand: Plausibilitätsprüfung über Verbrauch (getankte Menge, gefahrene km seit dem letzten vollen Tanken, Durchschnitt der letzten fünf); bei mehr als 40 % Abweichung Warnung und Rückfrage, ob der Stand trotzdem übernommen werden soll. Warnung auch unter Belegen. Texte in allen Sprachen.
+
 ## 0.1.75b29 (unveröffentlicht)
 - Seitenleiste: Das Panel heißt auf Deutsch „Tankbuch“, in den anderen Sprachen entsprechend (nach der Systemsprache von Home Assistant, z. B. „Fuel log“).
 

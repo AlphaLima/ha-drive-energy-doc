@@ -155,5 +155,7 @@
  "kw.km": "km|kilometre|gösterge",
  "kw.items": "yağ=Yağ=l|motor yağı=Motor yağı=l|silecek=Silecek|cam suyu=Cam suyu=l|antifriz=Antifriz=l",
  "kw.decimal": ",",
- "Beleg wird gelesen …": "Belge okunuyor …"
+ "Beleg wird gelesen …": "Belge okunuyor …",
+ "würde bei {0} km seit dem letzten Tanken {1} ergeben (Durchschnitt {2})": "son yakıt alımından bu yana {0} km'de {1} verirdi (ortalama {2})",
+ "⚠️ Verbrauch ungewöhnlich: {0} bei {1} km seit dem letzten Tanken (Durchschnitt {2}), bitte Kilometerstand prüfen.": "⚠️ Alışılmadık tüketim: son yakıt alımından bu yana {1} km'de {0} (ortalama {2}), lütfen kilometreyi kontrol edin."
 }

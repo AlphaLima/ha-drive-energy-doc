@@ -155,5 +155,7 @@
  "kw.km": "km|mittarilukema|matkamittari",
  "kw.items": "öljy=Öljy=l|moottoriöljy=Moottoriöljy=l|pyyhkijänsulat=Pyyhkijänsulat|tuulilasinpesuneste=Tuulilasinpesuneste=l|jäätymisenesto=Jäätymisenesto=l",
  "kw.decimal": ",",
- "Beleg wird gelesen …": "Luetaan kuittia …"
+ "Beleg wird gelesen …": "Luetaan kuittia …",
+ "würde bei {0} km seit dem letzten Tanken {1} ergeben (Durchschnitt {2})": "antaisi {1} {0} km:llä viimeisestä tankkauksesta (keskiarvo {2})",
+ "⚠️ Verbrauch ungewöhnlich: {0} bei {1} km seit dem letzten Tanken (Durchschnitt {2}), bitte Kilometerstand prüfen.": "⚠️ Epätavallinen kulutus: {0} {1} km:llä viimeisestä tankkauksesta (keskiarvo {2}), tarkista mittarilukema."
 }

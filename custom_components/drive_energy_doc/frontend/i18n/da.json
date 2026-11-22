@@ -155,5 +155,7 @@
  "kw.km": "km|kilometerstand|kilometertæller",
  "kw.items": "olie=Olie=l|motorolie=Motorolie=l|viskerblade=Viskerblade|sprinklervæske=Sprinklervæske=l|frostvæske=Frostvæske=l",
  "kw.decimal": ",",
- "Beleg wird gelesen …": "Læser kvitteringen …"
+ "Beleg wird gelesen …": "Læser kvitteringen …",
+ "würde bei {0} km seit dem letzten Tanken {1} ergeben (Durchschnitt {2})": "ville give {1} på {0} km siden sidste tankning (gennemsnit {2})",
+ "⚠️ Verbrauch ungewöhnlich: {0} bei {1} km seit dem letzten Tanken (Durchschnitt {2}), bitte Kilometerstand prüfen.": "⚠️ Usædvanligt forbrug: {0} på {1} km siden sidste tankning (gennemsnit {2}), tjek kilometerstanden."
 }

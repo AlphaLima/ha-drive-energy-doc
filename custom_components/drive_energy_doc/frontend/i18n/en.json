@@ -155,5 +155,7 @@
  "kw.km": "km|odometer|mileage|kilometres|kilometers",
  "kw.items": "adblue=AdBlue=l|ad blue=AdBlue=l|oil=Oil=l|engine oil=Engine oil=l|wipers=Wipers|washer fluid=Washer fluid=l|antifreeze=Antifreeze=l",
  "kw.decimal": ".",
- "Beleg wird gelesen …": "Reading receipt …"
+ "Beleg wird gelesen …": "Reading receipt …",
+ "würde bei {0} km seit dem letzten Tanken {1} ergeben (Durchschnitt {2})": "would give {1} over {0} km since the last refuelling (average {2})",
+ "⚠️ Verbrauch ungewöhnlich: {0} bei {1} km seit dem letzten Tanken (Durchschnitt {2}), bitte Kilometerstand prüfen.": "⚠️ Unusual consumption: {0} over {1} km since the last refuelling (average {2}), please check the odometer reading."
 }

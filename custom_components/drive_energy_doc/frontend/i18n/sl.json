@@ -155,5 +155,7 @@
  "kw.km": "km|kilometri|števec",
  "kw.items": "olje=Olje=l|motorno olje=Motorno olje=l|brisalci=Brisalci|tekočina za brisalce=Tekočina za brisalce=l|antifriz=Antifriz=l",
  "kw.decimal": ",",
- "Beleg wird gelesen …": "Berem račun …"
+ "Beleg wird gelesen …": "Berem račun …",
+ "würde bei {0} km seit dem letzten Tanken {1} ergeben (Durchschnitt {2})": "bi dalo {1} na {0} km od zadnjega točenja (povprečje {2})",
+ "⚠️ Verbrauch ungewöhnlich: {0} bei {1} km seit dem letzten Tanken (Durchschnitt {2}), bitte Kilometerstand prüfen.": "⚠️ Nenavadna poraba: {0} na {1} km od zadnjega točenja (povprečje {2}), preverite stanje kilometrov."
 }

@@ -70,3 +70,22 @@ def test_match_odometer():
 for n, fn in list(globals().items()):
     if n.startswith("test_"):
         fn(); print("ok", n)
+
+
+def test_check_consumption():
+    def fill(i, ts, km, q, inc=85):
+        return {"id": f"e{i}", "ts": ts, "odometer": km, "quantity": q, "increase": inc}
+    base = [fill(1, 1, 10000, 50), fill(2, 2, 10700, 49), fill(3, 3, 11400, 49), fill(4, 4, 12100, 49)]
+    new = fill(5, 5, None, 49)
+    ok = st.check_consumption(base + [new], new, 12800)           # 700 km für 49 l = 7,0 l/100 km
+    assert ok and ok["ok"] and abs(ok["cons"] - 7.0) < 0.01 and ok["driven"] == 700
+    short = st.check_consumption(base + [new], new, 12300)        # nur 200 km für 49 l: viel zu hoher Verbrauch
+    far = st.check_consumption(base + [new], new, 13900)          # 1800 km für 49 l: unmöglich niedrig
+    assert short and not short["ok"] and far and not far["ok"]
+    partial = fill(6, 6, None, 10, inc=15)                        # Teilbetankung: nicht prüfbar
+    assert st.check_consumption(base + [partial], partial, 12400) is None
+    assert st.check_consumption(base[:2] + [new], new, 11400) is None   # zu wenige Vergleichswerte
+
+
+test_check_consumption()
+print('ok test_check_consumption')

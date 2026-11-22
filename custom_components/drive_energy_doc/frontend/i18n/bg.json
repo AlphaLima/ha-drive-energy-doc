@@ -157,5 +157,7 @@
  "kw.km": "км|km|километраж",
  "kw.items": "масло=Масло=л|моторно масло=Моторно масло=л|чистачки=Чистачки|течност за чистачки=Течност за чистачки=л|антифриз=Антифриз=л",
  "kw.decimal": ",",
- "Beleg wird gelesen …": "Четене на документа …"
+ "Beleg wird gelesen …": "Четене на документа …",
+ "würde bei {0} km seit dem letzten Tanken {1} ergeben (Durchschnitt {2})": "би дало {1} на {0} км от последното зареждане (средно {2})",
+ "⚠️ Verbrauch ungewöhnlich: {0} bei {1} km seit dem letzten Tanken (Durchschnitt {2}), bitte Kilometerstand prüfen.": "⚠️ Необичаен разход: {0} на {1} км от последното зареждане (средно {2}), проверете километража."
 }

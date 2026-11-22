@@ -183,6 +183,7 @@ aber **nicht** in den Verbrauch.
 Foto vom Tacho oder Text wie `km 54210` senden. Der Wert wird dem Tankvorgang zugeordnet, dessen Zeit der Sendezeit am nächsten liegt
 (Fenster 24 Stunden). Bei großer Abweichung vom gespeicherten Stand (> 300 km), einem Wert kleiner als beim vorigen Tanken oder
 einem zu alten Tankvorgang fragt der Bot nach und wartet auf deine Bestätigung (`ja`).
+Zusätzlich prüft er den **Verbrauch**: Ergeben der neue Stand, die getankte Menge (plus Teilbetankungen dazwischen) und die Kilometer seit dem letzten vollen Tanken einen Verbrauch, der mehr als 40 % vom Durchschnitt der letzten fünf Voll-zu-Voll-Werte abweicht, warnt er (z. B. „würde bei 200 km seit dem letzten Tanken 24,5 l/100 km ergeben, Durchschnitt 7,0 l/100 km“) und fragt, ob der Stand trotzdem übernommen werden soll (`ja` oder `nein`). Dieselbe Warnung steht unter einem Beleg, dessen Kilometerstand unplausibel wirkt. Die Prüfung braucht mindestens zwei frühere Verbrauchswerte und gilt nur für volle Betankungen.
 
 ## Wie der Verbrauch berechnet wird
 
@@ -428,6 +429,7 @@ Anything that costs money but is not fuel. Keyword **`+`, `e`, `x`, `extra`, `z`
 
 ### Odometer reading
 Send a photo of the odometer or text such as `km 54210`. The value is assigned to the refuelling whose time is closest to the sending time (24-hour window). If the value deviates a lot from the stored one (> 300 km), is lower than at the previous refuelling, or the refuelling is too old, the bot asks and waits for your confirmation (`ja`).
+It also checks the **consumption**: if the new reading, the filled quantity (plus partial refuellings in between) and the kilometres since the last full refuelling give a consumption that deviates by more than 40 % from the average of the last five full-to-full values, it warns (e.g. "would give 24.5 l/100 km over 200 km since the last refuelling, average 7.0 l/100 km") and asks whether to apply the reading anyway (`yes` or `no`). The same warning appears under a receipt whose odometer reading looks implausible. The check needs at least two earlier consumption values and only applies to full refuellings.
 
 ## How consumption is calculated
 

@@ -589,7 +589,17 @@ class Vehicle:
             why = self.tr("liegt unter dem Stand beim vorigen Tanken ({0} km)", self._fmt_km(m["prev_odo"])) if m.get("backwards") else self.tr("weicht stark vom gespeicherten Stand ({0} km) ab", self._fmt_km(e["odometer"]))
             await self._say(self.tr("Der Kilometerstand {0} km {1}. Tankvorgang: {2}. Antworte „ja“, um ihn trotzdem zu übernehmen, oder „nein“.", self._fmt_km(km), why, when))
             return
+        chk = stats.check_consumption(self.data["entries"], e, km)
+        if chk and not chk["ok"]:   # Verbrauch passt nicht zu Tankmenge und Durchschnitt: erst nachfragen
+            self.data["awaiting_odo"] = {"id": e["id"], "km": km, "photo": photo, "ts": time.time(), "confirm": True}
+            self._save()
+            why = self.tr("würde bei {0} km seit dem letzten Tanken {1} ergeben (Durchschnitt {2})", self._fmt_km(chk["driven"]), self._cons_txt(chk["cons"]), self._cons_txt(chk["avg"]))
+            await self._say(self.tr("Der Kilometerstand {0} km {1}. Tankvorgang: {2}. Antworte „ja“, um ihn trotzdem zu übernehmen, oder „nein“.", self._fmt_km(km), why, when))
+            return
         await self._apply_odometer(e, km, photo, m["dt"])
+
+    def _cons_txt(self, value: float) -> str:
+        return self._dec(f"{value:.1f}") + f" {self.unit}/100 km"
 
     async def _apply_odometer(self, entry: dict, km: float, photo: str | None, dt: float) -> None:
         entry["odometer"] = float(km)
@@ -658,6 +668,9 @@ class Vehicle:
         self._save()
         self._notify_entities()
         warn = "" if receipt.plausible(entry) else "\n" + self.tr("⚠️ Menge × Preis passt nicht zum Betrag, bitte prüfen.")
+        chk = stats.check_consumption(self.data["entries"], entry, entry["odometer"]) if entry.get("odometer") is not None else None
+        if chk and not chk["ok"]:
+            warn += "\n" + self.tr("⚠️ Verbrauch ungewöhnlich: {0} bei {1} km seit dem letzten Tanken (Durchschnitt {2}), bitte Kilometerstand prüfen.", self._cons_txt(chk["cons"]), self._fmt_km(chk["driven"]), self._cons_txt(chk["avg"]))
         await self._say(self._summary(entry, self.tr("Beleg übernommen")) + warn)
 
     def _apply_values(self, entry: dict, values: dict, photo: str | None) -> None:

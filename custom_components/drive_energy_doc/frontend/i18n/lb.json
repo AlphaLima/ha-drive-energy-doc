@@ -155,5 +155,7 @@
  "kw.km": "km|kilometerstand|tachometer",
  "kw.items": "ueleg=Ueleg=l|motorueleg=Motorueleg=l|scheiwewëscher=Scheiwewëscher|scheiwewaasser=Scheiwewaasser=l|frostschutz=Frostschutz=l",
  "kw.decimal": ",",
- "Beleg wird gelesen …": "Beleg gëtt gelies …"
+ "Beleg wird gelesen …": "Beleg gëtt gelies …",
+ "würde bei {0} km seit dem letzten Tanken {1} ergeben (Durchschnitt {2})": "géif {1} op {0} km zënter dem leschte Tanken ergi (Duerchschnëtt {2})",
+ "⚠️ Verbrauch ungewöhnlich: {0} bei {1} km seit dem letzten Tanken (Durchschnitt {2}), bitte Kilometerstand prüfen.": "⚠️ Ongewéinleche Verbrauch: {0} op {1} km zënter dem leschte Tanken (Duerchschnëtt {2}), w.e.g. de Kilometerstand kontrolléieren."
 }

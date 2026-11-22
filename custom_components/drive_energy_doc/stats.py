@@ -65,3 +65,32 @@ def match_odometer(entries: list[dict[str, Any]], km: float, sent_ts: float, win
     od = e.get("odometer")
     status = "mismatch" if od is not None and abs(km - od) > tolerance else "ok"
     return {"status": status, "entry": e, "dt": dt, "prev_odo": prev_odo, "backwards": prev_odo is not None and km < prev_odo}
+
+
+def check_consumption(entries: list[dict[str, Any]], entry: dict[str, Any], km: float, tolerance: float = 0.4, full_increase: float = FULL_INCREASE) -> dict[str, Any] | None:
+    """Plausibilität eines Kilometerstands zu einem Tankvorgang: Verbrauch seit der letzten vollen Betankung gegen den bisherigen Durchschnitt.
+
+    Die getankte Menge (plus Teilbetankungen dazwischen) geteilt durch die gefahrenen Kilometer ergibt den Verbrauch; weicht er um mehr als
+    ``tolerance`` (40 %) vom Durchschnitt der letzten fünf Voll-zu-Voll-Werte ab, ist ``ok`` falsch. None = nicht prüfbar (Teilbetankung, keine
+    Menge, keine frühere Betankung mit Kilometerstand oder weniger als zwei Vergleichswerte).
+    """
+    fuel = sorted((e for e in entries if e.get("kind") != "extra"), key=lambda x: x["ts"])
+    idx = next((i for i, e in enumerate(fuel) if e["id"] == entry["id"]), None)
+    q = entry.get("quantity")
+    if idx is None or not q or not is_full(entry, full_increase):
+        return None
+    j = next((i for i in range(idx - 1, -1, -1) if fuel[i].get("odometer") is not None and is_full(fuel[i], full_increase)), None)
+    if j is None:
+        return None
+    prev_odo = float(fuel[j]["odometer"])
+    driven = float(km) - prev_odo
+    if driven <= 0:
+        return None
+    litres = sum((x.get("quantity") or 0) for x in fuel[j + 1: idx + 1])
+    others = [e["consumption"] for e in add_consumption([x for x in entries if x["id"] != entry["id"]], full_increase) if e.get("consumption")][-5:]
+    if len(others) < 2 or litres <= 0:
+        return None
+    avg = sum(others) / len(others)
+    cons = litres / driven * 100
+    dev = abs(cons - avg) / avg
+    return {"prev_odo": prev_odo, "driven": driven, "litres": litres, "cons": cons, "avg": avg, "dev": dev, "ok": dev <= tolerance}

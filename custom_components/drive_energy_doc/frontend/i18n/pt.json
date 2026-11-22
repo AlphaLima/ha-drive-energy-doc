@@ -155,5 +155,7 @@
  "kw.km": "km|quilómetros|quilometragem|conta-quilómetros",
  "kw.items": "óleo=Óleo=l|oleo=Óleo=l|óleo motor=Óleo motor=l|escovas=Escovas do limpa-vidros|água do limpa-vidros=Água do limpa-vidros=l|anticongelante=Anticongelante=l",
  "kw.decimal": ",",
- "Beleg wird gelesen …": "A ler o comprovativo …"
+ "Beleg wird gelesen …": "A ler o comprovativo …",
+ "würde bei {0} km seit dem letzten Tanken {1} ergeben (Durchschnitt {2})": "daria {1} em {0} km desde o último abastecimento (média {2})",
+ "⚠️ Verbrauch ungewöhnlich: {0} bei {1} km seit dem letzten Tanken (Durchschnitt {2}), bitte Kilometerstand prüfen.": "⚠️ Consumo invulgar: {0} em {1} km desde o último abastecimento (média {2}), verifique a quilometragem."
 }

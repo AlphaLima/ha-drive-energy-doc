@@ -155,5 +155,7 @@
  "kw.km": "km|läbisõit|labisoit|odomeeter",
  "kw.items": "õli=Õli=l|mootoriõli=Mootoriõli=l|pesurid=Pesurid|klaasipesuvedelik=Klaasipesuvedelik=l|külmakaitse=Külmakaitse=l",
  "kw.decimal": ",",
- "Beleg wird gelesen …": "Tšekki loetakse …"
+ "Beleg wird gelesen …": "Tšekki loetakse …",
+ "würde bei {0} km seit dem letzten Tanken {1} ergeben (Durchschnitt {2})": "annaks {0} km kohta alates viimasest tankimisest {1} (keskmine {2})",
+ "⚠️ Verbrauch ungewöhnlich: {0} bei {1} km seit dem letzten Tanken (Durchschnitt {2}), bitte Kilometerstand prüfen.": "⚠️ Ebatavaline kulu: {0} {1} km kohta alates viimasest tankimisest (keskmine {2}), palun kontrollige läbisõitu."
 }

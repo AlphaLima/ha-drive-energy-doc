@@ -155,5 +155,7 @@
  "kw.km": "km|км|километража|kilometraža",
  "kw.items": "уље=Уље=l|ulje=Ulje=l|брисачи=Брисачи|brisači=Brisači|антифриз=Антифриз=l|antifriz=Antifriz=l",
  "kw.decimal": ",",
- "Beleg wird gelesen …": "Читам рачун …"
+ "Beleg wird gelesen …": "Читам рачун …",
+ "würde bei {0} km seit dem letzten Tanken {1} ergeben (Durchschnitt {2})": "дало би {1} на {0} km од последњег точења (просек {2})",
+ "⚠️ Verbrauch ungewöhnlich: {0} bei {1} km seit dem letzten Tanken (Durchschnitt {2}), bitte Kilometerstand prüfen.": "⚠️ Необична потрошња: {0} на {1} km од последњег точења (просек {2}), проверите километражу."
 }

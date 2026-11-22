@@ -155,5 +155,7 @@
  "kw.km": "km|tachometer|kilometre",
  "kw.items": "olej=Olej=l|motorový olej=Motorový olej=l|stierače=Stierače|stierace=Stierače|ostrekovač=Ostrekovač=l|ostrekovac=Ostrekovač=l|nemrznúca zmes=Nemrznúca zmes=l",
  "kw.decimal": ",",
- "Beleg wird gelesen …": "Čítam doklad …"
+ "Beleg wird gelesen …": "Čítam doklad …",
+ "würde bei {0} km seit dem letzten Tanken {1} ergeben (Durchschnitt {2})": "by dával {1} na {0} km od posledného tankovania (priemer {2})",
+ "⚠️ Verbrauch ungewöhnlich: {0} bei {1} km seit dem letzten Tanken (Durchschnitt {2}), bitte Kilometerstand prüfen.": "⚠️ Nezvyčajná spotreba: {0} na {1} km od posledného tankovania (priemer {2}), skontrolujte stav tachometra."
 }

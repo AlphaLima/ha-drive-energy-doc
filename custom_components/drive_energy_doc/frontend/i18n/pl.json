@@ -155,5 +155,7 @@
  "kw.km": "km|przebieg|licznik",
  "kw.items": "olej=Olej=l|olej silnikowy=Olej silnikowy=l|wycieraczki=Wycieraczki|płyn do spryskiwaczy=Płyn do spryskiwaczy=l|płyn niezamarzający=Płyn niezamarzający=l",
  "kw.decimal": ",",
- "Beleg wird gelesen …": "Odczytuję dowód …"
+ "Beleg wird gelesen …": "Odczytuję dowód …",
+ "würde bei {0} km seit dem letzten Tanken {1} ergeben (Durchschnitt {2})": "dałaby {1} na {0} km od ostatniego tankowania (średnia {2})",
+ "⚠️ Verbrauch ungewöhnlich: {0} bei {1} km seit dem letzten Tanken (Durchschnitt {2}), bitte Kilometerstand prüfen.": "⚠️ Nietypowe zużycie: {0} na {1} km od ostatniego tankowania (średnia {2}), sprawdź przebieg."
 }

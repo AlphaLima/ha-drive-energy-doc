@@ -155,5 +155,7 @@
  "kw.km": "km|kilometerstand|teller",
  "kw.items": "olie=Olie=l|motorolie=Motorolie=l|ruitenwissers=Ruitenwissers|ruitenwisser=Ruitenwissers|ruitensproeiervloeistof=Ruitensproeiervloeistof=l|antivries=Antivries=l",
  "kw.decimal": ",",
- "Beleg wird gelesen …": "Bon wordt gelezen …"
+ "Beleg wird gelesen …": "Bon wordt gelezen …",
+ "würde bei {0} km seit dem letzten Tanken {1} ergeben (Durchschnitt {2})": "zou {1} opleveren over {0} km sinds de vorige tankbeurt (gemiddelde {2})",
+ "⚠️ Verbrauch ungewöhnlich: {0} bei {1} km seit dem letzten Tanken (Durchschnitt {2}), bitte Kilometerstand prüfen.": "⚠️ Ongebruikelijk verbruik: {0} over {1} km sinds de vorige tankbeurt (gemiddelde {2}), controleer de kilometerstand."
 }
