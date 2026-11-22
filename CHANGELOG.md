@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.79
+Patch-Release: nur Dokumentation und Paketpflege, keine Funktionsänderung gegenüber 0.1.78.
+- README: Hinweis auf erfundene Dummydaten, Länderübersicht der Preisportale, Beschreibung von Stapel-Upload, „im Zweifel weglassen“ und den neuen Dialogen, Badges.
+- Testbilder: ausführliche Anleitung (DE/EN) mit Aufnahmezeit statt Dateiname und Selbsttest-Skript `tests/test_images/vergleich.py`.
+
 ## 0.1.78
 - Konfigurationsdialog (Fahrzeug): Vorschau des Fahrzeugbilds (hochgeladenes Bild oder gewählte Bild-Entität) neben dem Kennzeichen, auch direkt nach dem Auswählen einer Datei.
 - Im Zweifel wird ein aus einem Foto gelesener Kilometerstand weggelassen, ohne Rückfrage: passt er nicht zum Eintrag, liegt er unter dem vorigen Stand oder ergibt er einen unplausiblen Verbrauch, bleibt das Tacho-Foto als Zusatzfoto am Eintrag, der Kilometerstand bleibt leer (Beleg: Beleg wird übernommen, der Stand nicht). Nachgefragt wird nur noch bei von Hand getippten Ständen.
