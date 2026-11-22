@@ -38,7 +38,7 @@ Alles landet in einer Liste im Seitenmenü (mit CSV- und PDF-Druck).
 5. [Wie der Verbrauch berechnet wird](#wie-der-verbrauch-berechnet-wird) · [Elektrofahrzeuge](#elektrofahrzeuge)
 6. [Das Panel](#das-panel)
 7. [Sensoren, Ereignis und Dienste](#sensoren-ereignis-und-dienste)
-8. [Installation und Einrichtung](#installation-und-einrichtung)
+8. [Installation und Einrichtung](#installation-und-einrichtung) · [KI einrichten](#ki-für-die-belegerkennung-einrichten)
 9. [Telegram einrichten](#telegram-einrichten) · [WhatsApp einrichten](#whatsapp-einrichten-offizielle-cloud-api-von-meta)
 10. [Daten und Datenschutz](#daten-und-datenschutz)
 11. [Grenzen](#grenzen) · [Tests](#tests) · [Lizenz](#lizenz)
@@ -294,7 +294,7 @@ HA neu starten.
 Dann *Einstellungen → Geräte & Dienste → Integration hinzufügen → Drive Energy Doc*:
 
 1. **Globale Einstellungen** anlegen: Preisquelle (automatisch nach Land oder fest), Tankerkönig-Schlüssel (nur für Deutschland),
-   Strompreis, KI (leer = Gemini automatisch, sonst eine `ai_task`-Entität), Nachrichtenkanäle (Companion, Telegram, WhatsApp; WhatsApp-Zugangsdaten stehen ebenfalls hier, der Telegram-Token wird dagegen beim Fahrzeug eingetragen).
+   Strompreis, KI (leer = Gemini automatisch, sonst eine `ai_task`-Entität; Einrichtung der KI: [KI für die Belegerkennung einrichten](#ki-für-die-belegerkennung-einrichten)), Nachrichtenkanäle (Companion, Telegram, WhatsApp; WhatsApp-Zugangsdaten stehen ebenfalls hier, der Telegram-Token wird dagegen beim Fahrzeug eingetragen).
 2. **Fahrzeug hinzufügen:** Pflicht sind nur Name, Energieart (Diesel/E5/E10/Elektro) und Tankvolumen bzw. Akkukapazität.
    **Optional:** Füllstand-Sensor (in %), Kilometerstand-Sensor, `device_tracker`. Ohne diese Sensoren gibt es keine automatische
    Erkennung; Einträge entstehen dann nur per Foto/Text oder im Panel, und jeder Beleg ohne passenden Eintrag legt automatisch
@@ -302,6 +302,25 @@ Dann *Einstellungen → Geräte & Dienste → Integration hinzufügen → Drive 
 3. Schwellwerte (5 %, 60 s, 250 m) und Nachrichtenkanäle sind je Fahrzeug unter *Konfigurieren* änderbar.
 
 Voraussetzungen: Home Assistant ab 2025.8; für das Lesen von Belegen eine `ai_task`-Integration (Gemini, OpenAI, Anthropic …).
+
+## KI für die Belegerkennung einrichten
+
+Belege und Tacho-Fotos liest eine KI. Drive Energy Doc nutzt dafür die **AI-Task-Funktion von Home Assistant**, nutzt also eine KI-Integration, die du dort schon eingerichtet hast. Eine eigene KI-Verbindung gibt es in diesem Projekt nicht. Ohne KI funktioniert alles andere weiter: Du tippst dann Menge und Betrag (`45,93 105,13`) oder einen Kilometerstand (`km 54210`).
+
+**Schritt für Schritt (Beispiel Google Gemini):**
+
+1. **KI-Integration hinzufügen:** *Einstellungen → Geräte & Dienste → Integration hinzufügen → Google Gemini* (in älteren Anleitungen „Google Generative AI“). Die offizielle Anleitung von Home Assistant: [Google Gemini](https://www.home-assistant.io/integrations/google_generative_ai_conversation).
+2. **API-Schlüssel erzeugen:** bei [Google AI Studio](https://aistudio.google.com/app/apikey) (laut Home-Assistant-Anleitung kostenlos, solange am Google-Cloud-Projekt keine Abrechnung hängt) und bei der Einrichtung eintragen.
+3. **AI-Task-Entität prüfen:** Die KI-Integration stellt für Aufgaben wie das Lesen von Belegen eine *AI-Task*-Entität bereit (Hintergrund: [AI Task](https://www.home-assistant.io/integrations/ai_task/)). Du siehst sie unter *Einstellungen → Geräte & Dienste → Entitäten* (Suche nach `ai_task`) und kannst unter *Einstellungen → System → KI* eine bevorzugte wählen.
+4. **In Drive Energy Doc:** In den **globalen Einstellungen** das Feld „KI“ **leer lassen**: Dann nimmt die Integration automatisch die Gemini-Entität, sonst die erste vorhandene `ai_task`-Entität. Oder du wählst dort gezielt eine andere.
+5. **Testen:** Im Panel ein Foto eines Belegs hochladen. Nach wenigen Sekunden steht der Eintrag in der Liste.
+
+**Andere Anbieter:** Es geht mit jeder KI-Integration, die AI-Task-Entitäten bereitstellt und **Bilder** versteht, zum Beispiel [OpenAI](https://www.home-assistant.io/integrations/openai_conversation/) ([Schlüssel](https://platform.openai.com/account/api-keys), laut Home Assistant kostenpflichtig) oder [Anthropic](https://www.home-assistant.io/integrations/anthropic/) ([Schlüssel](https://console.anthropic.com/settings/keys), ebenfalls kostenpflichtig). Die Genauigkeit beim Lesen schlecht fotografierter Tachos hängt vom Modell ab.
+
+**Gut zu wissen:**
+- **Datenschutz:** Das Foto geht zur Auswertung **an den KI-Anbieter**, also aus deinem Haus heraus. Laut Home Assistant werden bei Google im kostenlosen Tarif Anfragen und Antworten zur Produktverbesserung verwendet; mit Abrechnung am Projekt gilt das nicht. Prüfe die Bedingungen deines Anbieters, bevor du Belege mit persönlichen Daten schickst.
+- **Überlastung:** Kostenlose Dienste melden manchmal „zu hohe Nachfrage“ (Fehler 503). Die Integration versucht es dann einmal nach 3 Sekunden erneut. Kommt wieder nichts, bleibt das Foto gespeichert und du tippst Menge und Betrag bzw. den Kilometerstand.
+- **Anfragen:** Pro Foto geht eine Anfrage an die KI, bei einem schnellen Fehlschlag höchstens eine Wiederholung.
 
 ## Telegram einrichten
 Telegram ist der einfachste Kanal: kostenlos, ohne Firmenkonto und ohne öffentlich erreichbares Home Assistant (die Integration fragt Telegram selbst ab).
@@ -593,11 +612,30 @@ Per vehicle: **status**, **last refuelling**, **last price**, **consumption** (a
 
 Then *Settings → Devices & services → Add integration → Drive Energy Doc*:
 
-1. Create the **global settings**: price source (automatic by country or fixed), Tankerkönig key (Germany only), electricity price, AI (empty = Gemini automatically, otherwise an `ai_task` entity), message channels (Companion, Telegram, WhatsApp; the WhatsApp credentials are entered here too, the Telegram token is entered at the vehicle).
+1. Create the **global settings**: price source (automatic by country or fixed), Tankerkönig key (Germany only), electricity price, AI (empty = Gemini automatically, otherwise an `ai_task` entity; how to set up the AI: [Setting up the AI for receipt reading](#setting-up-the-ai-for-receipt-reading)), message channels (Companion, Telegram, WhatsApp; the WhatsApp credentials are entered here too, the Telegram token is entered at the vehicle).
 2. **Add a vehicle:** only name, energy type (diesel/E5/E10/electric) and tank volume or battery capacity are required. **Optional:** level sensor (in %), odometer sensor, `device_tracker`. Without these sensors there is no automatic detection; entries are then created only by photo/text or in the panel, and every receipt without a matching entry automatically creates a new one (pure photo mode). Also optional: licence plate and country (before saving you see the drawn plate and the vehicle picture as a preview), vehicle type, language of the bot's replies, vehicle picture, Telegram chat.
 3. Thresholds (5 %, 60 s, 250 m) and message channels can be changed per vehicle under *Configure*.
 
 Requirements: Home Assistant 2025.8 or newer; to read receipts an `ai_task` integration (Gemini, OpenAI, Anthropic …).
+
+## Setting up the AI for receipt reading
+
+Receipts and odometer photos are read by an AI. Drive Energy Doc uses **Home Assistant's AI Task feature** for this, so it uses an AI integration you have already set up there. This project has no AI connection of its own. Without AI everything else keeps working: you then type quantity and amount (`45.93 105.13`) or a mileage (`km 54210`).
+
+**Step by step (example Google Gemini):**
+
+1. **Add the AI integration:** *Settings → Devices & services → Add integration → Google Gemini* (called "Google Generative AI" in older guides). Home Assistant's official guide: [Google Gemini](https://www.home-assistant.io/integrations/google_generative_ai_conversation).
+2. **Create an API key:** at [Google AI Studio](https://aistudio.google.com/app/apikey) (free according to the Home Assistant guide as long as the Google Cloud project has no billing) and enter it during setup.
+3. **Check the AI Task entity:** The AI integration provides an *AI Task* entity for jobs such as reading receipts (background: [AI Task](https://www.home-assistant.io/integrations/ai_task/)). You can see it under *Settings → Devices & services → Entities* (search for `ai_task`) and pick a preferred one under *Settings → System → AI*.
+4. **In Drive Energy Doc:** in the **global settings** leave the "AI" field **empty**: the integration then uses the Gemini entity automatically, otherwise the first `ai_task` entity it finds. Or you choose a specific one there.
+5. **Test:** upload a receipt photo in the panel. After a few seconds the entry appears in the list.
+
+**Other providers:** Any AI integration that provides AI Task entities and understands **images** works, for example [OpenAI](https://www.home-assistant.io/integrations/openai_conversation/) ([key](https://platform.openai.com/account/api-keys), a paid service according to Home Assistant) or [Anthropic](https://www.home-assistant.io/integrations/anthropic/) ([key](https://console.anthropic.com/settings/keys), also paid). How accurately poorly photographed odometers are read depends on the model.
+
+**Good to know:**
+- **Privacy:** The photo goes to **the AI provider** for evaluation, so it leaves your home. According to Home Assistant, Google uses requests and responses of the free plan to improve its products; with billing on the project that does not apply. Check your provider's terms before sending receipts with personal data.
+- **Overload:** Free services sometimes report "high demand" (error 503). The integration then retries once after 3 seconds. If nothing comes back, the photo stays saved and you type quantity and amount or the mileage.
+- **Requests:** One request per photo goes to the AI, with at most one retry after a quick failure.
 
 ## Setting up Telegram
 Telegram is the easiest channel: free, no business account, and Home Assistant does not need to be reachable from the internet (the integration polls Telegram itself).
