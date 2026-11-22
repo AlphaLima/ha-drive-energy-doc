@@ -1,7 +1,7 @@
 /* Drive-Energy-Doc-Panel: Fahrzeug-Reiter, Tankliste mit Belegfotos, Bearbeiten, CSV-Export */
 const COLS = ["date", "km", "station", "qty", "price", "total", "cons", "receipt", "note", "act"];
 
-const VERSION = "0.1.68";
+const VERSION = "0.1.69";
 
 class DriveEnergyDocPanel extends HTMLElement {
   set hass(h) {
@@ -226,6 +226,7 @@ class DriveEnergyDocPanel extends HTMLElement {
       camera: '<path d="M4 8h3l1.5-2h7L17 8h3v11H4z"/><circle cx="12" cy="13" r="3.2"/>',
       edit: '<path d="M4 20l1-4L16.5 4.5l3 3L8 19l-4 1zM14 7l3 3"/>',
       trash: '<path d="M5 7h14M9 7V4h6v3M7 7l1 13h8l1-13M10 11v6M14 11v6"/>',
+      note: '<path d="M5 4h14v12h-9l-5 4zM8.5 8.5h7M8.5 12h5"/>',
       close: '<path d="M6 6l12 12M18 6L6 18"/>',
       warn: '<path d="M12 4l9 16H3zM12 10v5M12 17.2v.3"/>',
     };
@@ -300,6 +301,7 @@ class DriveEnergyDocPanel extends HTMLElement {
       table.fx td,table.fx th{overflow:hidden;text-overflow:ellipsis}
       .bar{display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap}
       .tm::before{content:", "}
+      .notei{display:inline-flex;cursor:pointer;opacity:.8}.notei:hover{opacity:1}.notei .ico{width:20px;height:20px}
       @media(max-width:700px){
         :host{padding:8px}
         .head{gap:8px}
@@ -345,7 +347,7 @@ class DriveEnergyDocPanel extends HTMLElement {
         total: `<td class="n">${this._fmt(e.total)} €</td>`,
         cons: `<td class="n">${e.consumption != null ? this._fmt(e.consumption) : "–"}</td>`,
         receipt: `<td>${(e.photo_urls || []).map((p, i) => `<img class="thumb" src="${p}" data-p="${p}" data-entry="${e.id}" data-name="${this._esc((e.photos || [])[i] || "")}" alt="${i === 0 && e.receipt ? "Beleg" : "Zusatzfoto"}">`).join("")}${e.receipt ? "" : `<span class="no" title="Beleg fehlt">${this._ico("warn")}</span>`}</td>`,
-        note: `<td>${this._esc(e.note || "")}</td>`,
+        note: `<td>${e.note ? `<span class="notei" data-note="${this._esc(e.note)}" title="${this._esc(e.note)}" tabindex="0" role="button" aria-label="Notiz anzeigen">${this._ico("note")}</span>` : ""}</td>`,
         act: `<td><button data-act="photo" title="Foto zu diesem Eintrag" aria-label="Foto hinzufügen">${this._ico("camera")}</button> <button data-act="edit" title="Bearbeiten" aria-label="Bearbeiten">${this._ico("edit")}</button> <button data-act="del" title="Eintrag löschen" aria-label="Eintrag löschen">${this._ico("trash")}</button></td>`,
       };
       return `<tr data-id="${e.id}">${order.map(k => cell[k].replace("<td", `<td data-c="${k}"`)).join("")}</tr>`;
@@ -367,7 +369,15 @@ class DriveEnergyDocPanel extends HTMLElement {
 
   async _click(ev, v) {
     this._pvHide();
-    const t = ev.target.closest ? (ev.target.closest("button,[data-p],[data-tab]") || ev.target) : ev.target;  // Klick kann auf dem Symbol im Knopf landen
+    const old = this.shadowRoot.querySelector(".pop"); if (old) old.remove();
+    const t = ev.target.closest ? (ev.target.closest("button,[data-p],[data-tab],[data-note]") || ev.target) : ev.target;
+    if (t.dataset.note) {
+      const r = t.getBoundingClientRect(), pop = document.createElement("div");
+      pop.className = "pop"; pop.textContent = t.dataset.note;
+      pop.style.cssText = `position:fixed;z-index:98;max-width:min(80vw,320px);padding:8px 12px;border-radius:8px;background:var(--card-background-color);color:var(--primary-text-color);box-shadow:0 2px 12px #0006;border:1px solid var(--divider-color);font-size:13px;white-space:pre-wrap;top:${r.bottom + 6}px;left:${Math.max(8, Math.min(r.left, window.innerWidth - 328))}px`;
+      this.shadowRoot.append(pop);
+      return;
+    }  // Klick kann auf dem Symbol im Knopf landen
     if (t.dataset.tab != null) { this._tab = +t.dataset.tab; return this._render(); }
     if (t.dataset.p) {
       const lb = document.createElement("div");

@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.1.69
+- Panel: Notiz als Symbol, Text per Hover (Tooltip) oder Klick (Popup).
+
 ## 0.1.68
 - Panel (Handy): noch kompaktere Karten, Uhrzeit unter dem Datum.
 
