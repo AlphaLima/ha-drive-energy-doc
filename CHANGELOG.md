@@ -1,7 +1,10 @@
 # Changelog
 
+## 0.1.75b18 (unveröffentlicht)
+- Panel: „Foto aus dem Archiv“ heißt jetzt „Foto aus der Galerie“.
+
 ## 0.1.75b17 (unveröffentlicht)
-- Panel (Handy): Der Foto-Knopf fragt jetzt „Kamera“ oder „Foto aus dem Archiv“ (Galerie); am PC öffnet er direkt die Dateiauswahl.
+- Panel (Handy): Der Foto-Knopf fragt jetzt „Kamera“ oder „Foto aus der Galerie“; am PC öffnet er direkt die Dateiauswahl.
 
 ## 0.1.75b16 (unveröffentlicht)
 - Panel: Im Fahrzeug-Auswahldialog steht rechts das Fahrzeugbild als kleines Bildchen.
