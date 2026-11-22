@@ -39,9 +39,17 @@ Alles landet in einer Liste im Seitenmenü (mit CSV- und PDF-Druck).
 
 ---
 
-![Das Panel mit Fahrzeugkopf, Kennzahlen und Liste](docs/panel.png)
+![Das Panel mit Fahrzeugkopf, Kennzahlen und Liste](docs/panel-liste.png)
 
-*Das Panel „Drive Energy Doc“ (Adressen unkenntlich gemacht).*
+*Das Panel (Beispieldaten): Fahrzeugkopf, Kennzahlen, großer Foto-Knopf und die Liste mit Belegfotos.*
+
+<table>
+<tr>
+<td align="center"><img src="docs/panel-lesen.png" alt="Beleg wird gelesen" width="300"><br><sub>Die KI liest den Beleg (mit Lupe)</sub></td>
+<td align="center"><img src="docs/panel-ergebnis.png" alt="Ergebnis nach dem Upload" width="300"><br><sub>Ergebnis: Tankstelle, Menge, Preis, Summe</sub></td>
+<td align="center"><img src="docs/panel-fahrzeugauswahl.png" alt="Fahrzeugauswahl" width="300"><br><sub>Fahrzeugauswahl per Klick auf den Kopfbereich</sub></td>
+</tr>
+</table>
 
 ## Wozu das Ganze? Der Sinn des Tankbuches
 
@@ -319,9 +327,17 @@ A **fuel and charging log for any number of vehicles** (combustion and electric)
 
 Everything ends up in one list in the sidebar (with CSV and PDF printing).
 
-![The panel with vehicle header, key figures and list](docs/panel.png)
+![The panel with vehicle header, key figures and list](docs/panel-liste.png)
 
-*The "Drive Energy Doc" panel (addresses blurred).*
+*The panel (sample data): vehicle header, key figures, big photo button and the list with receipt photos.*
+
+<table>
+<tr>
+<td align="center"><img src="docs/panel-lesen.png" alt="Reading the receipt" width="300"><br><sub>The AI reads the receipt (with magnifier)</sub></td>
+<td align="center"><img src="docs/panel-ergebnis.png" alt="Result after the upload" width="300"><br><sub>Result: station, quantity, price, total</sub></td>
+<td align="center"><img src="docs/panel-fahrzeugauswahl.png" alt="Vehicle selection" width="300"><br><sub>Choose a vehicle by clicking the header area</sub></td>
+</tr>
+</table>
 
 ## What is it for?
 
