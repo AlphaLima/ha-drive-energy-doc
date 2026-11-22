@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.1.75b7 (unveröffentlicht)
+- Panel: großer Foto-Knopf („Beleg fotografieren“) als Kachel neben den Kennzahlen; der Status steht jetzt in der Knopfleiste.
+
 ## 0.1.75b6 (unveröffentlicht)
 - Panel: Kennzeichen-Knopf entfernt; ein Klick auf das Kennzeichen in der Kopfzeile öffnet den Kennzeichen-Dialog (ohne Kennzeichen steht dort ein Platzhalter zum Anklicken).
 

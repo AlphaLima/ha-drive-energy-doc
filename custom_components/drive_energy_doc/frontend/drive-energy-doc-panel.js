@@ -1,7 +1,7 @@
 /* Drive-Energy-Doc-Panel: Fahrzeug-Reiter, Tankliste mit Belegfotos, Bearbeiten, CSV-Export */
 const COLS = ["date", "km", "station", "qty", "price", "total", "cons", "receipt", "note", "act"];
 
-const VERSION = "0.1.75b6";
+const VERSION = "0.1.75b7";
 
 class DriveEnergyDocPanel extends HTMLElement {
   set hass(h) {
@@ -300,6 +300,9 @@ class DriveEnergyDocPanel extends HTMLElement {
       .sum{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:12px}
       .sum div{background:var(--card-background-color);border-radius:10px;padding:10px 14px;min-width:120px}
       .sum b{display:block;font-size:20px}
+      .sum .shoot{flex:0 1 auto;min-width:120px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;background:var(--primary-color);color:var(--text-primary-color,#fff);border:0;border-radius:10px;padding:10px 18px;font:inherit;cursor:pointer}
+      .sum .shoot .ico{width:34px;height:34px}.sum .shoot span{font-size:13px;color:inherit}
+      .stat{margin-left:auto;align-self:center;padding:6px 12px;font-size:14px;color:var(--secondary-text-color);white-space:nowrap}.stat b{color:var(--primary-text-color);font-weight:500}
       .sum span{font-size:12px;color:var(--secondary-text-color)}
       .wrap{overflow:auto;background:var(--card-background-color);border-radius:10px}
       table{border-collapse:collapse;width:100%;font-size:13px;line-height:1.3}
@@ -349,7 +352,7 @@ class DriveEnergyDocPanel extends HTMLElement {
       @media(max-width:700px){
         :host{padding:8px}
         .head{gap:8px}
-        .sum{gap:6px;margin-bottom:8px}.sum div{flex:1 1 40%;min-width:0;padding:6px 10px}.sum b{font-size:16px}
+        .sum{gap:6px;margin-bottom:8px}.sum div,.sum .shoot{flex:1 1 40%;min-width:0;padding:6px 10px}.sum b{font-size:16px}
         .bar{margin-bottom:8px}
         .wrap{background:none;overflow:visible}
         table,table.fx{display:block;width:100%!important}
@@ -403,9 +406,9 @@ class DriveEnergyDocPanel extends HTMLElement {
         <div><b>${s.count}</b><span>${this.T("Einträge")}</span></div>
         <div><b>${this._fmt(s.avg_consumption)}</b><span>${u}/100 ${this.T("km")} (${this.T("Ø letzte 5")})</span></div>
         <div><b>${this._fmt(s.cost_12m)} €</b><span>${this.T("Kosten 12 Monate")}</span></div>
-        <div><b>${this.T({ idle: "Bereit", candidate: "Anstieg erkannt", refuelling: "Tankt" }[s.status])}</b><span>${this.T("Status")}</span></div>
+        <button class="shoot" data-act="shoot" title="${this.T("Beleg fotografieren oder hochladen")}" aria-label="${this.T("Beleg fotografieren")}">${this._ico("camera")}<span>${this.T("Beleg fotografieren")}</span></button>
       </div>
-      <div class="bar"><button data-act="csv" title="${this.T("CSV-Export")}" aria-label="${this.T("CSV-Export")}">${this._ico("csv")}</button><button data-act="print" title="${this.T("Drucken / PDF")}" aria-label="${this.T("Drucken")}">${this._ico("print")}</button><button data-act="ori" title="${this._ori === "portrait" ? this.T("Hochformat") : this.T("Querformat")} (${this.T("zum Wechseln klicken")})" aria-label="${this.T("Seitenformat")}">${this._ico(this._ori)}</button><button data-act="rcp" title="${this.T("Belege im Druck")}: ${this._rcp ? this.T("mit") : this.T("ohne")} (${this.T("zum Wechseln klicken")})" aria-label="${this.T("Belege im Druck")}" aria-pressed="${this._rcp}">${this._ico(this._rcp ? "photo" : "photoOff")}</button><button data-act="add" title="${this.T("Eintrag von Hand hinzufügen")}" aria-label="${this.T("Eintrag von Hand")}">${this._ico("plus")}</button><button data-act="shoot" title="${this.T("Beleg fotografieren oder hochladen")}" aria-label="${this.T("Beleg fotografieren")}">${this._ico("camera")}</button><input type="file" id="cam" accept="image/*" capture="environment" hidden><input type="file" id="pic" accept="image/*" hidden></div>
+      <div class="bar"><button data-act="csv" title="${this.T("CSV-Export")}" aria-label="${this.T("CSV-Export")}">${this._ico("csv")}</button><button data-act="print" title="${this.T("Drucken / PDF")}" aria-label="${this.T("Drucken")}">${this._ico("print")}</button><button data-act="ori" title="${this._ori === "portrait" ? this.T("Hochformat") : this.T("Querformat")} (${this.T("zum Wechseln klicken")})" aria-label="${this.T("Seitenformat")}">${this._ico(this._ori)}</button><button data-act="rcp" title="${this.T("Belege im Druck")}: ${this._rcp ? this.T("mit") : this.T("ohne")} (${this.T("zum Wechseln klicken")})" aria-label="${this.T("Belege im Druck")}" aria-pressed="${this._rcp}">${this._ico(this._rcp ? "photo" : "photoOff")}</button><button data-act="add" title="${this.T("Eintrag von Hand hinzufügen")}" aria-label="${this.T("Eintrag von Hand")}">${this._ico("plus")}</button><span class="stat" title="${this.T("Status")}">${this.T("Status")}: <b>${this.T({ idle: "Bereit", candidate: "Anstieg erkannt", refuelling: "Tankt" }[s.status])}</b></span><input type="file" id="cam" accept="image/*" capture="environment" hidden><input type="file" id="pic" accept="image/*" hidden></div>
       <div class="wrap"><table class="${fixed ? "fx" : ""}" ${fixed ? `style="width:${sumW}px"` : ""}><colgroup>${order.map(c => `<col data-c="${c}" ${cw[c] ? `style="width:${cw[c]}px"` : ""}>`).join("")}</colgroup><thead><tr>${order.map(c => { const H = { date: [this.T("Datum"), ""], km: [this.T("km"), "n"], station: [this.T("Tankstelle"), ""], qty: [this.T("Menge"), "n"], price: [`€/${u}`, "n"], total: [this.T("Betrag"), "n"], cons: [`${u}/100 ${this.T("km")}`, "n"], receipt: [this.T("Beleg"), ""], note: [this.T("Notiz"), ""], act: ["", ""] }[c]; return `<th data-c="${c}" class="${H[1]}" ${c === "act" ? "" : `draggable="true" title="${this.T("Auf eine andere Überschrift ziehen: Reihenfolge ändern")}"`}>${H[0]}<span class="rs" data-c="${c}" title="${this.T("Ziehen: Spaltenbreite ändern · Doppelklick: Breiten und Reihenfolge zurücksetzen")}"></span></th>`; }).join("")}</tr></thead><tbody>${rows}</tbody></table></div>
       <div class="ver">Drive Energy Doc ${VERSION}</div>`;
     this._cur = v;
