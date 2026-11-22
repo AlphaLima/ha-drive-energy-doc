@@ -347,7 +347,7 @@ Panel und Bot sprechen **36 Sprachen**: Deutsch, Englisch, Französisch, Spanisc
 ## Tests
 `python tests/test_detector.py`, `test_receipt.py`, `test_stats.py`, `test_plate.py` (ohne Home Assistant).
 
-Zum Ausprobieren liegen unter `tests/test_images/` **20 frei erfundene Foto-Paare** (Beleg und Tacho, von gut bis schlecht lesbar) mit den richtigen Werten in CSV-Dateien, siehe [tests/test_images](tests/test_images/README.md).
+Zum Ausprobieren liegen unter `tests/test_images/` **20 frei erfundene Foto-Paare** (Beleg und Tacho, von gut bis schlecht lesbar) mit den richtigen Werten in CSV-Dateien und einem kleinen Skript (`vergleich.py`), das deinen CSV-Export gegen die Sollwerte prüft, damit du die Erkennung selbst testen kannst, siehe [tests/test_images](tests/test_images/README.md).
 
 ## Lizenz
 MIT
@@ -632,7 +632,7 @@ The panel and the bot speak **36 languages**: German, English, French, Spanish, 
 ## Tests
 `python tests/test_detector.py`, `test_receipt.py`, `test_stats.py`, `test_plate.py` (without Home Assistant).
 
-To try it out, `tests/test_images/` holds **20 entirely fictional photo pairs** (receipt and odometer, from easy to hard to read) with the correct values in CSV files, see [tests/test_images](tests/test_images/README.md).
+To try it out, `tests/test_images/` holds **20 entirely fictional photo pairs** (receipt and odometer, from easy to hard to read) with the correct values in CSV files and a small script (`vergleich.py`) that checks your CSV export against the expected values, so you can test the recognition yourself, see [tests/test_images](tests/test_images/README.md).
 
 ## License
 MIT
