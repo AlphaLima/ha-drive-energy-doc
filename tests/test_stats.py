@@ -59,6 +59,9 @@ def test_match_odometer():
     m = st.match_odometer(es, 54210, 9300)
     assert m["status"] == "ok" and m["entry"]["ts"] == 9000 and m["dt"] == 300 and not m["backwards"]
     assert st.match_odometer(es, 54210, 9000 + 3 * 86400)["status"] == "too_old"
+    late = st.match_odometer(es, 54146, 9000 + 3 * 86400)                              # Tage später hochgeladen, Stand fast gleich: gehört zum Eintrag
+    assert late["status"] == "ok" and late["entry"]["ts"] == 9000
+    assert st.match_odometer([{**x, "odometer_source": "foto"} for x in es], 54146, 9000 + 3 * 86400)["status"] == "too_old"   # hat schon ein Tacho-Foto
     assert st.match_odometer(es, 55000, 9100)["status"] == "mismatch"               # 860 km Abweichung
     assert st.match_odometer(es, 53000, 9100)["backwards"] or st.match_odometer(es, 53000, 9100)["status"] == "mismatch"
     assert st.match_odometer([], 54210, 9000)["status"] == "none"

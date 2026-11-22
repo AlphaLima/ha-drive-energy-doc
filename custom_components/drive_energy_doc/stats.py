@@ -46,7 +46,7 @@ def add_consumption(entries: list[dict[str, Any]], full_increase: float = FULL_I
     return out
 
 
-def match_odometer(entries: list[dict[str, Any]], km: float, sent_ts: float, window: float = 24 * 3600, tolerance: float = 300.0) -> dict[str, Any]:
+def match_odometer(entries: list[dict[str, Any]], km: float, sent_ts: float, window: float = 24 * 3600, tolerance: float = 300.0, near_km: float = 50.0) -> dict[str, Any]:
     """Einen Tacho-Kilometerstand dem Tankvorgang zuordnen, der zur Sendezeit am besten passt.
 
     status: none (kein Eintrag), too_old (nächster Tankvorgang liegt außerhalb des Zeitfensters),
@@ -59,6 +59,14 @@ def match_odometer(entries: list[dict[str, Any]], km: float, sent_ts: float, win
     e = min(fuel, key=lambda x: abs(x["ts"] - sent_ts))
     dt = sent_ts - e["ts"]  # positiv: Nachricht kam nach dem Tanken
     if abs(dt) > window:
+        # Zeitlich zu weit weg (z. B. Fotos später hochgeladen): passt der Stand fast genau zu einem Eintrag, der noch kein Tacho-Foto hat, gehört er dazu
+        near = [x for x in fuel if x.get("odometer") is not None and x.get("odometer_source") != "foto" and abs(km - x["odometer"]) <= near_km]
+        if near:
+            e = max(near, key=lambda x: x["ts"])
+            dt = sent_ts - e["ts"]
+            prev = [x["odometer"] for x in fuel if x["ts"] < e["ts"] and x.get("odometer") is not None]
+            prev_odo = max(prev) if prev else None
+            return {"status": "ok", "entry": e, "dt": dt, "prev_odo": prev_odo, "backwards": prev_odo is not None and km < prev_odo}
         return {"status": "too_old", "entry": e, "dt": dt}
     prev = [x["odometer"] for x in fuel if x["ts"] < e["ts"] and x.get("odometer") is not None]
     prev_odo = max(prev) if prev else None
