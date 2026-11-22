@@ -1,7 +1,7 @@
 /* Drive-Energy-Doc-Panel: Fahrzeug-Reiter, Tankliste mit Belegfotos, Bearbeiten, CSV-Export */
 const COLS = ["date", "km", "station", "qty", "price", "total", "cons", "receipt", "note", "act"];
 
-const VERSION = "0.1.75b15";
+const VERSION = "0.1.75b16";
 
 class DriveEnergyDocPanel extends HTMLElement {
   set hass(h) {
@@ -238,6 +238,10 @@ class DriveEnergyDocPanel extends HTMLElement {
     window.addEventListener("pointermove", mv); window.addEventListener("pointerup", up);
   }
 
+  _pic(v) {
+    // Fahrzeugbild: hochgeladenes Bild, sonst Bild-Entität
+    return v.image_url || (v.image && this._hass.states[v.image] ? this._hass.states[v.image].attributes.entity_picture : "") || "";
+  }
   _title(v) {
     // Überschrift: Fahrzeugtyp (z. B. „BMW X1 xDrive20d“); enthält er den Namen nicht, steht „Name · Typ“
     const n = v.name || "", t = (v.type || "").trim();
@@ -287,6 +291,7 @@ class DriveEnergyDocPanel extends HTMLElement {
       .chip{flex:none;white-space:nowrap;background:var(--primary-color);color:var(--text-primary-color,#fff);border-radius:10px;padding:6px 14px;font-size:16px}
       .plateimg{height:40px;width:auto;flex:none}
       .head.pick{cursor:pointer}.chev{font-size:18px;color:var(--secondary-text-color);font-weight:400}
+      .vopic{margin-left:auto;height:34px;max-width:30%;object-fit:contain;flex:none}
       .vo{display:flex;align-items:center;gap:14px;padding:10px 12px;border-radius:10px;cursor:pointer;border:2px solid transparent}.vo:hover{background:var(--secondary-background-color,#0001)}.vo.on{border-color:var(--primary-color)}.vo .nm{font-size:13px;color:var(--secondary-text-color)}.vo .tt{font-size:16px}
       .vsel{display:inline-flex;align-items:center;gap:10px;cursor:pointer;opacity:.55;transition:opacity .15s;padding:4px 6px;border-radius:10px}.vsel:hover{opacity:.85}.vsel.on{opacity:1}
       .tabplate{height:34px;border-radius:7px}.vsel.on .tabplate{outline:3px solid var(--primary-color);outline-offset:2px}
@@ -382,7 +387,7 @@ class DriveEnergyDocPanel extends HTMLElement {
     if (this._err) { this.shadowRoot.innerHTML = `<style>${css}</style><p>${this._esc(this._err)}</p>`; return; }
     if (!d.length) { this.shadowRoot.innerHTML = `<style>${css}</style><h1>Drive Energy Doc</h1><p>${this.T("Noch kein Fahrzeug. Einstellungen → Geräte & Dienste → Integration „Drive Energy Doc“ hinzufügen.")}</p>`; return; }
     const s = v.summary, u = this.T(v.unit);
-    const pic = v.image_url || (v.image && this._hass.states[v.image] ? this._hass.states[v.image].attributes.entity_picture : "");
+    const pic = this._pic(v);
     const cw = this._cw || {};
     const fixed = COLS.some(c => cw[c]);
     const sumW = COLS.reduce((t, c) => t + (cw[c] || 120), 0);
@@ -479,7 +484,7 @@ class DriveEnergyDocPanel extends HTMLElement {
     const d = this._data || [];
     const dlg = document.createElement("div");
     dlg.className = "dlg";
-    dlg.innerHTML = `<div class="card">${d.map((x, i) => `<div class="vo${i === this._tab ? " on" : ""}" data-v="${i}" role="button" tabindex="0">${x.plate ? this._plate(x, true) : ""}<div><div class="tt">${this._esc(this._title(x))}</div>${x.name && this._title(x) !== x.name ? `<div class="nm">${this._esc(x.name)}</div>` : ""}</div></div>`).join("")}<div class="df"><button data-d="cancel">${this.T("Abbrechen")}</button></div></div>`;
+    dlg.innerHTML = `<div class="card">${d.map((x, i) => `<div class="vo${i === this._tab ? " on" : ""}" data-v="${i}" role="button" tabindex="0">${x.plate ? this._plate(x, true) : ""}<div><div class="tt">${this._esc(this._title(x))}</div>${x.name && this._title(x) !== x.name ? `<div class="nm">${this._esc(x.name)}</div>` : ""}</div>${this._pic(x) ? `<img class="vopic" src="${this._pic(x)}" alt="">` : ""}</div>`).join("")}<div class="df"><button data-d="cancel">${this.T("Abbrechen")}</button></div></div>`;
     this.shadowRoot.appendChild(dlg);
     this._dlg = dlg;
     const close = () => { dlg.remove(); this._dlg = null; };

@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.1.75b16 (unveröffentlicht)
+- Panel: Im Fahrzeug-Auswahldialog steht rechts das Fahrzeugbild als kleines Bildchen.
+
 ## 0.1.75b15 (unveröffentlicht)
 - Panel: Layout-Fehler im Kopfbereich behoben (Klassenname kollidierte mit dem alten Zähler-Stil).
 
