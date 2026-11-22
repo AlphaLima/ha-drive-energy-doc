@@ -162,5 +162,6 @@
  "Es gibt schon einen Beleg-Eintrag vom {0} ({1}). Antworte „ja“, um ihn mit dem neuen Beleg zu überschreiben, oder „nein“.": "{0} tšekiga kirje on juba olemas ({1}). Vastake „jah“, et see uue tšekiga üle kirjutada, või „ei“.",
  "Dieser Beleg ist schon eingetragen (Eintrag vom {0}: {1}). Antworte „ja“, um ihn trotzdem zu überschreiben, oder „nein“.": "See tšekk on juba sisestatud ({0} kirje: {1}). Vastake „jah“, et see siiski üle kirjutada, või „ei“.",
  "Gut, der neue Beleg wurde nicht übernommen.": "Selge, uut tšekki ei rakendatud.",
- "Nr.": "Nr"
+ "Nr.": "Nr",
+ "Spalten": "Veerud"
 }

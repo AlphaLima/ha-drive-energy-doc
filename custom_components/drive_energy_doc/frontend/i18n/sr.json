@@ -162,5 +162,6 @@
  "Es gibt schon einen Beleg-Eintrag vom {0} ({1}). Antworte „ja“, um ihn mit dem neuen Beleg zu überschreiben, oder „nein“.": "Унос са рачуном од {0} ({1}) већ постоји. Одговорите „да“ да га препишем новим рачуном, или „не“.",
  "Dieser Beleg ist schon eingetragen (Eintrag vom {0}: {1}). Antworte „ja“, um ihn trotzdem zu überschreiben, oder „nein“.": "Овај рачун је већ унет (унос од {0}: {1}). Одговорите „да“ да га ипак препишем, или „не“.",
  "Gut, der neue Beleg wurde nicht übernommen.": "У реду, нови рачун нисам применио.",
- "Nr.": "Бр."
+ "Nr.": "Бр.",
+ "Spalten": "Колоне"
 }

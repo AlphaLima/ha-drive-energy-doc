@@ -1,6 +1,7 @@
 # Changelog
 
 ## 0.1.77 (in Arbeit)
+- Panel: Spalten lassen sich über einen Spalten-Knopf ein- und ausblenden (pro Browser gemerkt); die Nummern-Spalte ist schmal (46 px).
 - Tankvorgänge werden laufend nummeriert (Spalte „Nr.“ im Panel, in CSV und Ausdruck; älteste = 1).
 - Doppelter Beleg: Gibt es zum Tag schon einen Eintrag mit Beleg, meldet der Bot das (bei gleicher Menge und Summe ausdrücklich) und fragt, ob überschrieben werden soll (ja/nein).
 - Foto-Betrieb: Das zuletzt angelegte, noch unvollständige Eintrag (Tacho-Foto ohne Beleg oder Beleg ohne Kilometerstand) bleibt 6 Stunden "offen"; Beleg und Tacho-Foto gehören zusammen, egal in welcher Reihenfolge und mit welchem Datum auf dem Beleg. Kommt ein Tacho-Foto zuerst, entsteht sofort eine neue Zeile, und nach 30 Minuten fragt der Bot einmal nach dem fehlenden Beleg bzw. Foto der Zapfsäule.

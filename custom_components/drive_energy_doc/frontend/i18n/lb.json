@@ -162,5 +162,6 @@
  "Es gibt schon einen Beleg-Eintrag vom {0} ({1}). Antworte „ja“, um ihn mit dem neuen Beleg zu überschreiben, oder „nein“.": "Et gëtt schonn en Androck mat Beleg vum {0} ({1}). Äntwert „jawuel“, fir en mam neie Beleg ze iwwerschreiwen, oder „nee“.",
  "Dieser Beleg ist schon eingetragen (Eintrag vom {0}: {1}). Antworte „ja“, um ihn trotzdem zu überschreiben, oder „nein“.": "Dëse Beleg ass schonn ageschriwwen (Androck vum {0}: {1}). Äntwert „jawuel“, fir en trotzdem ze iwwerschreiwen, oder „nee“.",
  "Gut, der neue Beleg wurde nicht übernommen.": "Gutt, deen neie Beleg gouf net ugewannt.",
- "Nr.": "Nr."
+ "Nr.": "Nr.",
+ "Spalten": "Spalten"
 }

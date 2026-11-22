@@ -162,5 +162,6 @@
  "Es gibt schon einen Beleg-Eintrag vom {0} ({1}). Antworte „ja“, um ihn mit dem neuen Beleg zu überschreiben, oder „nein“.": "Vnos z računom z dne {0} ({1}) že obstaja. Odgovorite »da«, da ga prepišem z novim računom, ali »ne«.",
  "Dieser Beleg ist schon eingetragen (Eintrag vom {0}: {1}). Antworte „ja“, um ihn trotzdem zu überschreiben, oder „nein“.": "Ta račun je že vpisan (vnos z dne {0}: {1}). Odgovorite »da«, da ga vseeno prepišem, ali »ne«.",
  "Gut, der neue Beleg wurde nicht übernommen.": "V redu, novega računa nisem uporabil.",
- "Nr.": "Št."
+ "Nr.": "Št.",
+ "Spalten": "Stolpci"
 }

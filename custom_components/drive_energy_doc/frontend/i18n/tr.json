@@ -162,5 +162,6 @@
  "Es gibt schon einen Beleg-Eintrag vom {0} ({1}). Antworte „ja“, um ihn mit dem neuen Beleg zu überschreiben, oder „nein“.": "{0} tarihli belgeli bir kayıt zaten var ({1}). Yeni belgeyle üzerine yazmak için \"evet\", aksi halde \"hayır\" yazın.",
  "Dieser Beleg ist schon eingetragen (Eintrag vom {0}: {1}). Antworte „ja“, um ihn trotzdem zu überschreiben, oder „nein“.": "Bu belge zaten kaydedilmiş ({0} tarihli kayıt: {1}). Yine de üzerine yazmak için \"evet\", aksi halde \"hayır\" yazın.",
  "Gut, der neue Beleg wurde nicht übernommen.": "Tamam, yeni belge uygulanmadı.",
- "Nr.": "No"
+ "Nr.": "No",
+ "Spalten": "Sütunlar"
 }

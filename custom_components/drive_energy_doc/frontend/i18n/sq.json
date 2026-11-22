@@ -162,5 +162,6 @@
  "Es gibt schon einen Beleg-Eintrag vom {0} ({1}). Antworte „ja“, um ihn mit dem neuen Beleg zu überschreiben, oder „nein“.": "Ekziston tashmë një regjistrim me faturë i {0} ({1}). Përgjigjuni «po» për ta mbishkruar me faturën e re, ose «jo».",
  "Dieser Beleg ist schon eingetragen (Eintrag vom {0}: {1}). Antworte „ja“, um ihn trotzdem zu überschreiben, oder „nein“.": "Kjo faturë është regjistruar tashmë (regjistrimi i {0}: {1}). Përgjigjuni «po» për ta mbishkruar prapë, ose «jo».",
  "Gut, der neue Beleg wurde nicht übernommen.": "Në rregull, fatura e re nuk u zbatua.",
- "Nr.": "Nr."
+ "Nr.": "Nr.",
+ "Spalten": "Kolonat"
 }

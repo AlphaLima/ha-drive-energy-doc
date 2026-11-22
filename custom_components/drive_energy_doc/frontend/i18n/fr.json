@@ -162,5 +162,6 @@
  "Es gibt schon einen Beleg-Eintrag vom {0} ({1}). Antworte „ja“, um ihn mit dem neuen Beleg zu überschreiben, oder „nein“.": "Il existe déjà une entrée avec justificatif du {0} ({1}). Répondez « oui » pour l'écraser avec le nouveau justificatif, ou « non ».",
  "Dieser Beleg ist schon eingetragen (Eintrag vom {0}: {1}). Antworte „ja“, um ihn trotzdem zu überschreiben, oder „nein“.": "Ce justificatif est déjà enregistré (entrée du {0} : {1}). Répondez « oui » pour l'écraser quand même, ou « non ».",
  "Gut, der neue Beleg wurde nicht übernommen.": "D'accord, le nouveau justificatif n'a pas été repris.",
- "Nr.": "N°"
+ "Nr.": "N°",
+ "Spalten": "Colonnes"
 }

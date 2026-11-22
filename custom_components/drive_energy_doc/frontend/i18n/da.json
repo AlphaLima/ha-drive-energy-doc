@@ -162,5 +162,6 @@
  "Es gibt schon einen Beleg-Eintrag vom {0} ({1}). Antworte „ja“, um ihn mit dem neuen Beleg zu überschreiben, oder „nein“.": "Der findes allerede en post med kvittering fra {0} ({1}). Svar \"ja\" for at overskrive den med den nye kvittering, eller \"nej\".",
  "Dieser Beleg ist schon eingetragen (Eintrag vom {0}: {1}). Antworte „ja“, um ihn trotzdem zu überschreiben, oder „nein“.": "Denne kvittering er allerede registreret (post fra {0}: {1}). Svar \"ja\" for alligevel at overskrive, eller \"nej\".",
  "Gut, der neue Beleg wurde nicht übernommen.": "Okay, den nye kvittering blev ikke anvendt.",
- "Nr.": "Nr."
+ "Nr.": "Nr.",
+ "Spalten": "Kolonner"
 }

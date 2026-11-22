@@ -162,5 +162,6 @@
  "Es gibt schon einen Beleg-Eintrag vom {0} ({1}). Antworte „ja“, um ihn mit dem neuen Beleg zu überschreiben, oder „nein“.": "Există deja o intrare cu bon din {0} ({1}). Răspundeți „da” pentru a o suprascrie cu noul bon, sau „nu”.",
  "Dieser Beleg ist schon eingetragen (Eintrag vom {0}: {1}). Antworte „ja“, um ihn trotzdem zu überschreiben, oder „nein“.": "Acest bon este deja înregistrat (intrarea din {0}: {1}). Răspundeți „da” pentru a-l suprascrie oricum, sau „nu”.",
  "Gut, der neue Beleg wurde nicht übernommen.": "Bine, noul bon nu a fost aplicat.",
- "Nr.": "Nr."
+ "Nr.": "Nr.",
+ "Spalten": "Coloane"
 }

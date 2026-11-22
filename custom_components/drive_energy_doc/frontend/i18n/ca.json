@@ -162,5 +162,6 @@
  "Es gibt schon einen Beleg-Eintrag vom {0} ({1}). Antworte „ja“, um ihn mit dem neuen Beleg zu überschreiben, oder „nein“.": "Ja existeix una entrada amb justificant del {0} ({1}). Respon «sí» per sobreescriure-la amb el nou justificant, o «no».",
  "Dieser Beleg ist schon eingetragen (Eintrag vom {0}: {1}). Antworte „ja“, um ihn trotzdem zu überschreiben, oder „nein“.": "Aquest justificant ja està registrat (entrada del {0}: {1}). Respon «sí» per sobreescriure-la igualment, o «no».",
  "Gut, der neue Beleg wurde nicht übernommen.": "Molt bé, el nou justificant no s'ha aplicat.",
- "Nr.": "Núm."
+ "Nr.": "Núm.",
+ "Spalten": "Columnes"
 }

@@ -164,5 +164,6 @@
  "Es gibt schon einen Beleg-Eintrag vom {0} ({1}). Antworte „ja“, um ihn mit dem neuen Beleg zu überschreiben, oder „nein“.": "Запись с чеком от {0} ({1}) уже существует. Ответьте «да», чтобы перезаписать её новым чеком, или «нет».",
  "Dieser Beleg ist schon eingetragen (Eintrag vom {0}: {1}). Antworte „ja“, um ihn trotzdem zu überschreiben, oder „nein“.": "Этот чек уже внесён (запись от {0}: {1}). Ответьте «да», чтобы всё равно перезаписать, или «нет».",
  "Gut, der neue Beleg wurde nicht übernommen.": "Хорошо, новый чек не принят.",
- "Nr.": "№"
+ "Nr.": "№",
+ "Spalten": "Столбцы"
 }

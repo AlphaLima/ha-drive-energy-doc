@@ -162,5 +162,6 @@
  "Es gibt schon einen Beleg-Eintrag vom {0} ({1}). Antworte „ja“, um ihn mit dem neuen Beleg zu überschreiben, oder „nein“.": "Istnieje już wpis z dowodem z dnia {0} ({1}). Odpowiedz „tak”, aby zastąpić go nowym dowodem, lub „nie”.",
  "Dieser Beleg ist schon eingetragen (Eintrag vom {0}: {1}). Antworte „ja“, um ihn trotzdem zu überschreiben, oder „nein“.": "Ten dowód jest już zapisany (wpis z {0}: {1}). Odpowiedz „tak”, aby mimo to go zastąpić, lub „nie”.",
  "Gut, der neue Beleg wurde nicht übernommen.": "Dobrze, nowy dowód nie został zastosowany.",
- "Nr.": "Nr"
+ "Nr.": "Nr",
+ "Spalten": "Kolumny"
 }

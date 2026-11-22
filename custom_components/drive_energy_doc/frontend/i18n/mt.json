@@ -162,5 +162,6 @@
  "Es gibt schon einen Beleg-Eintrag vom {0} ({1}). Antworte „ja“, um ihn mit dem neuen Beleg zu überschreiben, oder „nein“.": "Diġà teżisti daħla b'riċevuta tal-{0} ({1}). Wieġeb \"iva\" biex tikteb fuqha bir-riċevuta l-ġdida, jew \"le\".",
  "Dieser Beleg ist schon eingetragen (Eintrag vom {0}: {1}). Antworte „ja“, um ihn trotzdem zu überschreiben, oder „nein“.": "Din ir-riċevuta diġà ġiet irreġistrata (daħla tal-{0}: {1}). Wieġeb \"iva\" biex tikteb fuqha xorta, jew \"le\".",
  "Gut, der neue Beleg wurde nicht übernommen.": "Tajjeb, ir-riċevuta l-ġdida ma ġietx applikata.",
- "Nr.": "Nru"
+ "Nr.": "Nru",
+ "Spalten": "Kolonni"
 }

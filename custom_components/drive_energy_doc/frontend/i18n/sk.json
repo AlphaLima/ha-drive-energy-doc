@@ -162,5 +162,6 @@
  "Es gibt schon einen Beleg-Eintrag vom {0} ({1}). Antworte „ja“, um ihn mit dem neuen Beleg zu überschreiben, oder „nein“.": "Záznam s dokladom zo dňa {0} ({1}) už existuje. Odpovedzte „áno“, ak ho prepísať novým dokladom, alebo „nie“.",
  "Dieser Beleg ist schon eingetragen (Eintrag vom {0}: {1}). Antworte „ja“, um ihn trotzdem zu überschreiben, oder „nein“.": "Tento doklad je už zapísaný (záznam zo dňa {0}: {1}). Odpovedzte „áno“, ak ho aj tak prepísať, alebo „nie“.",
  "Gut, der neue Beleg wurde nicht übernommen.": "Dobre, nový doklad som nepreberal.",
- "Nr.": "Č."
+ "Nr.": "Č.",
+ "Spalten": "Stĺpce"
 }

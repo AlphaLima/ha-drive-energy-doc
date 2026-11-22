@@ -162,5 +162,6 @@
  "Es gibt schon einen Beleg-Eintrag vom {0} ({1}). Antworte „ja“, um ihn mit dem neuen Beleg zu überschreiben, oder „nein“.": "There is already a receipt entry of {0} ({1}). Reply \"yes\" to overwrite it with the new receipt, or \"no\".",
  "Dieser Beleg ist schon eingetragen (Eintrag vom {0}: {1}). Antworte „ja“, um ihn trotzdem zu überschreiben, oder „nein“.": "This receipt has already been recorded (entry of {0}: {1}). Reply \"yes\" to overwrite it anyway, or \"no\".",
  "Gut, der neue Beleg wurde nicht übernommen.": "OK, the new receipt was not applied.",
- "Nr.": "No."
+ "Nr.": "No.",
+ "Spalten": "Columns"
 }

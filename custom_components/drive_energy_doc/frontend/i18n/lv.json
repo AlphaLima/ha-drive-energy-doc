@@ -162,5 +162,6 @@
  "Es gibt schon einen Beleg-Eintrag vom {0} ({1}). Antworte „ja“, um ihn mit dem neuen Beleg zu überschreiben, oder „nein“.": "Ieraksts ar čeku no {0} jau pastāv ({1}). Atbildiet „jā“, lai to pārrakstītu ar jauno čeku, vai „nē“.",
  "Dieser Beleg ist schon eingetragen (Eintrag vom {0}: {1}). Antworte „ja“, um ihn trotzdem zu überschreiben, oder „nein“.": "Šis čeks jau ir ievadīts (ieraksts no {0}: {1}). Atbildiet „jā“, lai tomēr pārrakstītu, vai „nē“.",
  "Gut, der neue Beleg wurde nicht übernommen.": "Labi, jauno čeku nepiemēroju.",
- "Nr.": "Nr."
+ "Nr.": "Nr.",
+ "Spalten": "Kolonnas"
 }

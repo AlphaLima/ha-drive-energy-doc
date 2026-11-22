@@ -162,5 +162,6 @@
  "Es gibt schon einen Beleg-Eintrag vom {0} ({1}). Antworte „ja“, um ihn mit dem neuen Beleg zu überschreiben, oder „nein“.": "Esiste già una voce con giustificativo del {0} ({1}). Rispondi «sì» per sovrascriverla con il nuovo giustificativo, oppure «no».",
  "Dieser Beleg ist schon eingetragen (Eintrag vom {0}: {1}). Antworte „ja“, um ihn trotzdem zu überschreiben, oder „nein“.": "Questo giustificativo è già registrato (voce del {0}: {1}). Rispondi «sì» per sovrascriverla comunque, oppure «no».",
  "Gut, der neue Beleg wurde nicht übernommen.": "Va bene, il nuovo giustificativo non è stato applicato.",
- "Nr.": "N."
+ "Nr.": "N.",
+ "Spalten": "Colonne"
 }

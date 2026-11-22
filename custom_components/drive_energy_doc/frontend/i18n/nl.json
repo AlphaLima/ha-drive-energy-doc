@@ -162,5 +162,6 @@
  "Es gibt schon einen Beleg-Eintrag vom {0} ({1}). Antworte „ja“, um ihn mit dem neuen Beleg zu überschreiben, oder „nein“.": "Er bestaat al een invoer met bon van {0} ({1}). Antwoord \"ja\" om hem met de nieuwe bon te overschrijven, of \"nee\".",
  "Dieser Beleg ist schon eingetragen (Eintrag vom {0}: {1}). Antworte „ja“, um ihn trotzdem zu überschreiben, oder „nein“.": "Deze bon is al vastgelegd (invoer van {0}: {1}). Antwoord \"ja\" om hem toch te overschrijven, of \"nee\".",
  "Gut, der neue Beleg wurde nicht übernommen.": "Goed, de nieuwe bon is niet overgenomen.",
- "Nr.": "Nr."
+ "Nr.": "Nr.",
+ "Spalten": "Kolommen"
 }

@@ -223,7 +223,7 @@ Elektroautos funktionieren genauso wie Verbrenner; die Unterschiede im Überblic
 ## Das Panel
 
 Nach der Einrichtung erscheint das Panel in der Seitenleiste, benannt nach der Systemsprache von Home Assistant (Deutsch **„Tankbuch“**, Englisch „Fuel log“, Französisch „Carnet de carburant“ …):
-- Liste aller Tanken/Ladungen und Zubehör je Fahrzeug, Spalten verschiebbar und in der Breite änderbar.
+- Liste aller Tanken/Ladungen und Zubehör je Fahrzeug, Spalten verschiebbar und in der Breite änderbar. Der Spalten-Knopf über der Liste blendet nicht benötigte Spalten aus; die Auswahl wird pro Browser gemerkt, ein Doppelklick auf einen Spaltentrenner setzt alles zurück.
 - Kennzeichen-Darstellung (alle europäischen Länder, EU-Ring bzw. gelb für NL/GB), Fahrzeugbild und -typ in der Kopfzeile. Bei mehreren Fahrzeugen öffnet ein Klick auf den Kopfbereich (Logo, Fahrzeugtyp, Kennzeichen) einen Auswahldialog mit allen Fahrzeugen. Kennzeichen und Land stellst du in der Konfiguration des Fahrzeugs ein.
 - Belegfotos und Tacho-Fotos mit Vorschau beim Überfahren, Löschen mit Rückfrage; Foto-Upload.
 - Bearbeiten, manueller Eintrag („+“), Ort mit kleiner Google-Maps-Verknüpfung.
@@ -480,7 +480,7 @@ Electric cars work just like combustion cars; the differences at a glance:
 ## The panel
 
 After setup the panel appears in the sidebar, named after the Home Assistant system language (German **"Tankbuch"**, English "Fuel log", French "Carnet de carburant", …):
-- List of all refuellings/charges and accessories per vehicle; columns can be reordered and resized.
+- List of all refuellings/charges and accessories per vehicle; columns can be reordered and resized. The columns button (above the list) hides columns you do not need; the choice is remembered per browser, a double-click on a column divider resets everything.
 - Licence plate display (all European countries, EU ring or yellow for NL/GB), vehicle picture and type in the header. With several vehicles a click on the header area (logo, vehicle type, plate) opens a dialog to choose among all vehicles. You set the plate and its country in the vehicle's configuration.
 - Receipt and odometer photos with a preview on hover (several photos: a picker), delete with confirmation, photo upload.
 - Edit, manual entry ("+"), place with a small Google Maps link, notes as an icon.

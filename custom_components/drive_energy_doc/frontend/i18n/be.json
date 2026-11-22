@@ -162,5 +162,6 @@
  "Es gibt schon einen Beleg-Eintrag vom {0} ({1}). Antworte „ja“, um ihn mit dem neuen Beleg zu überschreiben, oder „nein“.": "Запіс з чэкам ад {0} ({1}) ужо існуе. Адкажыце «так», каб перазапісаць яго новым чэкам, або «не».",
  "Dieser Beleg ist schon eingetragen (Eintrag vom {0}: {1}). Antworte „ja“, um ihn trotzdem zu überschreiben, oder „nein“.": "Гэты чэк ужо ўнесены (запіс ад {0}: {1}). Адкажыце «так», каб усё роўна перазапісаць, або «не».",
  "Gut, der neue Beleg wurde nicht übernommen.": "Добра, новы чэк не прыняты.",
- "Nr.": "№"
+ "Nr.": "№",
+ "Spalten": "Слупкі"
 }

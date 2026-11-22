@@ -162,5 +162,6 @@
  "Es gibt schon einen Beleg-Eintrag vom {0} ({1}). Antworte „ja“, um ihn mit dem neuen Beleg zu überschreiben, oder „nein“.": "Det finns redan en post med kvitto från {0} ({1}). Svara ”ja” för att skriva över den med det nya kvittot, eller ”nej”.",
  "Dieser Beleg ist schon eingetragen (Eintrag vom {0}: {1}). Antworte „ja“, um ihn trotzdem zu überschreiben, oder „nein“.": "Det här kvittot är redan registrerat (post från {0}: {1}). Svara ”ja” för att ändå skriva över, eller ”nej”.",
  "Gut, der neue Beleg wurde nicht übernommen.": "Okej, det nya kvittot tillämpades inte.",
- "Nr.": "Nr"
+ "Nr.": "Nr",
+ "Spalten": "Kolumner"
 }

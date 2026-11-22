@@ -1,7 +1,8 @@
 /* Drive-Energy-Doc-Panel: Fahrzeug-Reiter, Tankliste mit Belegfotos, Bearbeiten, CSV-Export */
+const DEFW = { nr: 46 };   // Standardbreite einzelner Spalten in px (sonst 120 bei fester Breite)
 const COLS = ["nr", "date", "km", "station", "qty", "price", "total", "cons", "receipt", "note", "act"];
 
-const VERSION = "0.1.77b2";
+const VERSION = "0.1.77b3";
 
 class DriveEnergyDocPanel extends HTMLElement {
   set hass(h) {
@@ -32,7 +33,8 @@ class DriveEnergyDocPanel extends HTMLElement {
         if (ev.target.classList && ev.target.classList.contains("rs")) {
           this._cw = {}; this._co = null;
           this._saveCw();
-          try { localStorage.removeItem("deCo"); } catch (e) { /* ignore */ }
+          this._hide = [];
+          try { localStorage.removeItem("deCo"); localStorage.removeItem("deHide"); } catch (e) { /* ignore */ }
           this._render();
         }
       });
@@ -66,6 +68,8 @@ class DriveEnergyDocPanel extends HTMLElement {
       this.shadowRoot.addEventListener("dragend", () => { this._dragCol = null; this.shadowRoot.querySelectorAll("th.dropt").forEach(x => x.classList.remove("dropt")); });
     }
     this._tab = 0;
+    this._hide = [];
+    try { this._hide = JSON.parse(localStorage.getItem("deHide") || "[]") || []; } catch (e) { /* ignore */ }
     this._cw = {};
     this._co = null;
     try { this._co = JSON.parse(localStorage.getItem("deCo") || "null"); } catch (e) { /* ignore */ }
@@ -235,7 +239,7 @@ class DriveEnergyDocPanel extends HTMLElement {
     tbl.classList.add("fx");
     const apply = () => {
       COLS.forEach(c => { const col = root.querySelector(`col[data-c="${c}"]`); if (col) col.style.width = this._cw[c] + "px"; });
-      tbl.style.width = COLS.reduce((t, c) => t + (this._cw[c] || 120), 0) + "px";
+      tbl.style.width = [...root.querySelectorAll("col[data-c]")].reduce((t, col) => t + (this._cw[col.dataset.c] || DEFW[col.dataset.c] || 120), 0) + "px";
     };
     apply();
     const mv = e => { this._cw[key] = Math.max(36, Math.round(w0 + e.clientX - x0)); apply(); };
@@ -275,6 +279,7 @@ class DriveEnergyDocPanel extends HTMLElement {
       camera: '<path d="M4 8h3l1.5-2h7L17 8h3v11H4z"/><circle cx="12" cy="13" r="3.2"/>',
       edit: '<path d="M4 20l1-4L16.5 4.5l3 3L8 19l-4 1zM14 7l3 3"/>',
       trash: '<path d="M5 7h14M9 7V4h6v3M7 7l1 13h8l1-13M10 11v6M14 11v6"/>',
+      cols: '<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M9 4v16M15 4v16"/>',
       note: '<path d="M5 4h14v12h-9l-5 4zM8.5 8.5h7M8.5 12h5"/>',
       close: '<path d="M6 6l12 12M18 6L6 18"/>',
       warn: '<path d="M12 4l9 16H3zM12 10v5M12 17.2v.3"/>',
@@ -355,6 +360,7 @@ class DriveEnergyDocPanel extends HTMLElement {
       .lupe{position:absolute;width:76px;height:76px;left:8%;top:6%;animation:lupe 4.2s ease-in-out infinite;filter:drop-shadow(0 3px 4px #0006)}
       @keyframes lupe{0%{left:6%;top:4%}20%{left:52%;top:10%}40%{left:20%;top:34%}60%{left:56%;top:46%}80%{left:14%;top:62%}100%{left:6%;top:4%}}
       .spin{width:26px;height:26px;border:4px solid var(--divider-color);border-top-color:var(--primary-color);border-radius:50%;animation:sp 1s linear infinite}@keyframes sp{to{transform:rotate(360deg)}}
+      .ck{display:flex;align-items:center;gap:12px;padding:8px 4px;font-size:16px;cursor:pointer}.ck input{padding:0;width:20px;height:20px;border:0;background:none;accent-color:var(--primary-color)}
       .dlg textarea{font:inherit;min-height:120px;padding:8px 10px;border:1px solid var(--divider-color);border-radius:8px;background:var(--primary-background-color);color:inherit;resize:vertical}
       .dlg .big{justify-content:center;font-size:17px;padding:16px 12px}
       .dlg input{font:inherit;padding:8px 10px;border:1px solid var(--divider-color);border-radius:8px;background:var(--primary-background-color);color:inherit}
@@ -416,8 +422,8 @@ class DriveEnergyDocPanel extends HTMLElement {
     const pic = this._pic(v);
     const cw = this._cw || {};
     const fixed = COLS.some(c => cw[c]);
-    const sumW = COLS.reduce((t, c) => t + (cw[c] || 120), 0);
-    const order = this._order();
+    const order = this._order().filter(c => c === "act" || !this._hide.includes(c));   // ausgeblendete Spalten weglassen
+    const sumW = order.reduce((t, c) => t + (cw[c] || DEFW[c] || 120), 0);
     const nums = {};
     [...v.entries].filter(x => x.kind !== "extra").sort((a, b) => a.ts - b.ts).forEach((x, i) => { nums[x.id] = i + 1; });   // laufende Nummer der Tankvorgänge, ältester = 1
     const rows = v.entries.map(e => {
@@ -443,8 +449,8 @@ class DriveEnergyDocPanel extends HTMLElement {
         <div><b>${this._fmt(s.cost_12m)} €</b><span>${this.T("Kosten 12 Monate")}</span></div>
         <button class="shoot" data-act="shoot" title="${this.T("Beleg fotografieren oder hochladen")}" aria-label="${this.T("Beleg fotografieren")}">${this._ico("camera")}<span>${this.T("Beleg / km Stand fotografieren")}</span></button>
       </div>
-      <div class="bar"><button data-act="csv" title="${this.T("CSV-Export")}" aria-label="${this.T("CSV-Export")}">${this._ico("csv")}</button><button data-act="print" title="${this.T("Drucken / PDF")}" aria-label="${this.T("Drucken")}">${this._ico("print")}</button><button data-act="ori" title="${this._ori === "portrait" ? this.T("Hochformat") : this.T("Querformat")} (${this.T("zum Wechseln klicken")})" aria-label="${this.T("Seitenformat")}">${this._ico(this._ori)}</button><button data-act="rcp" title="${this.T("Belege im Druck")}: ${this._rcp ? this.T("mit") : this.T("ohne")} (${this.T("zum Wechseln klicken")})" aria-label="${this.T("Belege im Druck")}" aria-pressed="${this._rcp}">${this._ico(this._rcp ? "photo" : "photoOff")}</button><button data-act="add" title="${this.T("Eintrag von Hand hinzufügen")}" aria-label="${this.T("Eintrag von Hand")}">${this._ico("plus")}</button><span class="stat"><b>${s.count}</b><span>${this.T("Einträge")}</span></span><span class="stat"><b>${this.T({ idle: "Bereit", candidate: "Anstieg erkannt", refuelling: "Tankt" }[s.status])}</b><span>${this.T("Status")}</span></span><input type="file" id="cam" accept="image/*" capture="environment" hidden><input type="file" id="pic" accept="image/*" hidden></div>
-      <div class="wrap"><table class="${fixed ? "fx" : ""}" ${fixed ? `style="width:${sumW}px"` : ""}><colgroup>${order.map(c => `<col data-c="${c}" ${cw[c] ? `style="width:${cw[c]}px"` : ""}>`).join("")}</colgroup><thead><tr>${order.map(c => { const H = { nr: [this.T("Nr."), "n"], date: [this.T("Datum"), ""], km: [this.T("km"), "n"], station: [this.T("Tankstelle"), ""], qty: [this.T("Menge"), "n"], price: [`€/${u}`, "n"], total: [this.T("Betrag"), "n"], cons: [`${u}/100 ${this.T("km")}`, "n"], receipt: [this.T("Beleg"), ""], note: [this.T("Notiz"), ""], act: ["", ""] }[c]; return `<th data-c="${c}" class="${H[1]}" ${c === "act" ? "" : `draggable="true" title="${this.T("Auf eine andere Überschrift ziehen: Reihenfolge ändern")}"`}>${H[0]}<span class="rs" data-c="${c}" title="${this.T("Ziehen: Spaltenbreite ändern · Doppelklick: Breiten und Reihenfolge zurücksetzen")}"></span></th>`; }).join("")}</tr></thead><tbody>${rows}</tbody></table></div>
+      <div class="bar"><button data-act="csv" title="${this.T("CSV-Export")}" aria-label="${this.T("CSV-Export")}">${this._ico("csv")}</button><button data-act="print" title="${this.T("Drucken / PDF")}" aria-label="${this.T("Drucken")}">${this._ico("print")}</button><button data-act="ori" title="${this._ori === "portrait" ? this.T("Hochformat") : this.T("Querformat")} (${this.T("zum Wechseln klicken")})" aria-label="${this.T("Seitenformat")}">${this._ico(this._ori)}</button><button data-act="rcp" title="${this.T("Belege im Druck")}: ${this._rcp ? this.T("mit") : this.T("ohne")} (${this.T("zum Wechseln klicken")})" aria-label="${this.T("Belege im Druck")}" aria-pressed="${this._rcp}">${this._ico(this._rcp ? "photo" : "photoOff")}</button><button data-act="cols" title="${this.T("Spalten")}" aria-label="${this.T("Spalten")}">${this._ico("cols")}</button><button data-act="add" title="${this.T("Eintrag von Hand hinzufügen")}" aria-label="${this.T("Eintrag von Hand")}">${this._ico("plus")}</button><span class="stat"><b>${s.count}</b><span>${this.T("Einträge")}</span></span><span class="stat"><b>${this.T({ idle: "Bereit", candidate: "Anstieg erkannt", refuelling: "Tankt" }[s.status])}</b><span>${this.T("Status")}</span></span><input type="file" id="cam" accept="image/*" capture="environment" hidden><input type="file" id="pic" accept="image/*" hidden></div>
+      <div class="wrap"><table class="${fixed ? "fx" : ""}" ${fixed ? `style="width:${sumW}px"` : ""}><colgroup>${order.map(c => `<col data-c="${c}" ${cw[c] || (fixed && DEFW[c]) ? `style="width:${cw[c] || DEFW[c]}px"` : ""}>`).join("")}</colgroup><thead><tr>${order.map(c => { const H = { nr: [this.T("Nr."), "n"], date: [this.T("Datum"), ""], km: [this.T("km"), "n"], station: [this.T("Tankstelle"), ""], qty: [this.T("Menge"), "n"], price: [`€/${u}`, "n"], total: [this.T("Betrag"), "n"], cons: [`${u}/100 ${this.T("km")}`, "n"], receipt: [this.T("Beleg"), ""], note: [this.T("Notiz"), ""], act: ["", ""] }[c]; return `<th data-c="${c}" class="${H[1]}" ${c === "act" ? "" : `draggable="true" title="${this.T("Auf eine andere Überschrift ziehen: Reihenfolge ändern")}"`}>${H[0]}<span class="rs" data-c="${c}" title="${this.T("Ziehen: Spaltenbreite ändern · Doppelklick: Breiten und Reihenfolge zurücksetzen")}"></span></th>`; }).join("")}</tr></thead><tbody>${rows}</tbody></table></div>
       <div class="ver">Drive Energy Doc ${VERSION}</div>`;
     this._cur = v;
     this.setAttribute("dir", this._rtl ? "rtl" : "ltr");
@@ -497,6 +503,7 @@ class DriveEnergyDocPanel extends HTMLElement {
       try { localStorage.setItem("deOri", this._ori); } catch (e) { /* ignore */ }
       return this._render();
     }
+    if (act === "cols") return this._colsDlg(v);
     if (act === "shoot") return this._pick(v, null);
     if (act === "note") return this._noteDlg(v, v.entries.find(x => x.id === t.closest("tr").dataset.id));
     if (act === "photo") return this._pick(v, v.entries.find(x => x.id === t.closest("tr").dataset.id));
@@ -529,6 +536,32 @@ class DriveEnergyDocPanel extends HTMLElement {
       if (ev.target === dlg || ev.target.closest("[data-d]")) close();
     };
     dlg.onkeydown = ev => { if (ev.key === "Escape") close(); };
+  }
+
+  _colName(c, u) {
+    return { nr: this.T("Nr."), date: this.T("Datum"), km: this.T("km"), station: this.T("Tankstelle"), qty: this.T("Menge"), price: `€/${u}`, total: this.T("Betrag"), cons: `${u}/100 ${this.T("km")}`, receipt: this.T("Beleg"), note: this.T("Notiz") }[c] || c;
+  }
+
+  _colsDlg(v) {
+    // Spalten ein- und ausblenden (pro Browser gemerkt); die Knöpfe ganz rechts bleiben immer
+    this._pvHide();
+    const u = this.T(v.unit);
+    const dlg = document.createElement("div");
+    dlg.className = "dlg";
+    dlg.innerHTML = `<div class="card"><div class="dh">${this.T("Spalten")}</div>${this._order().filter(c => c !== "act").map(c => `<label class="ck"><input type="checkbox" data-col="${c}" ${this._hide.includes(c) ? "" : "checked"}> ${this._esc(this._colName(c, u))}</label>`).join("")}<div class="df"><button data-d="ok" class="pri">OK</button></div></div>`;
+    this.shadowRoot.appendChild(dlg);
+    this._dlg = dlg;
+    const done = () => { dlg.remove(); this._dlg = null; this._render(); };
+    dlg.onchange = ev => {
+      const cb = ev.target.closest("[data-col]");
+      if (!cb) return;
+      this._hide = this._hide.filter(x => x !== cb.dataset.col);
+      if (!cb.checked) this._hide.push(cb.dataset.col);
+      try { localStorage.setItem("deHide", JSON.stringify(this._hide)); } catch (e) { /* ignore */ }
+    };
+    dlg.onclick = ev => { ev.stopPropagation(); if (ev.target === dlg || ev.target.closest("[data-d=ok]")) done(); };
+    dlg.onkeydown = ev => { if (ev.key === "Escape" || ev.key === "Enter") done(); };
+    dlg.querySelector("[data-d=ok]").focus();
   }
 
   _noteDlg(v, e) {
