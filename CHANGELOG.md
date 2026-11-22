@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.1.73
+- Panel: Fotoauswahl erscheint beim Überfahren des Bildes (ohne Zähler-Symbol).
+
 ## 0.1.72
 - Fahrzeug: Füllstand-, Kilometerstand- und GPS-Sensor sind optional (reiner Foto-Betrieb); Belege ohne passenden Eintrag legen dann automatisch einen neuen an.
 

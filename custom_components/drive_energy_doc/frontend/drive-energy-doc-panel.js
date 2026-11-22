@@ -1,7 +1,7 @@
 /* Drive-Energy-Doc-Panel: Fahrzeug-Reiter, Tankliste mit Belegfotos, Bearbeiten, CSV-Export */
 const COLS = ["date", "km", "station", "qty", "price", "total", "cons", "receipt", "note", "act"];
 
-const VERSION = "0.1.72";
+const VERSION = "0.1.73";
 
 class DriveEnergyDocPanel extends HTMLElement {
   set hass(h) {
@@ -19,11 +19,11 @@ class DriveEnergyDocPanel extends HTMLElement {
       // Beleg beim Darüberfahren vergrößern (Maus/Stift; am Handy gibt es den Foto-Viewer per Tipp)
       this.shadowRoot.addEventListener("pointerover", ev => {
         const t = ev.target;
-        if (ev.pointerType !== "touch" && t.classList && t.classList.contains("multi")) this._selShow(t);
+        if (ev.pointerType !== "touch" && t.dataset && t.dataset.multi) this._selShow(t);
         else if (ev.pointerType !== "touch" && t.classList && t.classList.contains("thumb")) this._pvShow(t, ev);
       });
       this.shadowRoot.addEventListener("pointerout", ev => {
-        if (ev.pointerType === "touch" || !ev.target.classList || !ev.target.classList.contains("multi")) return;
+        if (ev.pointerType === "touch" || !ev.target.dataset || !ev.target.dataset.multi) return;
         setTimeout(() => { const pop = this.shadowRoot.querySelector(".pop.sel"); if (pop && !pop.matches(":hover")) pop.remove(); }, 450);
       });
       this.shadowRoot.addEventListener("pointermove", ev => { if (this._pvEl && ev.pointerType !== "touch") this._pvMove(ev); });
@@ -369,7 +369,7 @@ class DriveEnergyDocPanel extends HTMLElement {
         price: `<td class="n">${this._fmt(e.unit_price, 3)}<div class="src">${this._esc(e.price_source || "")}</div></td>`,
         total: `<td class="n">${this._fmt(e.total)} €</td>`,
         cons: `<td class="n">${e.consumption != null ? this._fmt(e.consumption) : "–"}</td>`,
-        receipt: (() => { const ph = e.photo_urls || [], im = (p, k) => `<img class="${k}" src="${p}" data-p="${p}" data-entry="${e.id}" data-name="${this._esc((e.photos || [])[ph.indexOf(p)] || "")}" alt="${ph.indexOf(p) === 0 && e.receipt ? "Beleg" : "Zusatzfoto"}">`; return `<td>${ph.length ? im(ph[0], "thumb") : ""}${ph.length > 1 ? `<span class="multi" data-multi="${e.id}" tabindex="0" role="button" title="${ph.length} Fotos: auswählen" aria-label="Fotos auswählen">${ph.length}</span>` : ""}${e.receipt ? "" : `<span class="no" title="Beleg fehlt">${this._ico("warn")}</span>`}</td>`; })(),
+        receipt: (() => { const ph = e.photo_urls || [], im = (p, k) => `<img class="${k}" src="${p}" data-p="${p}" data-entry="${e.id}" data-name="${this._esc((e.photos || [])[ph.indexOf(p)] || "")}"${ph.length > 1 && k === "thumb" ? ` data-multi="${e.id}"` : ""} alt="${ph.indexOf(p) === 0 && e.receipt ? "Beleg" : "Zusatzfoto"}">`; return `<td>${ph.length ? im(ph[0], "thumb") : ""}${e.receipt ? "" : `<span class="no" title="Beleg fehlt">${this._ico("warn")}</span>`}</td>`; })(),
         note: `<td>${e.note ? `<span class="notei" data-note="${this._esc(e.note)}" title="${this._esc(e.note)}" tabindex="0" role="button" aria-label="Notiz anzeigen">${this._ico("note")}</span>` : ""}</td>`,
         act: `<td><button data-act="photo" title="Foto zu diesem Eintrag" aria-label="Foto hinzufügen">${this._ico("camera")}</button> <button data-act="edit" title="Bearbeiten" aria-label="Bearbeiten">${this._ico("edit")}</button> <button data-act="del" title="Eintrag löschen" aria-label="Eintrag löschen">${this._ico("trash")}</button></td>`,
       };
