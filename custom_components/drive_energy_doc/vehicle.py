@@ -628,7 +628,8 @@ class Vehicle:
             target = self._entry_on(d)
             if not target and photo_only:
                 target = self._new_manual_entry()
-                target["ts"] = target["ts_start"] = dt_util.start_of_local_day(d).timestamp() + 12 * 3600
+                hm = values.get("time")
+                target["ts"] = target["ts_start"] = dt_util.start_of_local_day(d).timestamp() + ((hm[0] * 3600 + hm[1] * 60) if hm else 12 * 3600)
                 self.data["entries"].append(target)
                 self.data["entries"].sort(key=lambda x: x["ts"])
             if not target:
@@ -671,6 +672,10 @@ class Vehicle:
             entry["total"] = round(entry["quantity"] * entry["unit_price"], 2)
         if t and q and not p:
             entry["unit_price"], entry["price_source"] = round(t / q, 3), "beleg"
+        if values.get("station"):
+            entry["station"] = values["station"]  # Name und Anschrift vom Beleg gehen vor (genauer als die Suche nach der nächsten Tankstelle)
+            if values.get("address"):
+                entry["address"] = values["address"]
         if values.get("odometer"):
             entry["odometer"] = float(values["odometer"])  # Kilometerstand vom Beleg ist genauer als der beim Erkennen
         if q or p or t:

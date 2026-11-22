@@ -42,6 +42,18 @@ def parse_date_hint(text: str, today: date | None = None) -> date | None:
         return None
 
 
+def parse_time(text: str) -> tuple[int, int] | None:
+    """'08:24' oder '8.24 Uhr' -> (8, 24), sonst None."""
+    m = re.search(r"(?<!\d)([01]?\d|2[0-3])[:.]([0-5]\d)(?!\d)", text or "")
+    return (int(m.group(1)), int(m.group(2))) if m else None
+
+
+def clean_text(value, limit: int) -> str | None:
+    """Text von der KI: Zeilenumbrüche zu Leerzeichen, gekürzt; leer/„null“ -> None."""
+    s = re.sub(r"\s+", " ", str(value or "")).strip(" ,;")
+    return s[:limit] if s and s.lower() not in ("null", "none", "n/a", "-") else None
+
+
 def parse_text(text: str) -> dict[str, Any] | None:
     """'45,93 105,13' (Menge Betrag) oder '45,93 2,289 105,13' (Menge Preis Betrag), Datum optional davor."""
     clean = _DATE.sub(" ", text or "")
@@ -116,12 +128,15 @@ STRUCTURE = {
     "total": {"description": "Gesamtbetrag in EUR als Zahl", "required": False, "selector": {"number": {"mode": "box", "step": "any"}}},
     "odometer": {"description": "Kilometerstand des Fahrzeugs als Zahl, falls auf dem Beleg", "required": False, "selector": {"number": {"mode": "box", "step": "any"}}},
     "date": {"description": "Datum des Tankvorgangs als DD.MM.YYYY, leer wenn nicht lesbar", "required": False, "selector": {"text": {}}},
+    "time": {"description": "Uhrzeit des Tankvorgangs als HH:MM, leer wenn nicht lesbar", "required": False, "selector": {"text": {}}},
+    "station": {"description": "Name der Tankstelle bzw. des Händlers, wie oben auf dem Beleg gedruckt, leer wenn nicht lesbar", "required": False, "selector": {"text": {}}},
+    "address": {"description": "Anschrift der Tankstelle einzeilig (Straße Hausnummer, PLZ Ort), wie auf dem Beleg gedruckt, leer wenn nicht lesbar", "required": False, "selector": {"text": {}}},
     "crop": {"description": "Begrenzungsrahmen des Belegs bzw. der Anzeige im Bild: vier Zahlen von 0 bis 1000 durch Komma in der Reihenfolge ymin,xmin,ymax,xmax (Anteile von Bildhöhe und Bildbreite). IMMER angeben, auch wenn der Beleg fast das ganze Bild füllt; nur das Papier bzw. die Anzeige, ohne Tisch oder Hintergrund.", "required": False, "selector": {"text": {}}},
 }
 
 INSTRUCTIONS = (
     "Das Bild zeigt einen Tankbeleg oder eine Zapfsäulen-/Ladesäulenanzeige. "
-    "Lies die getankte Menge, den Preis pro Einheit, den Gesamtbetrag, den Kilometerstand und, falls sichtbar, das Datum. "
+    "Lies die getankte Menge, den Preis pro Einheit, den Gesamtbetrag, den Kilometerstand und, falls sichtbar, Datum und Uhrzeit sowie den Namen und die Anschrift der Tankstelle bzw. des Händlers (steht meist oben auf dem Beleg). "
     "Zeigt das Bild ein Kombiinstrument (Tacho), lies den Gesamtkilometerstand (odometer), nicht den Tageskilometerzähler. Gib nur Werte zurück, die du sicher lesen kannst; sonst lass das Feld leer. Rate nicht. Gib aber immer den Bildausschnitt (crop) an, der nur den Beleg zeigt."
 )
 
@@ -169,7 +184,7 @@ async def ai_read(hass, entity_id: str, image: bytes, media_dir: Path) -> dict[s
         except (TypeError, ValueError):
             return None
 
-    out = {"quantity": num("quantity"), "unit_price": num("unit_price"), "total": num("total"), "odometer": num("odometer"), "date": parse_date_hint(str(data.get("date") or "")), "crop": None}
+    out = {"quantity": num("quantity"), "unit_price": num("unit_price"), "total": num("total"), "odometer": num("odometer"), "date": parse_date_hint(str(data.get("date") or "")), "time": parse_time(str(data.get("time") or "")), "station": clean_text(data.get("station"), 60), "address": clean_text(data.get("address"), 120), "crop": None}
     box = [int(float(x)) for x in re.findall(r"\d+(?:\.\d+)?", str(data.get("crop") or ""))]
     if len(box) == 4 and box[2] > box[0] and box[3] > box[1] and all(0 <= b <= 1000 for b in box):
         out["crop"] = box

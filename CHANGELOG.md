@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.1.75b25 (unveröffentlicht)
+- Beleg per KI: Name und Anschrift der Tankstelle sowie die Uhrzeit werden mitgelesen und in den Eintrag übernommen (bisher blieb die Tankstelle leer, die Zeit stand auf 12:00).
+
 ## 0.1.75b24 (unveröffentlicht)
 - Panel: Der Warte-Dialog zeigt den Beleg, der gerade gelesen wird, mit einer wandernden Lupe.
 

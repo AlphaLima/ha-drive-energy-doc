@@ -97,6 +97,12 @@ def test_keywords_all_languages():
     assert messages.tr("en", "Speichern") == "Save" and messages.tr("de", "Speichern") == "Speichern"
     assert messages.tr("xx", "Foto {0}", 3) == "Photo 3"   # unbekannte Sprache: Englisch
 
+def test_time_and_text_from_ai():
+    assert r.parse_time("08:24") == (8, 24) and r.parse_time("8.24 Uhr") == (8, 24) and r.parse_time("25:99") is None and r.parse_time("") is None
+    assert r.clean_text("Kuster Energy
+ Tankstelle ", 60) == "Kuster Energy Tankstelle" and r.clean_text("null", 10) is None and r.clean_text(None, 10) is None
+
+
 for n, f in list(globals().items()):
     if n.startswith("test_"):
         f(); print("ok", n)
