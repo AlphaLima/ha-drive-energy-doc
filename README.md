@@ -185,8 +185,10 @@ Dann *Einstellungen → Geräte & Dienste → Integration hinzufügen → Drive 
 
 1. **Globale Einstellungen** anlegen: Preisquelle (automatisch nach Land oder fest), Tankerkönig-Schlüssel (nur für Deutschland),
    Strompreis, KI (leer = Gemini automatisch, sonst eine `ai_task`-Entität), Telegram-/WhatsApp-Zugänge.
-2. **Fahrzeug hinzufügen:** Name, Energieart (Diesel/E5/E10/Elektro), **Füllstand-Sensor (in %)**, Kilometerstand-Sensor,
-   `device_tracker`, Tankvolumen bzw. Akkukapazität. Optional: Kennzeichen, Land, Fahrzeugtyp, Fahrzeugbild, Telegram-Chat.
+2. **Fahrzeug hinzufügen:** Pflicht sind nur Name, Energieart (Diesel/E5/E10/Elektro) und Tankvolumen bzw. Akkukapazität.
+   **Optional:** Füllstand-Sensor (in %), Kilometerstand-Sensor, `device_tracker`. Ohne diese Sensoren gibt es keine automatische
+   Erkennung; Einträge entstehen dann nur per Foto/Text oder im Panel, und jeder Beleg ohne passenden Eintrag legt automatisch
+   einen neuen an (reiner Foto-Betrieb). Ebenfalls optional: Kennzeichen, Land, Fahrzeugtyp, Fahrzeugbild, Telegram-Chat.
 3. Schwellwerte (5 %, 60 s, 250 m) und Nachrichtenkanäle sind je Fahrzeug unter *Konfigurieren* änderbar.
 
 Voraussetzungen: Home Assistant ab 2025.8; für das Lesen von Belegen eine `ai_task`-Integration (Gemini, OpenAI, Anthropic …).
