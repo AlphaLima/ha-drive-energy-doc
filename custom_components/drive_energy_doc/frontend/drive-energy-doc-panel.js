@@ -1,7 +1,7 @@
 /* Drive-Energy-Doc-Panel: Fahrzeug-Reiter, Tankliste mit Belegfotos, Bearbeiten, CSV-Export */
 const COLS = ["date", "km", "station", "qty", "price", "total", "cons", "receipt", "note", "act"];
 
-const VERSION = "0.1.75b7";
+const VERSION = "0.1.75b8";
 
 class DriveEnergyDocPanel extends HTMLElement {
   set hass(h) {
@@ -70,10 +70,10 @@ class DriveEnergyDocPanel extends HTMLElement {
     this._co = null;
     try { this._co = JSON.parse(localStorage.getItem("deCo") || "null"); } catch (e) { /* ignore */ }
     try { this._cw = JSON.parse(localStorage.getItem("deCw") || "{}") || {}; } catch (e) { /* ignore */ }
-    this._ori = "landscape";
+    this._ori = "portrait";
     this._rcp = true;
     try { if (localStorage.getItem("deRcp") === "0") this._rcp = false; } catch (e) { /* ignore */ }
-    try { if (localStorage.getItem("deOri") === "portrait") this._ori = "portrait"; } catch (e) { /* ignore */ }
+    try { if (localStorage.getItem("deOri") === "landscape") this._ori = "landscape"; } catch (e) { /* ignore */ }
     this._render();
     this._timer = setInterval(() => this._load(), 60000);
   }
@@ -300,8 +300,8 @@ class DriveEnergyDocPanel extends HTMLElement {
       .sum{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:12px}
       .sum div{background:var(--card-background-color);border-radius:10px;padding:10px 14px;min-width:120px}
       .sum b{display:block;font-size:20px}
-      .sum .shoot{flex:0 1 auto;min-width:120px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;background:var(--primary-color);color:var(--text-primary-color,#fff);border:0;border-radius:10px;padding:10px 18px;font:inherit;cursor:pointer}
-      .sum .shoot .ico{width:34px;height:34px}.sum .shoot span{font-size:13px;color:inherit}
+      .sum .shoot{flex:0 1 auto;min-width:120px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;background:var(--primary-color);color:var(--text-primary-color,#fff);border:0;border-radius:10px;padding:10px 18px;font:inherit;cursor:pointer;min-height:104px}
+      .sum .shoot .ico{width:44px;height:44px}.sum .shoot span{font-size:13px;color:inherit}
       .stat{margin-left:auto;align-self:center;padding:6px 12px;font-size:14px;color:var(--secondary-text-color);white-space:nowrap}.stat b{color:var(--primary-text-color);font-weight:500}
       .sum span{font-size:12px;color:var(--secondary-text-color)}
       .wrap{overflow:auto;background:var(--card-background-color);border-radius:10px}
@@ -352,7 +352,7 @@ class DriveEnergyDocPanel extends HTMLElement {
       @media(max-width:700px){
         :host{padding:8px}
         .head{gap:8px}
-        .sum{gap:6px;margin-bottom:8px}.sum div,.sum .shoot{flex:1 1 40%;min-width:0;padding:6px 10px}.sum b{font-size:16px}
+        .sum{gap:6px;margin-bottom:8px}.sum div,.sum .shoot{flex:1 1 40%;min-width:0;padding:6px 10px}.sum .shoot{min-height:84px}.sum b{font-size:16px}
         .bar{margin-bottom:8px}
         .wrap{background:none;overflow:visible}
         table,table.fx{display:block;width:100%!important}

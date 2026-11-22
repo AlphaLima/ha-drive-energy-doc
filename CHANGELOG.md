@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.1.75b8 (unveröffentlicht)
+- Panel: Druck-Standard ist jetzt Hochformat; der Foto-Knopf ist höher.
+
 ## 0.1.75b7 (unveröffentlicht)
 - Panel: großer Foto-Knopf („Beleg fotografieren“) als Kachel neben den Kennzahlen; der Status steht jetzt in der Knopfleiste.
 
