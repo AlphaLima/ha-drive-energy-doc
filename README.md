@@ -51,6 +51,10 @@ Alles landet in einer Liste im Seitenmenü (mit CSV- und PDF-Druck).
 </tr>
 </table>
 
+**Mehrere Fotos auf einmal:** Über den Foto-Knopf lassen sich mehrere Bilder in einem Rutsch auswählen (Belege und Tacho-Fotos gemischt, in beliebiger Reihenfolge). Sie werden nacheinander verarbeitet, der Fortschrittsdialog zeigt alle Fotos mit Haken für die fertigen, Zähler und Balken; **Abbrechen** stoppt den ganzen Stapel. Rückfragen zu Kilometerstand und Verbrauch gibt es dabei nicht mitten drin: Tacho-Foto und Beleg werden über Aufnahmezeit (EXIF) und Kilometerstand einander zugeordnet, und am Ende zeigt eine Übersicht alle Ergebnisse samt Warnungen.
+
+<p align="center"><img src="docs/panel-stapel.png" alt="Stapelverarbeitung: 8 von 40 Fotos" width="320"><br><sub>Stapelverarbeitung: 8 von 40 Fotos, fertige mit Haken, Fortschrittsbalken und Abbrechen</sub></p>
+
 ## Wozu das Ganze? Der Sinn des Tankbuches
 
 Ein Fahrtenbuch/Tankbuch beantwortet Fragen, die man sonst nur schätzt:
@@ -159,9 +163,41 @@ Umkreis von 400 m** und nimmt den Preis der gewählten Kraftstoffart (Diesel, E5
 | Deutschland | Tankerkönig | persönlicher, kostenloser API-Schlüssel |
 | Österreich | E-Control | keiner nötig |
 | Frankreich | prix-carburants (data.gouv.fr) | keiner nötig |
+| Spanien | MINETUR / MITECO (Ministerium) | keiner nötig |
+| Italien | MIMIT Osservaprezzi (Open Data) | keiner nötig |
 
 Die Quelle richtet sich nach dem Land der Position (oder fest gewählt). Ohne jede Quelle funktioniert alles weiter; dann kommt der Preis
 vom Beleg. **Elektro:** fester Preis je kWh oder ein Sensor/Helfer, der den Strompreis liefert (z. B. dynamischer Tarif).
+
+### Länder mit Preisportalen: unterstützt und nicht unterstützt
+
+Stand der Recherche: November 2026. Ein offizielles europaweites Portal mit Preisen **pro Tankstelle** gibt es nicht; die EU veröffentlicht nur
+Durchschnittswerte. Jedes Land stellt seine Daten einzeln bereit, mit eigenem Format und eigenen Bedingungen.
+
+**Unterstützt**
+
+| Land | Quelle | Vorteile | Nachteile |
+|---|---|---|---|
+| Deutschland | Tankerkönig | Preis je Tankstelle, nahe Echtzeit, Marke und Adresse | persönlicher, kostenloser Schlüssel nötig; die Weitergabe von Echtzeitdaten an Dritte ist genehmigungspflichtig (für die private Nutzung im eigenen Home Assistant unkritisch) |
+| Österreich | E-Control Spritpreisrechner | amtlich, kein Schlüssel, Preis je Tankstelle, geschlossene Tankstellen werden ausgelassen | nur Österreich; Aktualisierungsrhythmus nicht geprüft |
+| Frankreich | prix-carburants (data.gouv.fr), „flux instantané“ | amtlich, kein Schlüssel, alle Tankstellen | liefert keinen Stationsnamen, nur die Adresse; Öffnungszeiten werden nicht geprüft |
+| Spanien | MINETUR / MITECO (Ministerium) | amtlich, kein Schlüssel, laut Quelle stündlich aktualisiert, mit Markenname und Adresse | große Landesdatei (ca. 12 MB), erster Abruf rund 25 Sekunden (danach 30 Minuten im Zwischenspeicher); der Server verlangt eine ältere TLS-Einstellung (nur für diese Abfrage gesetzt); Öffnungszeiten werden nicht geprüft |
+| Italien | MIMIT Osservaprezzi (Open Data, Lizenz IODL 2.0) | amtlich, kein Schlüssel, alle Tankstellen mit Koordinaten, Self-Service-Preis wird bevorzugt | Preise gelten als Stand 8 Uhr, nicht live; als „experimentell“ eingestuft, das Format kann sich ändern (das Trennzeichen wurde im Februar 2026 geändert); zwei Dateien (ca. 7 MB); Öffnungszeiten werden nicht geprüft |
+
+**Nicht unterstützt**
+
+| Land | Befund | Möglichkeit |
+|---|---|---|
+| Niederlande | Offiziell nur Durchschnittspreise vom Statistikamt CBS, keine Preise je Tankstelle. Drittanbieter nicht geprüft. | nur Beleg-Foto |
+| Belgien | Keine offene Schnittstelle je Tankstelle gefunden. Es gibt amtliche Höchstpreise (nicht geprüft). | nur Beleg-Foto |
+| Luxemburg | Das Wirtschaftsministerium setzt einen **landesweit einheitlichen Höchstpreis** je Kraftstoff. | ein Landespreis wäre möglich, noch nicht eingebaut |
+| Portugal | Portal der DGEG (nur Festland). Keine dokumentierte offizielle Schnittstelle; ein Endpunkt ist nur aus Drittprojekten bekannt und kann sich ändern. | unsicher, nicht eingebaut |
+| Dänemark, Zypern, Slowenien, Rumänien | Nach Angaben von Dritten offen oder neu verpflichtend, nicht bestätigt. | noch zu prüfen |
+| Tschechien, Finnland, Griechenland, Polen, Ungarn, Schweiz | Nichts Brauchbares gefunden. | noch zu prüfen |
+
+**Ohne Preisquelle** funktioniert alles weiter: Das Beleg-Foto liefert Tankstelle, Anschrift, Menge, Preis und Summe in jedem Land. Die Preisquelle
+betrifft nur Fahrzeuge, die den Tankvorgang selbst erkennen (Füllstand und GPS). Weitere Länder sind als Beitrag willkommen: Ein Anbieter ist eine
+Funktion in `price.py` plus Eintrag in `PROVIDERS` und `BY_COUNTRY`.
 
 **Der Beleg hat immer Vorrang.** Menge, Preis und Summe vom Beleg überschreiben die geschätzten Werte. Ein Eintrag ist erst dann
 als „Beleg geprüft“ markiert, wenn mindestens Menge, Preis oder Summe vom Beleg kamen.
@@ -345,6 +381,10 @@ Everything ends up in one list in the sidebar (with CSV and PDF printing).
 </tr>
 </table>
 
+**Several photos at once:** The photo button lets you pick several images in one go (receipts and odometer photos mixed, in any order). They are processed one after the other; the progress dialog shows all photos with a tick for the finished ones, a counter and a bar; **Cancel** stops the whole batch. There are no follow-up questions about mileage or consumption in the middle: odometer photo and receipt are matched by capture time (EXIF) and mileage, and a summary at the end shows all results including warnings.
+
+<p align="center"><img src="docs/panel-stapel.png" alt="Batch processing: 8 of 40 photos" width="320"><br><sub>Batch processing: 8 of 40 photos, finished ones ticked, progress bar and cancel button</sub></p>
+
 ## What is it for?
 
 A fuel log answers questions you would otherwise only guess:
@@ -431,8 +471,40 @@ The detection is a small state machine. It runs on every change of the **level s
 | Germany | Tankerkönig | personal, free API key |
 | Austria | E-Control | none needed |
 | France | prix-carburants (data.gouv.fr) | none needed |
+| Spain | MINETUR / MITECO (ministry) | none needed |
+| Italy | MIMIT Osservaprezzi (open data) | none needed |
 
 The source depends on the country of the position (or is fixed by choice). Without any source everything still works; the price then comes from the receipt. **Electric:** a fixed price per kWh or a sensor/helper that supplies the electricity price (e.g. a dynamic tariff).
+
+### Countries with price portals: supported and not supported
+
+State of the research: November 2026. There is no official Europe-wide portal with prices **per station**; the EU only publishes averages.
+Each country provides its data separately, in its own format and under its own terms.
+
+**Supported**
+
+| Country | Source | Advantages | Disadvantages |
+|---|---|---|---|
+| Germany | Tankerkönig | price per station, near real time, brand and address | personal free key required; passing real-time data on to third parties needs approval (not an issue for private use in your own Home Assistant) |
+| Austria | E-Control fuel price calculator | official, no key, price per station, closed stations are skipped | Austria only; update interval not checked |
+| France | prix-carburants (data.gouv.fr), "flux instantané" | official, no key, all stations | no station name, only the address; opening hours are not checked |
+| Spain | MINETUR / MITECO (ministry) | official, no key, updated hourly according to the source, with brand and address | large national file (about 12 MB), the first call takes about 25 seconds (then cached for 30 minutes); the server needs an older TLS setting (applied for this request only); opening hours are not checked |
+| Italy | MIMIT Osservaprezzi (open data, licence IODL 2.0) | official, no key, all stations with coordinates, self-service price preferred | prices are as of 8 a.m., not live; marked "experimental", the format may change (the separator changed in February 2026); two files (about 7 MB); opening hours are not checked |
+
+**Not supported**
+
+| Country | Finding | Option |
+|---|---|---|
+| Netherlands | Officially only average prices from the statistics office CBS, no prices per station. Third-party services not checked. | receipt photo only |
+| Belgium | No open per-station interface found. Official maximum prices exist (not checked). | receipt photo only |
+| Luxembourg | The Ministry of the Economy sets a **single nationwide maximum price** per fuel. | one national price would be possible, not built yet |
+| Portugal | DGEG portal (mainland only). No documented official interface; one endpoint is only known from third-party projects and may change. | uncertain, not built |
+| Denmark, Cyprus, Slovenia, Romania | Open or newly mandatory according to third parties, not confirmed. | still to be checked |
+| Czech Republic, Finland, Greece, Poland, Hungary, Switzerland | Nothing usable found. | still to be checked |
+
+**Without a price source** everything keeps working: the receipt photo supplies station, address, quantity, price and total in every country. The
+price source only matters for vehicles that detect refuelling themselves (level and GPS). More countries are welcome as contributions: a provider is a
+function in `price.py` plus an entry in `PROVIDERS` and `BY_COUNTRY`.
 
 **The receipt always wins.** Quantity, price and total from the receipt overwrite the estimated values. An entry is only marked as "receipt checked" when at least quantity, price or total came from the receipt.
 

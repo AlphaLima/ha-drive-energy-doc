@@ -1,6 +1,15 @@
 # Changelog
 
 ## 0.1.78 (in Arbeit)
+- Im Zweifel wird ein aus einem Foto gelesener Kilometerstand weggelassen, ohne Rückfrage: passt er nicht zum Eintrag, liegt er unter dem vorigen Stand oder ergibt er einen unplausiblen Verbrauch, bleibt das Tacho-Foto als Zusatzfoto am Eintrag, der Kilometerstand bleibt leer (Beleg: Beleg wird übernommen, der Stand nicht). Nachgefragt wird nur noch bei von Hand getippten Ständen.
+- Stapel-Upload: Die Fotos werden chronologisch nach Aufnahmezeit (EXIF, sonst Änderungsdatum der Datei) verarbeitet, nicht nach Dateiname oder Auswahlreihenfolge; Kameras vergeben Dateinamen beliebig.
+- Robustere Kilometerstand-Erkennung: Der KI-Auftrag verlangt für Belege eine ausdrücklich beschriftete Zeile (Belegnummer, Säulen-, Kartennummer zählen nicht). Ein gelesener Stand wird gegen die Reihenfolge der Einträge geprüft (nicht unter dem vorigen, nicht über dem nächsten, höchstens 5000 km Sprung, höchstens sechs Stellen) und sonst ignoriert. Beim Start werden unmögliche, nicht von Hand gesetzte Stände aus älteren Fassungen entfernt.
+- Neue Preisquellen für Kraftstoff: **Spanien** (MINETUR) und **Italien** (MIMIT Osservaprezzi), ohne Schlüssel, automatisch nach Land. Die Landesdateien werden höchstens alle 30 Minuten geladen. Spanien braucht für die Verbindung eine ältere TLS-Einstellung (nur für diese Abfrage).
+- Stapel-Upload: Plausibilitätsprüfung und Rückfragen zum Kilometerstand erst am Ende (Übersicht mit Warnungen), Abbrechen-Knopf im Fortschrittsdialog, Fotos werden nach Aufnahmezeit (EXIF) zugeordnet, Fortschrittsdialog bleibt beim Neuladen erhalten.
+- Ein gemerktes unlesbares Foto blockiert nicht mehr jeden weiteren Upload.
+- Fotos aus dem Panel werden nach ihrer Aufnahmezeit (EXIF) zugeordnet, nicht nach dem Upload-Zeitpunkt: ein später hochgeladenes Tacho-Foto landet beim richtigen Tankvorgang. Telegram/WhatsApp entfernen EXIF, dort gilt weiter die Nachrichtenzeit. Die Testbilder tragen jetzt die Tankzeit im EXIF.
+- Unlesbares Foto: Rückfrage nach dem Kilometerstand statt stilles Anhängen an den letzten Eintrag.
+- Panel: großer Korrektur-/Eintrag-von-Hand-Dialog mit allen Feldern; Tacho-Rückfrage mit „Neuer Eintrag“ als Standard.
 - Panel: Ergebnisdialog mit festen Antwort-Knöpfen: Nur der Text darüber scrollt, die Knöpfe bleiben immer erreichbar (auch am Handy); lange Rückfragen stehen unter dem Bild.
 - Tacho-Foto mit unplausiblem Verbrauch: In der Rückfrage gibt es zusätzlich „Neuer Eintrag“ (Panel-Knopf bzw. Antwort „neu“), wenn das Foto zu keinem vorhandenen Tankvorgang gehört.
 - Panel: Der Fortschrittsdialog bei mehreren Fotos zeigt alle Fotos als Leiste (fertige mit Haken, aktuelles hervorgehoben), den Zähler „(2 / 3)“ und einen Fortschrittsbalken; Vorschau und Zähler wechseln mit jedem Foto.

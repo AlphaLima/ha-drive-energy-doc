@@ -72,6 +72,18 @@ def test_match_odometer():
     assert nearest["entry"]["ts"] == 2000                                            # der zeitlich nächste
 
 
+def test_km_plausible():
+    es = [e(1000, 61000, 40), e(2000, 61700, 40), e(3000, 62400, 40)]
+    assert st.km_plausible(es, 62400 + 700, 4000)                 # nächster Tankstand
+    assert not st.km_plausible(es, 1192877, 4000)                 # sieben Stellen: Belegnummer
+    assert not st.km_plausible(es, 163241, 4000)                  # Sprung über 5000 km
+    assert not st.km_plausible(es, 61100, 4000)                   # weit unter dem vorigen Stand
+    assert st.km_plausible(es, 61350, 1500)                       # zwischen zwei Einträgen
+    assert not st.km_plausible(es, 62000, 1500)                   # über dem nächsten Eintrag
+    assert st.km_plausible(es, 54000, None) and not st.km_plausible(es, 200000, None)   # ohne Datum: Abstand zum Mittelwert
+    assert st.km_plausible([], 5000, 100) and not st.km_plausible([], 0, 100)
+
+
 for n, fn in list(globals().items()):
     if n.startswith("test_"):
         fn(); print("ok", n)

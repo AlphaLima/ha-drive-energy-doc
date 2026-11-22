@@ -66,7 +66,7 @@ def s_settings(d: dict, hass: HomeAssistant) -> vol.Schema:
     return vol.Schema(
         {
             vol.Required(CONF_CHANNELS, default=d.get(CONF_CHANNELS, ["companion"])): sel.SelectSelector(sel.SelectSelectorConfig(options=CHANNELS, multiple=True, translation_key="channels")),
-            vol.Required(CONF_PRICE_PROVIDER, default=d.get(CONF_PRICE_PROVIDER, "auto")): sel.SelectSelector(sel.SelectSelectorConfig(options=["auto", "none", "tankerkoenig", "econtrol_at", "prix_fr"], translation_key="provider")),
+            vol.Required(CONF_PRICE_PROVIDER, default=d.get(CONF_PRICE_PROVIDER, "auto")): sel.SelectSelector(sel.SelectSelectorConfig(options=["auto", "none", "tankerkoenig", "econtrol_at", "prix_fr", "minetur_es", "mimit_it"], translation_key="provider")),
             _text(CONF_EL_PRICE, d): str,
             _text(CONF_AI_TASK, d, default=default_ai_entity(hass)): _ent(["ai_task"]),
         }

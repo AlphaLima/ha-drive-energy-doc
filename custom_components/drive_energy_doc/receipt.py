@@ -126,7 +126,7 @@ STRUCTURE = {
     "quantity": {"description": "Amount of fuel (litres) or energy (kWh) as a number, dot as decimal separator", "required": False, "selector": {"number": {"mode": "box", "step": "any"}}},
     "unit_price": {"description": "Price per litre or per kWh as a number (currency of the receipt, normally EUR)", "required": False, "selector": {"number": {"mode": "box", "step": "any"}}},
     "total": {"description": "Total amount paid as a number", "required": False, "selector": {"number": {"mode": "box", "step": "any"}}},
-    "odometer": {"description": "Odometer reading in km as a number (total distance, not the trip meter), only if shown", "required": False, "selector": {"number": {"mode": "box", "step": "any"}}},
+    "odometer": {"description": "Total odometer reading in km as a number (NOT the trip meter). Two cases: (1) a photo of a car instrument cluster or dashboard: read the digit display of the odometer (usually 5-6 digits, often marked total or km), no text label is needed; (2) a receipt: only if a line is explicitly labelled Kilometerstand, km-Stand, Odometer, Mileage or Compteur - never a receipt number, pump number, card number, customer number, phone number, date or time. Empty if neither case applies.", "required": False, "selector": {"number": {"mode": "box", "step": "any"}}},
     "date": {"description": "Date of the transaction as DD.MM.YYYY, empty if not readable", "required": False, "selector": {"text": {}}},
     "time": {"description": "Time of the transaction as HH:MM (24 hours), empty if not readable", "required": False, "selector": {"text": {}}},
     "station": {"description": "Name of the filling station or merchant as printed at the top of the receipt, empty if not readable", "required": False, "selector": {"text": {}}},
@@ -136,12 +136,14 @@ STRUCTURE = {
 
 # Anweisung auf Englisch: funktioniert mit allen KI-Anbietern zuverlässiger, die Belege selbst dürfen in jeder Sprache sein
 INSTRUCTIONS = (
-    "The image shows a fuel or EV-charging receipt, a pump or charger display, or a car instrument cluster. "
+    "The image shows ONE of these: (A) a fuel or EV-charging receipt or a pump/charger display, or (B) a photo of a car instrument cluster or dashboard. "
     "The text may be in any language (German, French, Dutch, Polish, Italian, Spanish, and so on). "
-    "Extract: the amount of fuel or energy (litres or kWh; on receipts often labelled Volumen, Menge, Liter, Volume, Quantité, Quantity); "
-    "the price per unit; the total amount paid (Summe, Betrag, Total, Montant); the odometer reading if it is printed on the receipt (Kilometerstand, km); "
-    "the date and time; and the name and address of the filling station or merchant (usually at the top of the receipt). "
-    "If the image shows an instrument cluster, return the total odometer reading (odometer), NOT the trip meter, and leave the other fields empty. "
+    "CASE B, instrument cluster: return ONLY the total odometer reading (odometer): the small digital or mechanical digit display, usually 5 or 6 digits, often marked total or km, "
+    "NOT the trip meter and NOT the speed or fuel gauge. No text label is needed; the display may be dim, tilted, low-contrast, blurred or partly reflecting light, so read it carefully. Leave all other fields empty. "
+    "CASE A, receipt or pump display: extract the amount of fuel or energy (litres or kWh; on receipts often labelled Volumen, Menge, Liter, Volume, Quantité, Quantity); "
+    "the price per unit; the total amount paid (Summe, Betrag, Total, Montant); the date and time; and the name and address of the filling station or merchant (usually at the top of the receipt). "
+    "On a receipt the odometer is returned ONLY if a line is explicitly labelled as such (Kilometerstand, km-Stand, Odometer, Mileage, Compteur); receipt numbers, pump numbers, card numbers, "
+    "customer numbers and phone numbers are NOT the odometer, and most receipts have no odometer line, so leave it empty then. "
     "Numbers: dot as decimal separator, no thousands separators, no currency symbols. "
     "Only return values you can read with certainty, otherwise leave the field empty. Never guess and never calculate missing values. "
     "Always return the crop box that contains only the receipt or the display."
@@ -254,6 +256,20 @@ def crop_and_save(image: bytes, box: list[int] | None, folder: Path, name: str, 
         _LOGGER.warning("Zuschnitt nicht möglich, Original bleibt: %s", err)
     (folder / name).write_bytes(data)
     return name
+
+
+def exif_time(image: bytes):
+    """Aufnahmezeit aus den EXIF-Daten des Fotos (naive Ortszeit der Kamera) oder None. Läuft im Executor."""
+    try:
+        from datetime import datetime
+
+        from PIL import Image
+
+        ex = Image.open(io.BytesIO(image)).getexif()
+        raw = ex.get_ifd(0x8769).get(36867) or ex.get_ifd(0x8769).get(36868) or ex.get(306)
+        return datetime.strptime(str(raw).strip()[:19], "%Y:%m:%d %H:%M:%S") if raw else None
+    except Exception:  # noqa: BLE001 - kein EXIF ist der Normalfall (Messenger entfernen es)
+        return None
 
 
 def normalize(image: bytes, max_side: int = 2000) -> bytes:

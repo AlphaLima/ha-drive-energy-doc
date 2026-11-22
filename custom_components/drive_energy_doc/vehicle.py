@@ -81,6 +81,7 @@ class Vehicle:
         self._pos: tuple[float, float] | None = None
         self._capture: list[str] | None = None
         self._upload_lock = asyncio.Lock()
+        self._batch: set[str] | None = None   # Stapel-Upload aus dem Panel: Plausibilitätsprüfung erst am Ende (batch_finish)
         self._unsubs: list = []
         self.photo_dir = Path(hass.config.path(DOMAIN, entry.entry_id, "photos"))
         self.orig_dir = Path(hass.config.path(DOMAIN, entry.entry_id, "originals"))
@@ -103,6 +104,11 @@ class Vehicle:
                 e.update(kind="extra", item="AdBlue", unit="l")
         if self.data.get("awaiting_adblue"):
             self.data["awaiting_extra"] = self.data.pop("awaiting_adblue")
+        for e in self.data["entries"]:   # frühere Fassungen haben Belegnummern o. ä. als Kilometerstand übernommen: unmögliche, nicht von Hand gesetzte Stände entfernen
+            if e.get("odometer") is not None and e.get("odometer_source") != "manuell" and e.get("kind") != "extra" and not self._km_sane(e["odometer"], e["id"]):
+                _LOGGER.info("Unmöglicher Kilometerstand %s im Eintrag %s entfernt (%s)", e["odometer"], e["id"], self.name)
+                e["odometer"] = None
+                e["odometer_source"] = None
         self._save()
         self._pos = self._read_pos()
         lvl = self._read_float(o.get(CONF_LEVEL))
@@ -283,18 +289,41 @@ class Vehicle:
             return ["new"]
         if ao:
             return ["no"]
-        return ["km"] if live("unread_photo") else []
+        return ["km"] if live("unread_photo") and self._batch is None else []   # im Stapel nicht mitten drin fragen
 
-    async def upload(self, image: bytes | None, text: str) -> list[str]:
+    async def upload(self, image: bytes | None, text: str, batch: bool = False, finish: bool = False) -> list[str]:
         """Beleg aus dem Panel (Handykamera). Antworten kommen als Liste zurück statt per Messenger."""
         async with self._upload_lock:   # nacheinander: sonst überschreiben sich die Antwortlisten zweier gleichzeitiger Uploads
+            if finish:
+                return self.batch_finish()
+            self._batch = (self._batch if self._batch is not None else set()) if batch else None
             return await self._upload_locked(image, text)
+
+    def batch_finish(self) -> list[str]:
+        """Ende eines Stapel-Uploads: jetzt, wo alle Fotos zugeordnet sind, die Einträge prüfen (Verbrauch) und Auffälligkeiten melden."""
+        ids, self._batch = self._batch or set(), None
+        out = []
+        for e in sorted((x for x in (self.get_entry(i) for i in ids) if x), key=lambda x: x["ts"]):
+            chk = stats.check_consumption(self.data["entries"], e, e["odometer"]) if e.get("odometer") is not None else None
+            if chk and not chk["ok"]:
+                when = dt_util.as_local(dt_util.utc_from_timestamp(e["ts"])).strftime("%d.%m.%Y")
+                out.append(f"{when}: " + self.tr("⚠️ Verbrauch ungewöhnlich: {0} bei {1} km seit dem letzten Tanken (Durchschnitt {2}), bitte Kilometerstand prüfen.", self._cons_txt(chk["cons"]), self._fmt_km(chk["driven"]), self._cons_txt(chk["avg"])))
+        up = self.data.get("unread_photo")
+        if up and time.time() - up["ts"] < AWAIT_TTL:   # im Stapel unlesbar gebliebenes Foto: am Ende melden statt mittendrin zu fragen
+            out.append(self.tr("Auf dem Foto konnte ich weder Beleg noch Kilometerstand lesen. Schick den Kilometerstand als Text, z. B. „km 61240“, dann lege ich den Eintrag mit dem Foto an."))
+        return out
 
     async def _upload_locked(self, image: bytes | None, text: str) -> list[str]:
         self._capture = []
         try:
             if image:
-                await self.receive_photo(image, text)
+                sent = None   # Aufnahmezeit aus dem Foto: so wird ein später hochgeladenes Tacho-Foto dem richtigen Tankvorgang zugeordnet
+                taken = await self.hass.async_add_executor_job(receipt.exif_time, image)
+                if taken:
+                    ts = dt_util.as_timestamp(taken.replace(tzinfo=dt_util.get_default_time_zone()))
+                    if ts <= time.time() + 3600:
+                        sent = ts
+                await self.receive_photo(image, text, sent)
             elif text:
                 await self.receive_text(text)
             replies = list(self._capture or [])
@@ -550,10 +579,13 @@ class Vehicle:
             if aw:
                 await self._say(self.tr("Antworte mit einem Datum (z. B. 27.10.) oder „neu“."))
             return
-        await self._route(values, None)
+        up = self.data.get("unread_photo")   # unlesbares Foto: die getippten Werte gehören dazu
+        photo = up["name"] if up and time.time() - up["ts"] < AWAIT_TTL else None
+        self.data["unread_photo"] = None
+        await self._route(values, photo)
 
     async def receive_photo(self, image: bytes, caption: str = "", sent_ts: float | None = None) -> None:
-        for k in ("awaiting", "awaiting_overwrite", "awaiting_odo"):   # ein neues Foto ersetzt alte, unbeantwortete Rückfragen (sonst kreisen sie)
+        for k in ("awaiting", "awaiting_overwrite", "awaiting_odo", "unread_photo"):   # ein neues Foto ersetzt alte, unbeantwortete Rückfragen (sonst kreisen sie)
             self.data[k] = None
         image = await self.hass.async_add_executor_job(receipt.normalize, image)
         low = caption.lower().strip()
@@ -573,10 +605,14 @@ class Vehicle:
         km = None if (extra or values) else receipt.parse_km(caption)   # Tacho-Foto mit Bildtext „km 54210“
         box = None
         if not extra and not values and km is None:
+            t0 = time.time()
             ai = await receipt.ai_read(self.hass, self._ai_entity(), image, self.media_dir)
+            if not ai and time.time() - t0 < 60:   # schneller Fehlschlag (z. B. Überlastung des KI-Dienstes): einmal wiederholen
+                await asyncio.sleep(3)
+                ai = await receipt.ai_read(self.hass, self._ai_entity(), image, self.media_dir)
             if ai and receipt.plausible(ai):
                 values, box = ai, ai.get("crop")
-            elif ai and ai.get("odometer"):
+            elif ai and ai.get("odometer") and self._km_sane(ai["odometer"], ts=sent_ts):   # mit bekannter Aufnahme-/Sendezeit gegen die Reihenfolge der Einträge prüfen
                 km, box = float(ai["odometer"]), ai.get("crop")           # nur Kilometerstand erkannt: Foto vom Tacho
         name = receipt.new_photo_name()
         await self.hass.async_add_executor_job(receipt.crop_and_save, image, box, self.photo_dir, name, self.orig_dir)
@@ -590,7 +626,7 @@ class Vehicle:
                 pend.extras.setdefault("extra_photos", []).append(name)
                 self._save()
                 await self._say(self.tr("Zusatzfoto vorgemerkt, es wird dem Tankvorgang beim Abschluss zugefügt."))
-            elif target:
+            elif target and (extra or d):   # ausdrücklich Zusatzfoto bzw. Datum im Bildtext; sonst nachfragen statt irgendwo anhängen
                 target["photos"].append(name)
                 self._save()
                 self._notify_entities()
@@ -621,6 +657,7 @@ class Vehicle:
         if open_e:
             sent = open_e["ts"]   # Beleg kam zuerst: der Kilometerstand gehört zu diesem Eintrag
         m = stats.match_odometer(self.data["entries"], km, sent)
+        from_photo = photo is not None   # von der KI aus einem Foto gelesen (nicht getippt): im Zweifel weglassen statt nachfragen
         if photo_only and m["status"] in ("none", "too_old"):
             # reiner Foto-Betrieb: der Tacho kommt zuerst, der Beleg wird danach (bis 48 h) diesem Eintrag zugeordnet
             e = self._new_manual_entry()
@@ -641,6 +678,8 @@ class Vehicle:
             self._save()
             await self._say(self.tr("Zu dieser Uhrzeit gibt es keinen Tankvorgang (nächster: {0}). Antworte mit dem Datum (z. B. 27.10.), dann ordne ich {1} km diesem Tankvorgang zu, oder mit „nein“.", when, self._fmt_km(km)))
             return
+        if (m["status"] == "mismatch" or m.get("backwards")) and from_photo:
+            return await self._skip_km(e, km, photo, "Kilometerstand passt nicht zum Eintrag")
         if m["status"] == "mismatch" or m.get("backwards"):
             self.data["awaiting_odo"] = {"id": e["id"], "km": km, "photo": photo, "ts": time.time(), "confirm": True}
             self._save()
@@ -648,7 +687,9 @@ class Vehicle:
             await self._say(self.tr("Der Kilometerstand {0} km {1}. Tankvorgang: {2}. Antworte „ja“, um ihn trotzdem zu übernehmen, oder „nein“.", self._fmt_km(km), why, when))
             return
         chk = stats.check_consumption(self.data["entries"], e, km)
-        if chk and not chk["ok"]:   # Verbrauch passt nicht zu Tankmenge und Durchschnitt: erst nachfragen
+        if chk and not chk["ok"] and from_photo:
+            return await self._skip_km(e, km, photo, "Verbrauch unplausibel")
+        if chk and not chk["ok"]:   # getippter Stand, Verbrauch passt nicht zu Tankmenge und Durchschnitt: nachfragen
             self.data["awaiting_odo"] = {"id": e["id"], "km": km, "photo": photo, "ts": time.time(), "confirm": True}
             self._save()
             why = self.tr("würde bei {0} km seit dem letzten Tanken {1} ergeben (Durchschnitt {2})", self._fmt_km(chk["driven"]), self._cons_txt(chk["cons"]), self._cons_txt(chk["avg"]))
@@ -656,10 +697,21 @@ class Vehicle:
             return
         await self._apply_odometer(e, km, photo, m["dt"])
 
+    async def _skip_km(self, entry: dict, km: float, photo: str | None, why: str) -> None:
+        """Zweifel am Kilometerstand vom Foto: weglassen (keine Rückfrage), das Foto bleibt als Zusatzfoto am Eintrag."""
+        _LOGGER.info("Kilometerstand %s vom Foto ausgelassen (%s, %s)", km, why, self.name)
+        if photo:
+            entry["photos"].append(photo)
+        self._save()
+        self._notify_entities()
+        await self._say(self.tr("Zusatzfoto gespeichert."))
+
     def _cons_txt(self, value: float) -> str:
         return self._dec(f"{value:.1f}") + f" {self.unit}/100 km"
 
     async def _apply_odometer(self, entry: dict, km: float, photo: str | None, dt: float) -> None:
+        if self._batch is not None:
+            self._batch.add(entry["id"])
         entry["odometer"] = float(km)
         entry["odometer_source"] = "foto" if photo else "manuell"
         if photo:
@@ -688,6 +740,15 @@ class Vehicle:
             "station_id": None, "level_from": None, "level_to": None, "quantity": None, "quantity_source": "manuell", "unit_price": None,
             "price_source": None, "total": None, "photos": [], "receipt": False, "note": "",
         }
+
+    def _km_sane(self, km, exclude: str | None = None, ts: float | None = None) -> bool:
+        """Von der KI gelesener Kilometerstand möglich? Siehe stats.km_plausible (mit Datum vom Beleg: Reihenfolge der Einträge, sonst Abstand zum Mittelwert)."""
+        return stats.km_plausible(self.data["entries"], km, ts, exclude)
+
+    def _entry_by_km(self, km: float, tolerance: float = 50.0) -> dict | None:
+        """Eintrag ohne Beleg, dessen Kilometerstand (vom Tacho-Foto) fast genau zum Stand auf dem Beleg passt: so finden Beleg und Tacho auch bei gemischter Reihenfolge zusammen."""
+        c = [e for e in self.data["entries"] if e.get("kind") != "extra" and not e.get("receipt") and e.get("quantity") is None and e.get("odometer") is not None and abs(e["odometer"] - km) <= tolerance]
+        return min(c, key=lambda e: abs(e["odometer"] - km)) if c else None
 
     def _open_entry(self, need: str) -> dict | None:
         """Zuletzt angelegter Eintrag (der letzten Stunden), dem noch der Beleg ("receipt") bzw. der Kilometerstand ("odometer") fehlt.
@@ -719,8 +780,14 @@ class Vehicle:
 
     async def _route(self, values: dict, photo: str | None) -> None:
         d = values.get("date")
+        if values.get("odometer"):   # Kilometerstand vom Beleg gegen die Reihenfolge der Einträge prüfen (Datum/Uhrzeit vom Beleg), unmöglicher Stand: ignorieren
+            hm = values.get("time")
+            when = (dt_util.start_of_local_day(d).timestamp() + ((hm[0] * 3600 + hm[1] * 60) if hm else 12 * 3600)) if d else time.time()
+            if not self._km_sane(values["odometer"], ts=when):
+                _LOGGER.info("Kilometerstand %s vom Beleg unplausibel, ignoriert (%s)", values["odometer"], self.name)
+                values = {**values, "odometer": None}
         photo_only = not self.o.get(CONF_LEVEL)  # ohne Füllstandssensor: jeder Beleg ohne passenden Eintrag legt einen neuen an
-        open_e = self._open_entry("receipt") if photo_only else None
+        open_e = ((self._entry_by_km(values["odometer"]) if values.get("odometer") else None) or self._open_entry("receipt")) if photo_only else None
         if open_e:   # das Tacho-Foto kam zuerst und hat schon eine neue Zeile angelegt: der Beleg gehört dazu (Datum und Uhrzeit vom Beleg gelten)
             if d:
                 hm = values.get("time")
@@ -768,15 +835,14 @@ class Vehicle:
 
     async def _apply_and_report(self, entry: dict, values: dict, photo: str | None) -> None:
         rkm = values.get("odometer")
-        ask = None
-        if rkm:   # Kilometerstand vom Beleg erst prüfen: passt der Verbrauch nicht, wird er nur nach Rückfrage übernommen
+        batch = self._batch is not None
+        if batch:
+            self._batch.add(entry["id"])
+        if rkm:   # Kilometerstand vom Beleg nur übernehmen, wenn der Verbrauch dazu passt; im Zweifel weglassen (keine Rückfrage)
             self._apply_values(entry, {**values, "odometer": None}, photo)
             chk = stats.check_consumption(self.data["entries"], entry, float(rkm))
             if chk and not chk["ok"]:
-                why = self.tr("würde bei {0} km seit dem letzten Tanken {1} ergeben (Durchschnitt {2})", self._fmt_km(chk["driven"]), self._cons_txt(chk["cons"]), self._cons_txt(chk["avg"]))
-                when = dt_util.as_local(dt_util.utc_from_timestamp(entry["ts"])).strftime("%d.%m.%Y %H:%M")
-                ask = self.tr("Der Kilometerstand {0} km {1}. Tankvorgang: {2}. Antworte „ja“, um ihn trotzdem zu übernehmen, oder „nein“.", self._fmt_km(float(rkm)), why, when)
-                self.data["awaiting_odo"] = {"id": entry["id"], "km": float(rkm), "photo": None, "ts": time.time(), "confirm": True}
+                _LOGGER.info("Kilometerstand %s vom Beleg ausgelassen (Verbrauch unplausibel, %s)", rkm, self.name)
             else:
                 entry["odometer"] = float(rkm)
         else:
@@ -784,10 +850,10 @@ class Vehicle:
         self._save()
         self._notify_entities()
         warn = "" if receipt.plausible(entry) else "\n" + self.tr("⚠️ Menge × Preis passt nicht zum Betrag, bitte prüfen.")
-        chk = stats.check_consumption(self.data["entries"], entry, entry["odometer"]) if entry.get("odometer") is not None else None
+        chk = stats.check_consumption(self.data["entries"], entry, entry["odometer"]) if entry.get("odometer") is not None and not batch else None
         if chk and not chk["ok"]:
             warn += "\n" + self.tr("⚠️ Verbrauch ungewöhnlich: {0} bei {1} km seit dem letzten Tanken (Durchschnitt {2}), bitte Kilometerstand prüfen.", self._cons_txt(chk["cons"]), self._fmt_km(chk["driven"]), self._cons_txt(chk["avg"]))
-        await self._say(self._summary(entry, self.tr("Beleg übernommen")) + warn + ((chr(10) + ask) if ask else ""))
+        await self._say(self._summary(entry, self.tr("Beleg übernommen")) + warn)
 
     def _apply_values(self, entry: dict, values: dict, photo: str | None) -> None:
         q, p, t = values.get("quantity"), values.get("unit_price"), values.get("total")
@@ -830,6 +896,9 @@ class Vehicle:
             e["quantity_source"] = "manuell"
         if "unit_price" in fields and fields["unit_price"] not in (None, ""):
             e["price_source"] = "manuell"
+        if fields.get("ts"):   # Datum und Uhrzeit ändern
+            e["ts"] = e["ts_start"] = float(fields["ts"])
+            self.data["entries"].sort(key=lambda x: x["ts"])
         self._save()
         self._notify_entities()
         return True

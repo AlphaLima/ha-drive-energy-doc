@@ -14,4 +14,4 @@
 - **No. 11 to 20** (`sollwerte_11-20.csv`): receipts **without** a mileage, with clearly worse odometer photos (glare, fogged glass, motion blur, night).
 - The correct values are in the CSV files (`km_tacho` = reading on the odometer photo, `km_beleg` = reading on the receipt).
 
-**Test:** send the odometer photo first, then the receipt (or the other way round) to the bot or via the photo button in the panel. They are matched by the time of the message, so send the pairs in order.
+**Test:** send the odometer photo first, then the receipt (or the other way round) to the bot or via the photo button in the panel. The photos carry the date and time of the refuelling in their EXIF data (odometer photo 3 minutes before the receipt time). Photos uploaded via the panel are matched by this capture time, so they can be sent in any order and on any day; photos sent via Telegram or WhatsApp lose their EXIF data and are matched by the time of the message, so send those pairs in order.

@@ -247,7 +247,9 @@
         "none": "Keine (nur Beleg)",
         "tankerkoenig": "Tankerkönig (DE, Schlüssel)",
         "econtrol_at": "E-Control (AT, ohne Schlüssel)",
-        "prix_fr": "prix-carburants (FR, ohne Schlüssel)"
+        "prix_fr": "prix-carburants (FR, ohne Schlüssel)",
+        "minetur_es": "MINETUR (ES, ohne Schlüssel)",
+        "mimit_it": "MIMIT Osservaprezzi (IT, ohne Schlüssel)"
       }
     },
     "energy": {

@@ -160,7 +160,7 @@ class UploadView(HomeAssistantView):
         v = _vehicles(request.app["hass"]).get(entry_id)
         if v is None:
             return web.Response(status=404)
-        image, text = None, ""
+        image, text, batch, finish = None, "", False, False
         reader = await request.multipart()
         async for part in reader:
             if part.name == "file":
@@ -173,8 +173,12 @@ class UploadView(HomeAssistantView):
                 image = b"".join(chunks) or None
             elif part.name == "text":
                 text = (await part.text())[:500]
+            elif part.name == "batch":
+                batch = (await part.text()).strip() == "1"
+            elif part.name == "finish":
+                finish = (await part.text()).strip() == "1"
         # als eigene Aufgabe laufen lassen: bricht der Browser die Verbindung ab (Netz, Seitenwechsel), wird der Beleg trotzdem fertig verarbeitet
-        task = request.app["hass"].async_create_task(v.upload(image, text))
+        task = request.app["hass"].async_create_task(v.upload(image, text, batch, finish))
         replies = await asyncio.shield(task)
         answers = v.pending_answers()
         return self.json({"replies": replies, "awaiting": bool(answers), "answers": answers})

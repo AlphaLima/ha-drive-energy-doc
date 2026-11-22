@@ -247,7 +247,9 @@
         "none": "None (receipt only)",
         "tankerkoenig": "Tankerkoenig (DE, key)",
         "econtrol_at": "E-Control (AT, no key)",
-        "prix_fr": "prix-carburants (FR, no key)"
+        "prix_fr": "prix-carburants (FR, no key)",
+        "minetur_es": "MINETUR (ES, no key)",
+        "mimit_it": "MIMIT Osservaprezzi (IT, no key)"
       }
     },
     "energy": {

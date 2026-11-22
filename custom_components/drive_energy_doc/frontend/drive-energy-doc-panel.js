@@ -2,7 +2,7 @@
 const DEFW = { nr: 46 };   // Standardbreite einzelner Spalten in px (sonst 120 bei fester Breite)
 const COLS = ["nr", "date", "km", "station", "qty", "price", "total", "cons", "receipt", "note", "act"];
 
-const VERSION = "0.1.78b12";
+const VERSION = "0.1.78b28";
 
 class DriveEnergyDocPanel extends HTMLElement {
   set hass(h) {
@@ -110,7 +110,7 @@ class DriveEnergyDocPanel extends HTMLElement {
           if (i >= 0) this._tab = i;
         } catch (e) { /* ignore */ }
       }
-      if (!this._dlg) this._render();
+      if (!this._dlg && !this.shadowRoot.querySelector(".busy, .dlg")) this._render();   // nicht neu zeichnen, solange der Fortschritts- oder ein anderer Dialog offen ist
     } catch (e) { this._err = String(e.message || e); this._render(); }
   }
   _fmt(n, d = 2) { return n == null ? "–" : Number(n).toLocaleString(this._locale || "de-DE", { minimumFractionDigits: d, maximumFractionDigits: d }); }
@@ -353,6 +353,7 @@ class DriveEnergyDocPanel extends HTMLElement {
       .res .rows{flex:1;background:var(--secondary-background-color,#f1f1f1);border-radius:10px;padding:10px 14px;font-size:18px;line-height:1.65}.res .rows div:last-child{font-weight:600;font-size:20px}
       .res .rpic{max-height:64px;max-width:28%;object-fit:contain;flex:none}.res #ra{font-size:17px;padding:12px}
       .smlist{display:flex;flex-direction:column;gap:10px;max-height:52vh;overflow:auto}.sm{display:flex;gap:12px;align-items:center;background:var(--secondary-background-color,#f1f1f1);border-radius:10px;padding:8px 10px}.sm img{height:64px;width:48px;object-fit:cover;border-radius:6px;flex:none}.smr{font-size:13px;color:var(--secondary-text-color);margin-top:2px}
+      .smwarn{background:rgba(255,160,0,.15);border-radius:10px;padding:8px 12px;font-size:14px;line-height:1.5;max-height:20vh;overflow:auto}
       .res .df button{font-size:17px;padding:10px 28px}
       .busy{position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;z-index:120}
       .busy .card{background:var(--card-background-color,#fff);color:var(--primary-text-color);border-radius:14px;padding:22px 28px;display:flex;flex-direction:column;align-items:center;gap:14px;font-size:16px;max-width:min(90vw,420px)}
@@ -362,8 +363,10 @@ class DriveEnergyDocPanel extends HTMLElement {
       @keyframes lupe{0%{left:6%;top:4%}20%{left:52%;top:10%}40%{left:20%;top:34%}60%{left:56%;top:46%}80%{left:14%;top:62%}100%{left:6%;top:4%}}
       .pstrip{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;max-width:100%}.pt{position:relative;width:42px;height:56px;border-radius:6px;overflow:hidden;opacity:.45;border:2px solid transparent}.pt img{width:100%;height:100%;object-fit:cover;display:block}.pt.cur{opacity:1;border-color:var(--primary-color)}.pt.done{opacity:.9}.pt b{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(40,160,80,.55);color:#fff;font-size:22px}
       .pbar{width:100%;height:6px;border-radius:3px;background:var(--divider-color);overflow:hidden}.pbar i{display:block;height:100%;background:var(--primary-color);transition:width .3s}
+      .stopb{font:inherit;font-size:15px;padding:8px 22px;border-radius:8px;border:1px solid var(--divider-color);background:var(--card-background-color,#fff);color:var(--primary-text-color);cursor:pointer}
       .spin{width:26px;height:26px;border:4px solid var(--divider-color);border-top-color:var(--primary-color);border-radius:50%;animation:sp 1s linear infinite}@keyframes sp{to{transform:rotate(360deg)}}
       .ck{display:flex;align-items:center;gap:12px;padding:8px 4px;font-size:16px;cursor:pointer}.ck input{padding:0;width:20px;height:20px;border:0;background:none;accent-color:var(--primary-color)}
+      .form .card{width:min(400px,94vw);padding:20px;gap:14px;max-height:92vh;max-height:92dvh;overflow:hidden}.form .bd{display:flex;flex-direction:column;gap:14px;overflow:auto;min-height:0;flex:1 1 auto;padding:2px}.form .dh{font-size:22px;font-weight:600}.form .g2{display:flex;flex-direction:column;gap:14px}.form .fl{display:flex;flex-direction:column;gap:5px;font-size:14px;color:var(--secondary-text-color)}.form .fl input,.form .fl textarea{font-size:19px;padding:11px 12px;color:var(--primary-text-color);width:100%;box-sizing:border-box;min-height:0}.form .fl input[type=datetime-local]{min-height:48px}.form .fl textarea{min-height:130px}.form .hint{font-size:13px;color:var(--secondary-text-color);margin-top:-8px}.form .df{flex:none}.form .df button{font-size:17px;padding:10px 26px}
       .dlg textarea{font:inherit;min-height:120px;padding:8px 10px;border:1px solid var(--divider-color);border-radius:8px;background:var(--primary-background-color);color:inherit;resize:vertical}
       .dlg .big{justify-content:center;font-size:17px;padding:16px 12px}
       .dlg input{font:inherit;padding:8px 10px;border:1px solid var(--divider-color);border-radius:8px;background:var(--primary-background-color);color:inherit}
@@ -637,70 +640,113 @@ class DriveEnergyDocPanel extends HTMLElement {
       const pic = this._pic(v);
       const dlg = document.createElement("div");
       dlg.className = "dlg res";
-      dlg.innerHTML = `<div class="card"><div class="bd"><div class="hd"><div class="mark${awaiting ? " q" : ""}">${awaiting ? "?" : "✓"}</div><div class="ttl">${this._esc(head)}</div></div><div class="mid">${shot ? `<img class="rshot" src="${shot}" alt="">` : ""}${rows ? `<div class="rows">${rows}</div>` : ""}${pic ? `<img class="rpic" src="${pic}" alt="">` : ""}</div>${ask ? `<div class="ask">${this._esc(ask)}</div>` : ""}${awaiting && !answers.includes("yes") ? `<input id="ra" type="text" placeholder="${answers.includes("km") ? "km 61240" : this._esc(this.T("Antwort (Datum z. B. 27.10. oder „neu“):"))}" autocomplete="off">` : ""}</div><div class="df">${answers.includes("no") ? `<button data-d="no">${this.T("Abbrechen")}</button>` : ""}${answers.includes("new") ? `<button data-d="new">${this.T("Neuer Eintrag")}</button>` : ""}${answers.includes("yes") ? `<button data-d="yes" class="pri">${this.T("Übernehmen")}</button>` : `<button data-d="ok" class="pri">OK</button>`}</div></div>`;
+      dlg.innerHTML = `<div class="card"><div class="bd"><div class="hd"><div class="mark${awaiting ? " q" : ""}">${awaiting ? "?" : "✓"}</div><div class="ttl">${this._esc(head)}</div></div><div class="mid">${shot ? `<img class="rshot" src="${shot}" alt="">` : ""}${rows ? `<div class="rows">${rows}</div>` : ""}${pic ? `<img class="rpic" src="${pic}" alt="">` : ""}</div>${ask ? `<div class="ask">${this._esc(ask)}</div>` : ""}${awaiting && !answers.includes("yes") ? `<input id="ra" type="text" placeholder="${answers.includes("km") ? "km 61240" : this._esc(this.T("Antwort (Datum z. B. 27.10. oder „neu“):"))}" autocomplete="off">` : ""}</div><div class="df">${answers.includes("no") ? `<button data-d="no">${this.T("Abbrechen")}</button>` : ""}${answers.includes("new") ? `<button data-d="new"${answers.includes("yes") ? ' class="pri"' : ""}>${this.T("Neuer Eintrag")}</button>` : ""}${answers.includes("yes") ? `<button data-d="yes"${answers.includes("new") ? "" : ' class="pri"'}>${this.T("Übernehmen")}</button>` : `<button data-d="ok" class="pri">OK</button>`}</div></div>`;
       this.shadowRoot.appendChild(dlg);
       this._dlg = dlg;
       const inp = dlg.querySelector("#ra");
       const done = val => { dlg.remove(); this._dlg = null; resolve(val); };
       dlg.onclick = ev => { ev.stopPropagation(); if (ev.target.closest("[data-d=yes]")) done("ja"); else if (ev.target.closest("[data-d=no]")) done("nein"); else if (ev.target.closest("[data-d=new]")) done("neu"); else if (ev.target.closest("[data-d=ok]")) done(inp ? (answers.includes("km") && /^[\d.\s]+$/.test(inp.value.trim()) ? "km " + inp.value.trim() : inp.value.trim()) || null : null); else if (ev.target === dlg && !awaiting) done(null); };
       dlg.onkeydown = ev => { if (ev.key === "Enter" && inp) dlg.querySelector("[data-d=ok]").click(); if (ev.key === "Escape") done(null); };
-      if (inp) inp.focus(); else dlg.querySelector("button").focus();
+      if (inp) inp.focus(); else (dlg.querySelector("button.pri") || dlg.querySelector("button")).focus();
     });
   }
 
-  async _upload(v, file, text) {
+  async _upload(v, file, text, mode, signal) {
     const fd = new FormData();
     if (file) fd.append("file", file, file.name || "beleg.jpg");
     fd.append("text", text || "");
-    const r = await this._hass.fetchWithAuth(`/api/drive_energy_doc/upload/${v.id}`, { method: "POST", body: fd });
+    if (mode === "batch") fd.append("batch", "1");     // Stapel: Plausibilitätsprüfung erst am Ende
+    if (mode === "finish") fd.append("finish", "1");
+    const r = await this._hass.fetchWithAuth(`/api/drive_energy_doc/upload/${v.id}`, { method: "POST", body: fd, signal });
     if (!r.ok) throw new Error(`${this.T("Fehler")} ${r.status}`);
     return r.json();
   }
 
   _send(v, file, text) { return this._sendFiles(v, file ? [file] : [], text); }
 
+  async _taken(f) {
+    // Aufnahmezeit (EXIF DateTimeOriginal) aus dem Kopf einer JPEG-Datei, in ms; null wenn nicht vorhanden. Dateinamen sagen nichts: Kameras vergeben sie beliebig.
+    try {
+      const b = new DataView(await f.slice(0, 131072).arrayBuffer());
+      if (b.getUint16(0) !== 0xFFD8) return null;
+      let o = 2;
+      while (o + 4 < b.byteLength) {
+        const m = b.getUint16(o), len = b.getUint16(o + 2);
+        if (m === 0xFFE1 && b.getUint32(o + 4) === 0x45786966) {
+          const t0 = o + 10, le = b.getUint16(t0) === 0x4949;
+          const g16 = p => b.getUint16(t0 + p, le), g32 = p => b.getUint32(t0 + p, le);
+          const find = (p, want) => { const n = g16(p); for (let i = 0; i < n; i++) { const e = p + 2 + i * 12; if (g16(e) === want) return e; } return null; };
+          const ex = find(g32(4), 0x8769); if (ex == null) return null;
+          const e2 = find(g32(ex + 8), 0x9003); if (e2 == null) return null;
+          const off = g32(e2 + 8), n2 = g32(e2 + 4);
+          let s = ""; for (let i = 0; i < n2 - 1; i++) s += String.fromCharCode(b.getUint8(t0 + off + i));
+          const r = s.match(/^(\d{4}):(\d\d):(\d\d) (\d\d):(\d\d):(\d\d)/);
+          return r ? new Date(+r[1], r[2] - 1, +r[3], +r[4], +r[5], +r[6]).getTime() : null;
+        }
+        if ((m & 0xFF00) !== 0xFF00) break;
+        o += 2 + len;
+      }
+    } catch (e) { /* kein EXIF */ }
+    return null;
+  }
+
   async _sendFiles(v, files, text) {
+    if (files.length > 1) {   // chronologisch nach Aufnahmezeit (sonst nach Änderungsdatum der Datei), nicht nach Dateiname; bei Gleichstand bleibt die Reihenfolge
+      const keyed = await Promise.all(files.map(async (f, i) => ({ f, i, k: (await this._taken(f)) ?? f.lastModified ?? 0 })));
+      keyed.sort((a, b) => a.k - b.k || a.i - b.i);
+      files = keyed.map(x => x.f);
+    }
     // Ein oder mehrere Fotos nacheinander hochladen (in der gewählten Reihenfolge). Rückfragen des Bots werden sofort gestellt;
     // bei mehreren Fotos folgt am Ende eine Übersicht.
     const total = Math.max(files.length, 1), results = [], urls = [];
+    let cancelled = false;
+    const ctl = new AbortController();
     const pic = this._pic(v);
     const busy = document.createElement("div");
     busy.className = "busy";
     this.shadowRoot.appendChild(busy);
+    busy.onclick = ev => { if (ev.target.closest("[data-d=stop]")) { cancelled = true; ctl.abort(); } };   // Abbruch: nichts weiter senden
     const shots = files.map(f => { const u = URL.createObjectURL(f); urls.push(u); return u; });
     const strip = i => total > 1 ? `<div class="pstrip">${shots.map((u, k) => `<div class="pt${k < i ? " done" : k === i ? " cur" : ""}"><img src="${u}" alt="">${k < i ? "<b>✓</b>" : ""}</div>`).join("")}</div><div class="pbar"><i style="width:${Math.round(i / total * 100)}%"></i></div>` : "";
     const paint = (shot, i) => {
-      busy.innerHTML = `<div class="card">${pic ? `<img class="bpic" src="${pic}" alt="">` : ""}${shot ? `<div class="scan"><img src="${shot}" alt=""><svg class="lupe" viewBox="0 0 64 64" aria-hidden="true"><circle cx="26" cy="26" r="19" fill="rgba(255,255,255,.28)" stroke="#1b1b1b" stroke-width="5"/><path d="M40 40 L58 58" stroke="#1b1b1b" stroke-width="8" stroke-linecap="round"/><path d="M15 20 A13 13 0 0 1 24 12" stroke="rgba(255,255,255,.9)" stroke-width="3" fill="none" stroke-linecap="round"/></svg></div>` : ""}<div class="brow"><div class="spin"></div><div>${this.T("Beleg wird gelesen …")}${total > 1 ? ` (${i + 1} / ${total})` : ""}</div></div>${strip(i)}</div>`;
+      busy.innerHTML = `<div class="card">${pic ? `<img class="bpic" src="${pic}" alt="">` : ""}${shot ? `<div class="scan"><img src="${shot}" alt=""><svg class="lupe" viewBox="0 0 64 64" aria-hidden="true"><circle cx="26" cy="26" r="19" fill="rgba(255,255,255,.28)" stroke="#1b1b1b" stroke-width="5"/><path d="M40 40 L58 58" stroke="#1b1b1b" stroke-width="8" stroke-linecap="round"/><path d="M15 20 A13 13 0 0 1 24 12" stroke="rgba(255,255,255,.9)" stroke-width="3" fill="none" stroke-linecap="round"/></svg></div>` : ""}<div class="brow"><div class="spin"></div><div>${this.T("Beleg wird gelesen …")}${total > 1 ? ` (${i + 1} / ${total})` : ""}</div></div>${strip(i)}<button class="stopb" data-d="stop">${this.T("Abbrechen")}</button></div>`;
     };
     try {
       for (let i = 0; i < total; i++) {
         const file = files[i] || null;
         const shot = shots[i] || "";
         paint(shot, i);
-        let j = await this._upload(v, file, file ? text : text);
+        if (cancelled) break;
+        let j = await this._upload(v, file, file ? text : text, total > 1 ? "batch" : "", ctl.signal);
         for (let guard = 0; j.awaiting && guard < 3; guard++) {   // Rückfrage des Bots: Antwort abfragen und weiter
           busy.style.display = "none";
           const ans = await this._result(v, j.replies || [], shot, true, j.answers || []);
           busy.style.display = "";
           if (!ans) { j = { replies: j.replies, awaiting: false }; break; }
           paint(shot, i);
-          j = await this._upload(v, null, ans);
+          j = await this._upload(v, null, ans, total > 1 ? "batch" : "", ctl.signal);
         }
         if (total === 1) {   // einzelnes Foto: Ergebnis sofort groß zeigen
           busy.style.display = "none";
           await this._result(v, j.replies || [], shot, false);
         } else results.push({ shot, replies: j.replies || [] });
       }
-      if (total > 1) {
+      if (cancelled) { this._upload(v, null, "", "finish").catch(() => {}); }   // Stapel auf dem Server abschließen, keine Übersicht
+      else if (total > 1) {
+        let warns = [];
+        try { warns = (await this._upload(v, null, "", "finish")).replies || []; } catch (e) { /* Prüfung am Ende ist optional */ }
         busy.style.display = "none";
-        await this._summary(v, results);
+        await this._summary(v, results, warns);
       }
-    } catch (e) { alert(this.T("Upload fehlgeschlagen: ") + (e.message || e)); }
+    } catch (e) {
+      if (cancelled || (e && e.name === "AbortError")) this._upload(v, null, "", "finish").catch(() => {});
+      else alert(this.T("Upload fehlgeschlagen: ") + (e.message || e));
+    }
     finally { busy.remove(); urls.forEach(u => URL.revokeObjectURL(u)); }
     this._load();
   }
 
-  _summary(v, results) {
+  _summary(v, results, warns = []) {
     // Übersicht nach mehreren Fotos: je Foto Vorschaubild und Ergebnis
     return new Promise(resolve => {
       const items = results.map(r => {
@@ -710,7 +756,7 @@ class DriveEnergyDocPanel extends HTMLElement {
       }).join("");
       const dlg = document.createElement("div");
       dlg.className = "dlg res";
-      dlg.innerHTML = `<div class="card"><div class="hd"><div class="mark">✓</div><div class="ttl">${this.T("{0} Fotos verarbeitet", results.length)}</div></div><div class="smlist">${items}</div><div class="df"><button data-d="ok" class="pri">OK</button></div></div>`;
+      dlg.innerHTML = `<div class="card"><div class="hd"><div class="mark">✓</div><div class="ttl">${this.T("{0} Fotos verarbeitet", results.length)}</div></div><div class="smlist">${items}</div>${warns.length ? `<div class="smwarn">${warns.map(w => `<div>${this._esc(w)}</div>`).join("")}</div>` : ""}<div class="df"><button data-d="ok" class="pri">OK</button></div></div>`;
       this.shadowRoot.appendChild(dlg);
       this._dlg = dlg;
       const done = () => { dlg.remove(); this._dlg = null; resolve(); };
@@ -749,39 +795,65 @@ class DriveEnergyDocPanel extends HTMLElement {
     };
   }
 
-  async _form(v, e, kind) {
+  _form(v, e, kind) {
+    // Korrigieren / von Hand anlegen: ein Dialog mit allen Feldern (statt einer Kette von Browser-Abfragen)
     kind = e ? e.kind : kind;
-    let item = e && e.kind === "extra" ? e.item || "" : "";
-    if (!e) {
-      // Neuer Eintrag von Hand: Kraftstoff/Strom oder Zubehör (AdBlue, Öl, Scheibenwischer …)
-      const art = prompt(this.T("Art: leer lassen = {0}, sonst Bezeichnung des Zubehörs (z. B. AdBlue, Öl, Scheibenwischer)", v.energy === "electric" ? this.T("Strom") : this.T("Kraftstoff")), "");
-      if (art === null) return;
-      if (art.trim()) { kind = "extra"; item = art.trim(); }
-    }
-    const extra = kind === "extra";
-    // bewusst schlichte Prompts
-    const ask = (label, val) => prompt(label, val ?? "");
-    const num = s => (s == null || s.trim() === "" ? null : parseFloat(s.replace(",", ".")));
-    const f = {};
-    let unit = v.unit;
-    if (extra) {
-      if (e) { const it = ask(this.T("Bezeichnung"), item); if (it === null) return; f.item = it.trim() || item; }
-      const un = ask(this.T("Einheit (z. B. l, Stk), leer = keine"), e ? e.unit : (/^(adblue|öl|motoröl|scheibenwasser|frostschutz)$/i.test(item) ? "l" : "")); if (un === null) return;
-      f.unit = un.trim(); unit = f.unit;
-    }
-    const q = ask(`${extra ? (f.item || item) + ": " : ""}${this.T("Menge")}${unit ? " (" + unit + ")" : ""}${extra ? ", " + this.T("optional") : ""}`, e?.quantity); if (q === null) return; f.quantity = num(q);
-    const p = ask(`${this.T("Preis")} €${unit ? "/" + unit : ""}`, e?.unit_price); if (p === null) return; f.unit_price = num(p);
-    const t = ask(this.T("Betrag") + " €", e?.total); if (t === null) return; f.total = num(t);
-    const k = ask(this.T("Kilometerstand"), e?.odometer); if (k === null) return; f.odometer = num(k);
-    const n = ask(this.T("Notiz"), e?.note); if (n === null) return; f.note = n;
-    if (e) await this._hass.callWS({ type: "drive_energy_doc/update", vehicle: v.id, entry: e.id, fields: f });
-    else {
-      const now = new Date(), ds = ask(this.T("Datum (TT.MM.JJJJ)"), `${String(now.getDate()).padStart(2, "0")}.${String(now.getMonth() + 1).padStart(2, "0")}.${now.getFullYear()}`); if (!ds) return;
-      const [dd, mm, yy] = ds.split("."); f.ts = new Date(+yy, mm - 1, +dd, 12).getTime() / 1000;
-      if (extra) { f.kind = "extra"; f.item = item; }
-      await this._hass.callWS({ type: "drive_energy_doc/add", vehicle: v.id, fields: f });
-    }
-    this._load();
+    this._pvHide();
+    const esc = x => this._esc(x == null ? "" : String(x));
+    const pad = n => String(n).padStart(2, "0");
+    const local = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+    const whenOrig = local(e ? new Date(e.ts * 1000) : new Date());
+    const isExtra = !!(e && e.kind === "extra");
+    const fld = (id, label, val, extra = "") => `<label class="fl"${extra}><span>${label}</span><input id="${id}" type="text" inputmode="${id === "f_date" || id === "f_item" || id === "f_unit" ? "text" : "decimal"}" value="${esc(val)}" autocomplete="off"></label>`;
+    const dlg = document.createElement("div");
+    dlg.className = "dlg form";
+    dlg.innerHTML = `<div class="card"><div class="bd">
+      <div class="dh">${this.T(e ? "Bearbeiten" : "Eintrag von Hand")}${e ? " · " + esc(this._date(e.ts)) : ""}</div>
+            <label class="fl"><span>${this.T("Datum")}</span><input id="f_when" type="datetime-local" value="${whenOrig}"></label>
+      ${e ? "" : fld("f_art", this.T("Zubehör"), "") + `<div class="hint">${esc(this.T("Art: leer lassen = {0}, sonst Bezeichnung des Zubehörs (z. B. AdBlue, Öl, Scheibenwischer)", v.energy === "electric" ? this.T("Strom") : this.T("Kraftstoff")))}</div>`}
+      ${isExtra ? fld("f_item", this.T("Bezeichnung"), e.item || "") : ""}
+      <div class="g2">
+        ${fld("f_q", this.T("Menge"), e ? e.quantity : "")}
+        ${fld("f_p", this.T("Preis") + " €", e ? e.unit_price : "")}
+        ${fld("f_t", this.T("Betrag") + " €", e ? e.total : "")}
+        ${fld("f_km", this.T("Kilometerstand"), e ? e.odometer : "")}
+      </div>
+      ${isExtra || !e ? fld("f_unit", this.T("Einheit (z. B. l, Stk), leer = keine"), e ? e.unit : "", ` id="w_unit"${!e ? ' style="display:none"' : ""}`) : ""}
+      <label class="fl"><span>${this.T("Notiz")}</span><textarea id="f_note" maxlength="1000">${esc(e ? e.note : "")}</textarea></label>
+    </div><div class="df"><button data-d="cancel">${this.T("Abbrechen")}</button><button data-d="save" class="pri">${this.T("Speichern")}</button></div></div>`;
+    this.shadowRoot.appendChild(dlg);
+    this._dlg = dlg;
+    const $ = id => dlg.querySelector("#" + id);
+    const close = () => { dlg.remove(); this._dlg = null; };
+    const num = s => (s == null || String(s).trim() === "" ? null : parseFloat(String(s).replace(",", ".")));
+    if (!e) $("f_art").oninput = () => { dlg.querySelector("#w_unit").style.display = $("f_art").value.trim() ? "" : "none"; };
+    const save = async () => {
+      const f = { quantity: num($("f_q").value), unit_price: num($("f_p").value), total: num($("f_t").value), odometer: num(/^\d{1,3}(\.\d{3})+$/.test($("f_km").value.trim()) ? $("f_km").value.trim().replace(/\./g, "") : $("f_km").value), note: $("f_note").value };
+      let extra = isExtra, item = e ? e.item || "" : "";
+      if (!e) { const art = $("f_art").value.trim(); if (art) { extra = true; item = art; } }
+      if (extra) { f.unit = ($("f_unit") ? $("f_unit").value : "").trim(); if (e) f.item = ($("f_item").value || "").trim() || item; }
+      if (e && $("f_when").value && $("f_when").value !== whenOrig) { const w = new Date($("f_when").value); if (!isNaN(w)) f.ts = w.getTime() / 1000; }
+      try {
+        if (e) await this._hass.callWS({ type: "drive_energy_doc/update", vehicle: v.id, entry: e.id, fields: f });
+        else {
+          const w = new Date($("f_when").value);
+          if (isNaN(w)) { $("f_when").focus(); return; }
+          f.ts = w.getTime() / 1000;
+          if (extra) { f.kind = "extra"; f.item = item; }
+          await this._hass.callWS({ type: "drive_energy_doc/add", vehicle: v.id, fields: f });
+        }
+      } catch (err) { alert(this.T("Speichern fehlgeschlagen: ") + (err.message || err)); return; }
+      close();
+      this._load();
+    };
+    dlg.onclick = ev => {
+      ev.stopPropagation();
+      const b = ev.target.closest("[data-d]");
+      if ((b && b.dataset.d === "cancel") || ev.target === dlg) return close();
+      if (b && b.dataset.d === "save") save();
+    };
+    dlg.onkeydown = ev => { if (ev.key === "Escape") close(); else if (ev.key === "Enter" && ev.target.tagName === "INPUT") save(); };
+    ($("f_art") || $("f_q")).focus();
   }
 }
 if (!customElements.get("drive-energy-doc-panel")) customElements.define("drive-energy-doc-panel", DriveEnergyDocPanel);

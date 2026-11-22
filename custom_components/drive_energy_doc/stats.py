@@ -103,3 +103,25 @@ def check_consumption(entries: list[dict[str, Any]], entry: dict[str, Any], km: 
     cons = litres / driven * 100
     dev = abs(cons - avg) / avg
     return {"prev_odo": prev_odo, "driven": driven, "litres": litres, "cons": cons, "avg": avg, "dev": dev, "ok": dev <= tolerance}
+
+
+def km_plausible(entries: list[dict[str, Any]], km: float | None, ts: float | None = None, exclude: str | None = None, max_jump: float = 5000.0, back_tol: float = 50.0) -> bool:
+    """Ist ein von der KI gelesener Kilometerstand möglich? (Belegnummern, Säulen- oder Kartennummern werden gern fälschlich als Kilometerstand gelesen.)
+
+    Immer: größer als 0 und höchstens sechs Stellen. Mit Zeitpunkt ``ts`` (Datum vom Beleg): der Stand darf nicht unter dem des zeitlich vorigen Eintrags
+    liegen (Toleranz ``back_tol``), nicht über dem des nächsten, und nicht mehr als ``max_jump`` km über dem vorigen (mehr schafft ein Tank nicht).
+    Ohne Zeitpunkt: nicht weiter als 80 000 km vom mittleren Stand der übrigen Einträge entfernt.
+    """
+    if km is None or km <= 0 or km > 999999:
+        return False
+    fuel = sorted((e for e in entries if e.get("kind") != "extra" and e.get("odometer") and (exclude is None or e.get("id") != exclude)), key=lambda x: x["ts"])
+    if ts is not None:
+        prev = [e for e in fuel if e["ts"] <= ts]
+        nxt = [e for e in fuel if e["ts"] > ts]
+        if prev and (km < prev[-1]["odometer"] - back_tol or km > prev[-1]["odometer"] + max_jump):
+            return False
+        if nxt and km > nxt[0]["odometer"] + back_tol:
+            return False
+        return True
+    odos = sorted(e["odometer"] for e in fuel)
+    return not (len(odos) >= 3 and abs(km - odos[len(odos) // 2]) > 80000)

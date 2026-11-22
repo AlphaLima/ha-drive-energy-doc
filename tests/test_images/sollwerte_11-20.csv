@@ -1,11 +1,11 @@
 ﻿nr;datum;uhrzeit;station;ort;kraftstoff;menge;einheit;preis_pro_einheit;summe_eur;km_tacho;km_beleg;lesbarkeit_beleg;lesbarkeit_tacho;hinweis
-11;07.12.2026;08:12;Nordring Energie;Kleve;Super E10;42,60;l;1,929;82,18;66448;;gut;mittel;Spiegelungsstreifen ueber dem km-Zaehler, leichte Unschaerfe
-12;10.12.2026;17:48;Rheintal Tank GmbH;Emmerich;Super E10;39,85;l;1,899;75,68;67056;;mittel;schwer;dunkel, starkes Rauschen, deutliche Unschaerfe
-13;14.12.2026;12:30;Autohof Wesel Sued;Wesel;Super E10;44,90;l;1,869;83,92;67609;;mittel;schwer;extremer Winkel, Bokeh, Lenkrad verdeckt Teile
-14;17.12.2026;20:05;Delta Tankstelle;Goch;Super E10;36,20;l;1,889;68,38;68241;;schwer;schwer;lange Bewegungsunschaerfe, Beleg dunkel und verrauscht
-15;21.12.2026;09:40;Markt Energie;Uedem;Super E10;41,75;l;1,859;77,61;68766;;gut;schwer;beschlagene Scheibe: milchig, kontrastarm
-16;24.12.2026;15:22;Grenzland Tank;Kranenburg;Super E10;43,30;l;1,919;83,09;69346;;mittel;schwer;Instrument klein im Bild (Entfernung), verrauscht
-17;28.12.2026;11:05;Sonnenhof Tank;Rees;Super E10;38,40;l;1,899;72,92;69956;;schwer;schwer;Gegenlicht, Spiegelung der Windschutzscheibe, ueberbelichtet
-18;31.12.2026;16:50;Eifel Energie;Bedburg-Hau;Super E10;45,00;l;1,879;84,56;70505;;schwer;sehr schwer;Nacht, nur Hintergrundbeleuchtung, sehr dunkel
-19;04.01.2027;08:25;Fruehschicht Tank 24;Kleve;Super E10;40,15;l;1,909;76,65;71130;;mittel;sehr schwer;stark gedreht, angeschnitten, unscharf
-20;08.01.2027;18:30;Autohof Wesel Sued;Wesel;Super E10;42,85;l;1,929;82,66;71704;;schwer;sehr schwer;Kombination aus Unschaerfe, Beschlag, Spiegelung und wenig Licht
+11;28.09.2026;08:12;Nordring Energie;Kleve;Super E10;42,60;l;1,929;82,18;66448;;gut;mittel;Spiegelungsstreifen ueber dem km-Zaehler, leichte Unschaerfe
+12;01.10.2026;17:48;Rheintal Tank GmbH;Emmerich;Super E10;39,85;l;1,899;75,68;67056;;mittel;schwer;dunkel, starkes Rauschen, deutliche Unschaerfe
+13;05.10.2026;12:30;Autohof Wesel Sued;Wesel;Super E10;44,90;l;1,869;83,92;67609;;mittel;schwer;extremer Winkel, Bokeh, Lenkrad verdeckt Teile
+14;08.10.2026;20:05;Delta Tankstelle;Goch;Super E10;36,20;l;1,889;68,38;68241;;schwer;schwer;lange Bewegungsunschaerfe, Beleg dunkel und verrauscht
+15;12.10.2026;09:40;Markt Energie;Uedem;Super E10;41,75;l;1,859;77,61;68766;;gut;schwer;beschlagene Scheibe: milchig, kontrastarm
+16;15.10.2026;15:22;Grenzland Tank;Kranenburg;Super E10;43,30;l;1,919;83,09;69346;;mittel;schwer;Instrument klein im Bild (Entfernung), verrauscht
+17;19.10.2026;11:05;Sonnenhof Tank;Rees;Super E10;38,40;l;1,899;72,92;69956;;schwer;schwer;Gegenlicht, Spiegelung der Windschutzscheibe, ueberbelichtet
+18;22.10.2026;16:50;Eifel Energie;Bedburg-Hau;Super E10;45,00;l;1,879;84,56;70505;;schwer;sehr schwer;Nacht, nur Hintergrundbeleuchtung, sehr dunkel
+19;26.10.2026;08:25;Fruehschicht Tank 24;Kleve;Super E10;40,15;l;1,909;76,65;71130;;mittel;sehr schwer;stark gedreht, angeschnitten, unscharf
+20;30.10.2026;18:30;Autohof Wesel Sued;Wesel;Super E10;42,85;l;1,929;82,66;71704;;schwer;sehr schwer;Kombination aus Unschaerfe, Beschlag, Spiegelung und wenig Licht
