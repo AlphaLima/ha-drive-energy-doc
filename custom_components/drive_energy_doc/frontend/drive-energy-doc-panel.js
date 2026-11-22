@@ -1,7 +1,7 @@
 /* Drive-Energy-Doc-Panel: Fahrzeug-Reiter, Tankliste mit Belegfotos, Bearbeiten, CSV-Export */
 const COLS = ["date", "km", "station", "qty", "price", "total", "cons", "receipt", "note", "act"];
 
-const VERSION = "0.1.75b16";
+const VERSION = "0.1.75b19";
 
 class DriveEnergyDocPanel extends HTMLElement {
   set hass(h) {
@@ -334,6 +334,7 @@ class DriveEnergyDocPanel extends HTMLElement {
       .dh{font-size:18px;font-weight:500}
       .pvp{height:60px;align-self:flex-start}
       .dlg textarea{font:inherit;min-height:120px;padding:8px 10px;border:1px solid var(--divider-color);border-radius:8px;background:var(--primary-background-color);color:inherit;resize:vertical}
+      .dlg .big{justify-content:center;font-size:17px;padding:16px 12px}
       .dlg input{font:inherit;padding:8px 10px;border:1px solid var(--divider-color);border-radius:8px;background:var(--primary-background-color);color:inherit}
       .cl{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:8px;overflow:auto;max-height:44vh;padding:2px}
       .cty{display:flex;flex-direction:column;align-items:flex-start;gap:4px;padding:8px;border-radius:10px;text-align:left}
@@ -524,20 +525,37 @@ class DriveEnergyDocPanel extends HTMLElement {
   }
 
   _pick(v, entry) {
-    // Handy: Kamera direkt; Desktop: Dateiauswahl. Mit Eintrag = Zusatzfoto zu genau diesem Tankvorgang.
-    const input = this.shadowRoot.getElementById(window.matchMedia("(pointer:coarse)").matches ? "cam" : "pic");
-    input.value = "";
-    input.onchange = async () => {
-      const file = input.files[0];
-      if (!file) return;
-      let caption = "";
-      if (entry) {
-        const dt = new Date(entry.ts * 1000);
-        caption = `+ ${dt.getDate()}.${dt.getMonth() + 1}.${dt.getFullYear()}`;
-      }
-      await this._send(v, file, caption);
+    // Mit Eintrag = Zusatzfoto zu genau diesem Tankvorgang. Am Handy fragt ein kleiner Dialog: Kamera oder Foto aus der Galerie (Galerie); am PC gleich die Dateiauswahl.
+    const go = id => {
+      const input = this.shadowRoot.getElementById(id);
+      input.value = "";
+      input.onchange = async () => {
+        const file = input.files[0];
+        if (!file) return;
+        let caption = "";
+        if (entry) {
+          const dt = new Date(entry.ts * 1000);
+          caption = `+ ${dt.getDate()}.${dt.getMonth() + 1}.${dt.getFullYear()}`;
+        }
+        await this._send(v, file, caption);
+      };
+      input.click();
     };
-    input.click();
+    if (!window.matchMedia("(pointer:coarse)").matches) return go("pic");
+    this._pvHide();
+    const dlg = document.createElement("div");
+    dlg.className = "dlg";
+    dlg.innerHTML = `<div class="card"><button class="big" data-d="cam">${this._ico("camera")} ${this.T("Kamera")}</button><button class="big" data-d="pic">${this._ico("photo")} ${this.T("Foto aus der Galerie")}</button><div class="df"><button data-d="cancel">${this.T("Abbrechen")}</button></div></div>`;
+    this.shadowRoot.appendChild(dlg);
+    this._dlg = dlg;
+    const close = () => { dlg.remove(); this._dlg = null; };
+    dlg.onclick = ev => {
+      ev.stopPropagation();
+      const b = ev.target.closest("[data-d]");
+      if (b && (b.dataset.d === "cam" || b.dataset.d === "pic")) { close(); return go(b.dataset.d); }
+      if (ev.target === dlg || (b && b.dataset.d === "cancel")) close();
+    };
+    dlg.onkeydown = ev => { if (ev.key === "Escape") close(); };
   }
 
   async _send(v, file, text) {

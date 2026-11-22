@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.1.75b19 (unveröffentlicht)
+- Panel: Beschriftung „Foto aus der Galerie“ jetzt auch im Panel-Code (b18 hatte nur die Übersetzungen umbenannt).
+
 ## 0.1.75b18 (unveröffentlicht)
 - Panel: „Foto aus dem Archiv“ heißt jetzt „Foto aus der Galerie“.
 
