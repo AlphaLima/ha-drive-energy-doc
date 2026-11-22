@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.1.70
+- Panel (PC): kompaktere Tabelle, Uhrzeit unter dem Datum, Adresse und GPS in einer Zeile.
+
 ## 0.1.69
 - Panel: Notiz als Symbol, Text per Hover (Tooltip) oder Klick (Popup).
 

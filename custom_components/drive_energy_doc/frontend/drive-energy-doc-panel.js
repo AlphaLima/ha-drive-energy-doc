@@ -1,7 +1,7 @@
 /* Drive-Energy-Doc-Panel: Fahrzeug-Reiter, Tankliste mit Belegfotos, Bearbeiten, CSV-Export */
 const COLS = ["date", "km", "station", "qty", "price", "total", "cons", "receipt", "note", "act"];
 
-const VERSION = "0.1.69";
+const VERSION = "0.1.70";
 
 class DriveEnergyDocPanel extends HTMLElement {
   set hass(h) {
@@ -264,14 +264,14 @@ class DriveEnergyDocPanel extends HTMLElement {
       .sum b{display:block;font-size:20px}
       .sum span{font-size:12px;color:var(--secondary-text-color)}
       .wrap{overflow:auto;background:var(--card-background-color);border-radius:10px}
-      table{border-collapse:collapse;width:100%;font-size:14px}
-      th,td{padding:8px 10px;text-align:left;border-bottom:1px solid var(--divider-color);white-space:nowrap}
+      table{border-collapse:collapse;width:100%;font-size:13px;line-height:1.3}
+      th,td{padding:4px 8px;text-align:left;border-bottom:1px solid var(--divider-color);white-space:nowrap}
       td.n,th.n{text-align:right}
       th{position:sticky;top:0;background:var(--card-background-color);font-weight:500}
       .src{font-size:11px;color:var(--secondary-text-color)}
       .tag{display:inline-block;padding:0 7px;border-radius:9px;background:#0ea5e9;color:#fff;font-size:11px;vertical-align:middle}
       .gps{font-size:10px;opacity:.85}.gps a{color:inherit}
-      .thumb{height:34px;width:34px;object-fit:cover;border-radius:4px;margin-right:3px;vertical-align:middle;cursor:pointer}
+      .thumb{height:28px;width:28px;object-fit:cover;border-radius:4px;margin-right:3px;vertical-align:middle;cursor:pointer}
       .no{color:var(--secondary-text-color);display:inline-flex;vertical-align:middle}
       .lb{position:fixed;inset:0;background:#000d;display:flex;align-items:center;justify-content:center;z-index:99}
       .lb img{max-width:92vw;max-height:92vh}
@@ -300,7 +300,9 @@ class DriveEnergyDocPanel extends HTMLElement {
       table.fx{table-layout:fixed}
       table.fx td,table.fx th{overflow:hidden;text-overflow:ellipsis}
       .bar{display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap}
-      .tm::before{content:", "}
+      .tm{display:block;color:var(--secondary-text-color);font-size:12px}
+      td[data-c=station] .src{display:inline}td[data-c=station] .src.gps{margin-left:8px}
+      td[data-c=act] button{padding:3px 7px}td[data-c=act] .ico{width:18px;height:18px}
       .notei{display:inline-flex;cursor:pointer;opacity:.8}.notei:hover{opacity:1}.notei .ico{width:20px;height:20px}
       @media(max-width:700px){
         :host{padding:8px}
@@ -341,7 +343,7 @@ class DriveEnergyDocPanel extends HTMLElement {
       const cell = {
         date: `<td><span>${this._date(e.ts).split(", ")[0]}</span><span class="tm">${this._date(e.ts).split(", ")[1] || ""}</span></td>`,
         km: `<td class="n">${e.odometer != null ? this._fmt(e.odometer, 0) : "–"}</td>`,
-        station: `<td>${e.kind === "extra" ? `<span class="tag">${this._esc(e.item || "Zubehör")}</span> ` : ""}${this._esc(e.station || "")}<div class="src">${this._esc(e.address || "")}</div><div class="src gps">${this._gps(e)}</div></td>`,
+        station: `<td><div>${e.kind === "extra" ? `<span class="tag">${this._esc(e.item || "Zubehör")}</span> ` : ""}${this._esc(e.station || "")}</div><div class="src">${this._esc(e.address || "")}</div><div class="src gps">${this._gps(e)}</div></td>`,
         qty: `<td class="n">${e.quantity != null ? this._fmt(e.quantity) + " " + (e.kind === "extra" ? (e.unit || "") : u) : "–"}<div class="src">${e.level_from != null && e.level_to != null ? Math.round(e.level_from) + "→" + Math.round(e.level_to) + " %" : (e.increase != null ? "+" + Math.round(e.increase) + " %" : "")} ${this._esc(e.quantity_source || "")}</div></td>`,
         price: `<td class="n">${this._fmt(e.unit_price, 3)}<div class="src">${this._esc(e.price_source || "")}</div></td>`,
         total: `<td class="n">${this._fmt(e.total)} €</td>`,
