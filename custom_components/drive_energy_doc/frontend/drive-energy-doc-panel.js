@@ -2,7 +2,7 @@
 const DEFW = { nr: 46 };   // Standardbreite einzelner Spalten in px (sonst 120 bei fester Breite)
 const COLS = ["nr", "date", "km", "station", "qty", "price", "total", "cons", "receipt", "note", "act"];
 
-const VERSION = "0.1.78b3";
+const VERSION = "0.1.78b4";
 
 class DriveEnergyDocPanel extends HTMLElement {
   set hass(h) {
@@ -634,13 +634,13 @@ class DriveEnergyDocPanel extends HTMLElement {
       const pic = this._pic(v);
       const dlg = document.createElement("div");
       dlg.className = "dlg res";
-      dlg.innerHTML = `<div class="card"><div class="hd"><div class="mark${awaiting ? " q" : ""}">${awaiting ? "?" : "✓"}</div><div class="ttl">${this._esc(head)}</div></div><div class="mid">${shot ? `<img class="rshot" src="${shot}" alt="">` : ""}${rows ? `<div class="rows">${rows}</div>` : ""}${pic ? `<img class="rpic" src="${pic}" alt="">` : ""}</div>${awaiting && !answers.includes("yes") ? `<input id="ra" type="text" placeholder="${this._esc(this.T("Antwort (Datum z. B. 27.10. oder „neu“):"))}" autocomplete="off">` : ""}<div class="df">${answers.includes("no") ? `<button data-d="no">${this.T("Abbrechen")}</button>` : ""}${answers.includes("new") ? `<button data-d="new">${this.T("Neuer Eintrag")}</button>` : ""}${answers.includes("yes") ? `<button data-d="yes" class="pri">${this.T("Übernehmen")}</button>` : `<button data-d="ok" class="pri">OK</button>`}</div></div>`;
+      dlg.innerHTML = `<div class="card"><div class="hd"><div class="mark${awaiting ? " q" : ""}">${awaiting ? "?" : "✓"}</div><div class="ttl">${this._esc(head)}</div></div><div class="mid">${shot ? `<img class="rshot" src="${shot}" alt="">` : ""}${rows ? `<div class="rows">${rows}</div>` : ""}${pic ? `<img class="rpic" src="${pic}" alt="">` : ""}</div>${awaiting && !answers.includes("yes") ? `<input id="ra" type="text" placeholder="${answers.includes("km") ? "km 61240" : this._esc(this.T("Antwort (Datum z. B. 27.10. oder „neu“):"))}" autocomplete="off">` : ""}<div class="df">${answers.includes("no") ? `<button data-d="no">${this.T("Abbrechen")}</button>` : ""}${answers.includes("new") ? `<button data-d="new">${this.T("Neuer Eintrag")}</button>` : ""}${answers.includes("yes") ? `<button data-d="yes" class="pri">${this.T("Übernehmen")}</button>` : `<button data-d="ok" class="pri">OK</button>`}</div></div>`;
       this.shadowRoot.appendChild(dlg);
       this._dlg = dlg;
       const inp = dlg.querySelector("#ra");
       const done = val => { dlg.remove(); this._dlg = null; resolve(val); };
-      dlg.onclick = ev => { ev.stopPropagation(); if (ev.target.closest("[data-d=yes]")) done("ja"); else if (ev.target.closest("[data-d=no]")) done("nein"); else if (ev.target.closest("[data-d=new]")) done("neu"); else if (ev.target.closest("[data-d=ok]")) done(inp ? inp.value.trim() || null : null); else if (ev.target === dlg && !awaiting) done(null); };
-      dlg.onkeydown = ev => { if (ev.key === "Enter" && inp) done(inp.value.trim() || null); if (ev.key === "Escape") done(null); };
+      dlg.onclick = ev => { ev.stopPropagation(); if (ev.target.closest("[data-d=yes]")) done("ja"); else if (ev.target.closest("[data-d=no]")) done("nein"); else if (ev.target.closest("[data-d=new]")) done("neu"); else if (ev.target.closest("[data-d=ok]")) done(inp ? (answers.includes("km") && /^[\d.\s]+$/.test(inp.value.trim()) ? "km " + inp.value.trim() : inp.value.trim()) || null : null); else if (ev.target === dlg && !awaiting) done(null); };
+      dlg.onkeydown = ev => { if (ev.key === "Enter" && inp) dlg.querySelector("[data-d=ok]").click(); if (ev.key === "Escape") done(null); };
       if (inp) inp.focus(); else dlg.querySelector("button").focus();
     });
   }

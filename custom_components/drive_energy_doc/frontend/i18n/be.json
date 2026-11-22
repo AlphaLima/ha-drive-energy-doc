@@ -166,5 +166,6 @@
  "Spalten": "Слупкі",
  "{0} Fotos verarbeitet": "Апрацавана фота: {0}",
  "Übernehmen": "Прыняць",
- "Neuer Eintrag": "Новы запіс"
+ "Neuer Eintrag": "Новы запіс",
+ "Auf dem Foto konnte ich weder Beleg noch Kilometerstand lesen. Schick den Kilometerstand als Text, z. B. „km 61240“, dann lege ich den Eintrag mit dem Foto an.": "На фота я не здолеў прачытаць ні чэк, ні прабег. Даслаць прабег тэкстам, напр. «km 61240», і я створу запіс з фота."
 }

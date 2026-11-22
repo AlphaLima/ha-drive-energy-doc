@@ -166,5 +166,6 @@
  "Spalten": "Colunas",
  "{0} Fotos verarbeitet": "{0} fotos processadas",
  "Übernehmen": "Aceitar",
- "Neuer Eintrag": "Nova entrada"
+ "Neuer Eintrag": "Nova entrada",
+ "Auf dem Foto konnte ich weder Beleg noch Kilometerstand lesen. Schick den Kilometerstand als Text, z. B. „km 61240“, dann lege ich den Eintrag mit dem Foto an.": "Não consegui ler nem um talão nem o conta-quilómetros na foto. Envie a quilometragem como texto, p. ex. «km 61240», e crio a entrada com a foto."
 }

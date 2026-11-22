@@ -166,5 +166,6 @@
  "Spalten": "Columns",
  "{0} Fotos verarbeitet": "{0} photos processed",
  "Übernehmen": "Accept",
- "Neuer Eintrag": "New entry"
+ "Neuer Eintrag": "New entry",
+ "Auf dem Foto konnte ich weder Beleg noch Kilometerstand lesen. Schick den Kilometerstand als Text, z. B. „km 61240“, dann lege ich den Eintrag mit dem Foto an.": "I could read neither a receipt nor an odometer on the photo. Send the odometer reading as text, e.g. “km 61240”, and I will create the entry with the photo."
 }

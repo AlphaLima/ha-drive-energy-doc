@@ -166,5 +166,6 @@
  "Spalten": "Colonne",
  "{0} Fotos verarbeitet": "{0} foto elaborate",
  "Übernehmen": "Accetta",
- "Neuer Eintrag": "Nuova voce"
+ "Neuer Eintrag": "Nuova voce",
+ "Auf dem Foto konnte ich weder Beleg noch Kilometerstand lesen. Schick den Kilometerstand als Text, z. B. „km 61240“, dann lege ich den Eintrag mit dem Foto an.": "Nella foto non sono riuscito a leggere né uno scontrino né il contachilometri. Invia i chilometri come testo, ad es. «km 61240», e creo la voce con la foto."
 }

@@ -166,5 +166,6 @@
  "Spalten": "Stolpci",
  "{0} Fotos verarbeitet": "Obdelanih fotografij: {0}",
  "Übernehmen": "Sprejmi",
- "Neuer Eintrag": "Nov vnos"
+ "Neuer Eintrag": "Nov vnos",
+ "Auf dem Foto konnte ich weder Beleg noch Kilometerstand lesen. Schick den Kilometerstand als Text, z. B. „km 61240“, dann lege ich den Eintrag mit dem Foto an.": "Na fotografiji nisem mogel prebrati ne računa ne stanja kilometrov. Pošljite stanje kilometrov kot besedilo, npr. „km 61240“, in ustvaril bom vnos s fotografijo."
 }

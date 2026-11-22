@@ -166,5 +166,6 @@
  "Spalten": "Sütunlar",
  "{0} Fotos verarbeitet": "{0} fotoğraf işlendi",
  "Übernehmen": "Kabul et",
- "Neuer Eintrag": "Yeni kayıt"
+ "Neuer Eintrag": "Yeni kayıt",
+ "Auf dem Foto konnte ich weder Beleg noch Kilometerstand lesen. Schick den Kilometerstand als Text, z. B. „km 61240“, dann lege ich den Eintrag mit dem Foto an.": "Fotoğrafta ne belgeyi ne de kilometre göstergesini okuyabildim. Kilometreyi metin olarak gönderin, örn. “km 61240”; kaydı fotoğrafla oluşturayım."
 }

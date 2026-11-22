@@ -166,5 +166,6 @@
  "Spalten": "Sloupce",
  "{0} Fotos verarbeitet": "Zpracováno fotek: {0}",
  "Übernehmen": "Přijmout",
- "Neuer Eintrag": "Nový záznam"
+ "Neuer Eintrag": "Nový záznam",
+ "Auf dem Foto konnte ich weder Beleg noch Kilometerstand lesen. Schick den Kilometerstand als Text, z. B. „km 61240“, dann lege ich den Eintrag mit dem Foto an.": "Na fotce jsem nedokázal přečíst ani doklad, ani stav tachometru. Pošlete stav kilometrů jako text, např. „km 61240“, a vytvořím záznam s fotkou."
 }

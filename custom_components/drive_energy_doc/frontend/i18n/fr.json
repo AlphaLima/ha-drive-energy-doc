@@ -166,5 +166,6 @@
  "Spalten": "Colonnes",
  "{0} Fotos verarbeitet": "{0} photos traitées",
  "Übernehmen": "Accepter",
- "Neuer Eintrag": "Nouvelle entrée"
+ "Neuer Eintrag": "Nouvelle entrée",
+ "Auf dem Foto konnte ich weder Beleg noch Kilometerstand lesen. Schick den Kilometerstand als Text, z. B. „km 61240“, dann lege ich den Eintrag mit dem Foto an.": "Je n’ai pu lire ni ticket ni kilométrage sur la photo. Envoie le kilométrage en texte, par ex. « km 61240 », et je crée l’entrée avec la photo."
 }

@@ -166,5 +166,6 @@
  "Spalten": "Colúin",
  "{0} Fotos verarbeitet": "{0} ghrianghraf próiseáilte",
  "Übernehmen": "Glac leis",
- "Neuer Eintrag": "Iontráil nua"
+ "Neuer Eintrag": "Iontráil nua",
+ "Auf dem Foto konnte ich weder Beleg noch Kilometerstand lesen. Schick den Kilometerstand als Text, z. B. „km 61240“, dann lege ich den Eintrag mit dem Foto an.": "Ní raibh mé in ann admháil ná léamh odaiméadair a léamh ar an ngrianghraf. Seol an léamh mar théacs, m.sh. „km 61240“, agus cruthóidh mé an iontráil leis an ngrianghraf."
 }

@@ -166,5 +166,6 @@
  "Spalten": "Oszlopok",
  "{0} Fotos verarbeitet": "{0} fotó feldolgozva",
  "Übernehmen": "Elfogadás",
- "Neuer Eintrag": "Új bejegyzés"
+ "Neuer Eintrag": "Új bejegyzés",
+ "Auf dem Foto konnte ich weder Beleg noch Kilometerstand lesen. Schick den Kilometerstand als Text, z. B. „km 61240“, dann lege ich den Eintrag mit dem Foto an.": "A fotón sem a bizonylatot, sem a kilométeróra állását nem tudtam elolvasni. Küldje el a kilométerállást szövegként, pl. „km 61240”, és létrehozom a bejegyzést a fotóval."
 }

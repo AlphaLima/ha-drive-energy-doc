@@ -168,5 +168,6 @@
  "Spalten": "Стовпці",
  "{0} Fotos verarbeitet": "Оброблено фото: {0}",
  "Übernehmen": "Прийняти",
- "Neuer Eintrag": "Новий запис"
+ "Neuer Eintrag": "Новий запис",
+ "Auf dem Foto konnte ich weder Beleg noch Kilometerstand lesen. Schick den Kilometerstand als Text, z. B. „km 61240“, dann lege ich den Eintrag mit dem Foto an.": "На фото я не зміг прочитати ні чек, ні пробіг. Надішліть пробіг текстом, напр. «km 61240», і я створю запис із фото."
 }

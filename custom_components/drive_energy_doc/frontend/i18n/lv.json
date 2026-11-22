@@ -166,5 +166,6 @@
  "Spalten": "Kolonnas",
  "{0} Fotos verarbeitet": "Apstrādāti fotoattēli: {0}",
  "Übernehmen": "Pieņemt",
- "Neuer Eintrag": "Jauns ieraksts"
+ "Neuer Eintrag": "Jauns ieraksts",
+ "Auf dem Foto konnte ich weder Beleg noch Kilometerstand lesen. Schick den Kilometerstand als Text, z. B. „km 61240“, dann lege ich den Eintrag mit dem Foto an.": "Fotoattēlā nevarēju izlasīt ne čeku, ne nobraukumu. Nosūtiet nobraukumu kā tekstu, piem., „km 61240”, un es izveidošu ierakstu ar fotoattēlu."
 }

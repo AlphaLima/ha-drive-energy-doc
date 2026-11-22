@@ -166,5 +166,6 @@
  "Spalten": "Kolumner",
  "{0} Fotos verarbeitet": "{0} foton behandlade",
  "Übernehmen": "Godkänn",
- "Neuer Eintrag": "Ny post"
+ "Neuer Eintrag": "Ny post",
+ "Auf dem Foto konnte ich weder Beleg noch Kilometerstand lesen. Schick den Kilometerstand als Text, z. B. „km 61240“, dann lege ich den Eintrag mit dem Foto an.": "På fotot kunde jag varken läsa kvitto eller mätarställning. Skicka mätarställningen som text, t.ex. ”km 61240”, så skapar jag posten med fotot."
 }

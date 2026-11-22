@@ -1,6 +1,7 @@
 # Changelog
 
 ## 0.1.78 (in Arbeit)
+- Foto, auf dem weder Beleg noch Kilometerstand lesbar ist (und noch kein Eintrag existiert): statt „Kein Tankvorgang zum Zuordnen gefunden“ merkt sich der Bot das Foto und fragt nach dem Kilometerstand als Text (im Panel mit Eingabefeld); damit wird der Eintrag mit dem Foto angelegt.
 - Fix: Rückfragen kreisten, weil alte unbeantwortete Fragen (Überschreiben, Kilometerstand, Datum) stehen blieben. Ein neues Foto ersetzt jetzt offene Rückfragen, abgelaufene zählen nicht mehr, und eine beantwortete Frage räumt die übrigen ab.
 - Kilometerstand vom Beleg wird bei unplausiblem Verbrauch nicht mehr stillschweigend übernommen: Der Beleg wird gespeichert, der Kilometerstand erst nach Rückfrage (im Panel mit Knöpfen „Übernehmen“ / „Abbrechen“, per Bot mit „ja“ / „nein“).
 - Panel: Rückfragen haben fertige Antwort-Knöpfe (Übernehmen / Abbrechen bei Ja/Nein-Fragen wie „Beleg schon eingetragen“, „Neuer Eintrag“ bzw. „Abbrechen“ bei Datumsfragen).

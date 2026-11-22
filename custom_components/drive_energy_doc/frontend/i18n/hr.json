@@ -166,5 +166,6 @@
  "Spalten": "Stupci",
  "{0} Fotos verarbeitet": "Obrađeno fotografija: {0}",
  "Übernehmen": "Prihvati",
- "Neuer Eintrag": "Novi unos"
+ "Neuer Eintrag": "Novi unos",
+ "Auf dem Foto konnte ich weder Beleg noch Kilometerstand lesen. Schick den Kilometerstand als Text, z. B. „km 61240“, dann lege ich den Eintrag mit dem Foto an.": "Na fotografiji nisam mogao pročitati ni račun ni kilometražu. Pošaljite kilometražu kao tekst, npr. „km 61240“, i stvorit ću unos s fotografijom."
 }

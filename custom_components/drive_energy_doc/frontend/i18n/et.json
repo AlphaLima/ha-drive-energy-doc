@@ -166,5 +166,6 @@
  "Spalten": "Veerud",
  "{0} Fotos verarbeitet": "Töödeldud fotosid: {0}",
  "Übernehmen": "Nõustu",
- "Neuer Eintrag": "Uus kirje"
+ "Neuer Eintrag": "Uus kirje",
+ "Auf dem Foto konnte ich weder Beleg noch Kilometerstand lesen. Schick den Kilometerstand als Text, z. B. „km 61240“, dann lege ich den Eintrag mit dem Foto an.": "Fotolt ei suutnud ma lugeda ei tšekki ega läbisõitu. Saatke läbisõit tekstina, nt „km 61240“, ja loon kirje fotoga."
 }

@@ -166,5 +166,6 @@
  "Spalten": "Колони",
  "{0} Fotos verarbeitet": "Обработени фотографии: {0}",
  "Übernehmen": "Прифати",
- "Neuer Eintrag": "Нов запис"
+ "Neuer Eintrag": "Нов запис",
+ "Auf dem Foto konnte ich weder Beleg noch Kilometerstand lesen. Schick den Kilometerstand als Text, z. B. „km 61240“, dann lege ich den Eintrag mit dem Foto an.": "На фотографијата не можев да прочитам ни сметка ни километража. Испратете ја километражата како текст, на пр. „km 61240“, и ќе направам запис со фотографијата."
 }

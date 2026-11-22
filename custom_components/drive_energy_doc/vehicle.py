@@ -277,7 +277,9 @@ class Vehicle:
             return ["yes", "no"]
         if live("awaiting"):
             return ["new"]
-        return ["no"] if ao else []
+        if ao:
+            return ["no"]
+        return ["km"] if live("unread_photo") else []
 
     async def upload(self, image: bytes | None, text: str) -> list[str]:
         """Beleg aus dem Panel (Handykamera). Antworten kommen als Liste zurück statt per Messenger."""
@@ -472,7 +474,10 @@ class Vehicle:
             return await self._extra(px[0], px[1], None)
         km = receipt.parse_km(text)
         if km is not None:
-            return await self._odometer(km, None, sent_ts)
+            up = self.data.get("unread_photo")
+            photo = up["name"] if up and time.time() - up["ts"] < AWAIT_TTL else None
+            self.data["unread_photo"] = None
+            return await self._odometer(km, photo, sent_ts)
         ao = self.data.get("awaiting_odo")
         if ao and time.time() - ao["ts"] < AWAIT_TTL:
             low = text.lower().strip()
@@ -573,8 +578,10 @@ class Vehicle:
                 self._save()
                 self._notify_entities()
                 await self._say(self.tr("Zusatzfoto gespeichert.") if extra else self.tr("Werte nicht lesbar, das Foto habe ich als Zusatzfoto abgelegt. Tippe sie sonst: Menge Betrag, z. B. 45,93 105,13"))
-            else:
-                await self._say(self.tr("Kein Tankvorgang zum Zuordnen gefunden."))
+            else:   # nichts lesbar und noch kein Eintrag: Foto merken, der Kilometerstand kommt als Text
+                self.data["unread_photo"] = {"name": name, "ts": time.time()}
+                self._save()
+                await self._say(self.tr("Auf dem Foto konnte ich weder Beleg noch Kilometerstand lesen. Schick den Kilometerstand als Text, z. B. „km 61240“, dann lege ich den Eintrag mit dem Foto an."))
             return
         await self._route(values, name)
 
