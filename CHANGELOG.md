@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.1.75b27 (unveröffentlicht)
+- Panel: Ergebnis des Uploads als großer, übersichtlicher Dialog (Haken, Belegfoto, Werte, Fahrzeugbild) statt Browser-Meldung; Rückfragen mit Eingabefeld statt Browser-Abfrage.
+
 ## 0.1.75b26 (unveröffentlicht)
 - Anfrage an die KI jetzt auf Englisch (Anweisung und Feldbeschreibungen), mit Hinweisen zu Beleg-Begriffen in mehreren Sprachen; besser für andere KI-Anbieter.
 

@@ -1,7 +1,7 @@
 /* Drive-Energy-Doc-Panel: Fahrzeug-Reiter, Tankliste mit Belegfotos, Bearbeiten, CSV-Export */
 const COLS = ["date", "km", "station", "qty", "price", "total", "cons", "receipt", "note", "act"];
 
-const VERSION = "0.1.75b24";
+const VERSION = "0.1.75b27";
 
 class DriveEnergyDocPanel extends HTMLElement {
   set hass(h) {
@@ -333,6 +333,13 @@ class DriveEnergyDocPanel extends HTMLElement {
       .dlg .card{background:var(--card-background-color,#fff);color:var(--primary-text-color);border-radius:14px;padding:16px;width:min(620px,94vw);max-height:90vh;display:flex;flex-direction:column;gap:10px;box-sizing:border-box}
       .dh{font-size:18px;font-weight:500}
       .pvp{height:60px;align-self:flex-start}
+      .res .card{width:min(540px,94vw);gap:16px;padding:22px}
+      .res .hd{display:flex;align-items:center;gap:16px}.res .ttl{font-size:20px;font-weight:600;line-height:1.3}
+      .res .mark{flex:none;width:52px;height:52px;border-radius:50%;background:#2e9e5b;color:#fff;font-size:30px;display:flex;align-items:center;justify-content:center}.res .mark.q{background:var(--primary-color)}
+      .res .mid{display:flex;align-items:center;gap:16px}.res .rshot{height:110px;max-width:34%;object-fit:cover;border-radius:8px;box-shadow:0 1px 5px #0004}
+      .res .rows{flex:1;background:var(--secondary-background-color,#f1f1f1);border-radius:10px;padding:10px 14px;font-size:18px;line-height:1.65}.res .rows div:last-child{font-weight:600;font-size:20px}
+      .res .rpic{max-height:64px;max-width:28%;object-fit:contain;flex:none}.res #ra{font-size:17px;padding:12px}
+      .res .df button{font-size:17px;padding:10px 28px}
       .busy{position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;z-index:120}
       .busy .card{background:var(--card-background-color,#fff);color:var(--primary-text-color);border-radius:14px;padding:22px 28px;display:flex;flex-direction:column;align-items:center;gap:14px;font-size:16px;max-width:min(90vw,420px)}
       .busy .brow{display:flex;align-items:center;gap:16px}.bpic{max-width:100%;max-height:90px;object-fit:contain}
@@ -565,6 +572,26 @@ class DriveEnergyDocPanel extends HTMLElement {
     dlg.onkeydown = ev => { if (ev.key === "Escape") close(); };
   }
 
+  _result(v, replies, shot, awaiting) {
+    // Ergebnis des Uploads: größer und übersichtlicher als eine Browser-Meldung; bei Rückfragen mit Eingabefeld (liefert die Antwort)
+    return new Promise(resolve => {
+      const lines = (replies.join("\n") || this.T("Gespeichert.")).split(/\n/).map(s => s.trim()).filter(Boolean);
+      const head = lines[0].replace(/^[^\p{L}\p{N}]+/u, "") || lines[0];
+      const rows = lines.slice(1).map(s => `<div>${this._esc(s)}</div>`).join("");
+      const pic = this._pic(v);
+      const dlg = document.createElement("div");
+      dlg.className = "dlg res";
+      dlg.innerHTML = `<div class="card"><div class="hd"><div class="mark${awaiting ? " q" : ""}">${awaiting ? "?" : "✓"}</div><div class="ttl">${this._esc(head)}</div></div><div class="mid">${shot ? `<img class="rshot" src="${shot}" alt="">` : ""}${rows ? `<div class="rows">${rows}</div>` : ""}${pic ? `<img class="rpic" src="${pic}" alt="">` : ""}</div>${awaiting ? `<input id="ra" type="text" placeholder="${this._esc(this.T("Antwort (Datum z. B. 27.10. oder „neu“):"))}" autocomplete="off">` : ""}<div class="df"><button data-d="ok" class="pri">OK</button></div></div>`;
+      this.shadowRoot.appendChild(dlg);
+      this._dlg = dlg;
+      const inp = dlg.querySelector("#ra");
+      const done = val => { dlg.remove(); this._dlg = null; resolve(val); };
+      dlg.onclick = ev => { ev.stopPropagation(); if (ev.target.closest("[data-d=ok]")) done(inp ? inp.value.trim() || null : null); else if (ev.target === dlg && !awaiting) done(null); };
+      dlg.onkeydown = ev => { if (ev.key === "Enter" && inp) done(inp.value.trim() || null); if (ev.key === "Escape") done(null); };
+      if (inp) inp.focus(); else dlg.querySelector("button").focus();
+    });
+  }
+
   async _send(v, file, text) {
     const busy = document.createElement("div");
     busy.className = "busy";
@@ -575,17 +602,16 @@ class DriveEnergyDocPanel extends HTMLElement {
     const fd = new FormData();
     if (file) fd.append("file", file, file.name || "beleg.jpg");
     fd.append("text", text || "");
+    let ans = null;
     try {
       const r = await this._hass.fetchWithAuth(`/api/drive_energy_doc/upload/${v.id}`, { method: "POST", body: fd });
       if (!r.ok) throw new Error(`${this.T("Fehler")} ${r.status}`);
       const j = await r.json();
-      const msg = (j.replies || []).join("\n\n") || this.T("Gespeichert.");
-      if (j.awaiting) {
-        const ans = prompt(msg + "\n\n" + this.T("Antwort (Datum z. B. 27.10. oder „neu“):"));
-        if (ans) return this._send(v, null, ans);
-      } else alert(msg);
-    } catch (e) { alert(this.T("Upload fehlgeschlagen: ") + (e.message || e)); }
+      busy.remove();
+      ans = await this._result(v, j.replies || [], shot, !!j.awaiting);
+    } catch (e) { busy.remove(); alert(this.T("Upload fehlgeschlagen: ") + (e.message || e)); }
     finally { busy.remove(); if (shot) URL.revokeObjectURL(shot); }
+    if (ans) return this._send(v, null, ans);
     this._load();
   }
 
