@@ -6,7 +6,7 @@
 
 ### Das smarte, vollautomatische Tankbuch
 
-Ein **Tank- und Ladebuch für beliebig viele Fahrzeuge** (Verbrenner und Elektro), das sich weitgehend selbst führt.
+Ein **Tank- und Ladebuch für beliebig viele Fahrzeuge** (Verbrenner und Elektro), das sich vollautomatisch selbst führt.
 Es gibt zwei Arten, es zu nutzen, die sich auch mischen lassen:
 
 - **Mit Verbindung zum Auto (völlig automatisch):** Home Assistant erkennt das Tanken oder Laden selbst aus den Sensoren des Autos
@@ -264,7 +264,7 @@ MIT
 
 ### The smart, fully automatic fuel and charging log
 
-A **fuel and charging log for any number of vehicles** (combustion and electric) that largely keeps itself. There are two ways to use it, and you can mix them:
+A **fuel and charging log for any number of vehicles** (combustion and electric) that keeps itself fully automatically. There are two ways to use it, and you can mix them:
 
 - **Connected to the car (fully automatic):** Home Assistant detects refuelling or charging on its own from the car's sensors (level, odometer, GPS), creates the entry, looks up the price and calculates the consumption. The driver does not have to do anything. The receipt is only a bonus: if it is sent via Telegram, the AI reads it, the accounting becomes even more precise (real quantity, price and total) and the event is documented as well.
 - **Without any connection to the car (photo mode):** Just send a **photo of the odometer** and a **photo of the pump or the receipt** via Telegram. The AI reads mileage, quantity, price and total, the log is kept and the receipts are archived. No sensors are needed for the vehicle. This is **ideal for fleet management**: every vehicle gets its own Telegram chat (e.g. with the driver), and all vehicles end up in one list with CSV and PDF export.
