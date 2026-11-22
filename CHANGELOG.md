@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.1.75b9 (unveröffentlicht)
+- Panel: Anzahl der Einträge und Status stehen gestapelt (Wert über Beschriftung) links neben den Knöpfen.
+
 ## 0.1.75b8 (unveröffentlicht)
 - Panel: Druck-Standard ist jetzt Hochformat; der Foto-Knopf ist höher.
 
