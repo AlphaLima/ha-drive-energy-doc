@@ -1,7 +1,7 @@
 /* Drive-Energy-Doc-Panel: Fahrzeug-Reiter, Tankliste mit Belegfotos, Bearbeiten, CSV-Export */
 const COLS = ["date", "km", "station", "qty", "price", "total", "cons", "receipt", "note", "act"];
 
-const VERSION = "0.1.75b27";
+const VERSION = "0.1.75b28";
 
 class DriveEnergyDocPanel extends HTMLElement {
   set hass(h) {
@@ -99,6 +99,13 @@ class DriveEnergyDocPanel extends HTMLElement {
   async _load() {
     try {
       this._data = await this._hass.callWS({ type: "drive_energy_doc/list" });
+      if (!this._tabInit) {   // beim ersten Laden das zuletzt gewählte Fahrzeug wieder auswählen
+        this._tabInit = true;
+        try {
+          const i = this._data.findIndex(x => x.id === localStorage.getItem("deVeh"));
+          if (i >= 0) this._tab = i;
+        } catch (e) { /* ignore */ }
+      }
       if (!this._dlg) this._render();
     } catch (e) { this._err = String(e.message || e); this._render(); }
   }
@@ -506,7 +513,12 @@ class DriveEnergyDocPanel extends HTMLElement {
     dlg.onclick = ev => {
       ev.stopPropagation();
       const o = ev.target.closest("[data-v]");
-      if (o) { this._tab = +o.dataset.v; close(); return this._render(); }
+      if (o) {
+        this._tab = +o.dataset.v;
+        try { localStorage.setItem("deVeh", d[this._tab].id); } catch (e) { /* ignore */ }
+        close();
+        return this._render();
+      }
       if (ev.target === dlg || ev.target.closest("[data-d]")) close();
     };
     dlg.onkeydown = ev => { if (ev.key === "Escape") close(); };

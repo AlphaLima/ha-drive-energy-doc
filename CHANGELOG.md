@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.1.75b28 (unveröffentlicht)
+- Panel: Das zuletzt gewählte Fahrzeug wird gemerkt (pro Browser) und beim nächsten Öffnen wieder ausgewählt.
+
 ## 0.1.75b27 (unveröffentlicht)
 - Panel: Ergebnis des Uploads als großer, übersichtlicher Dialog (Haken, Belegfoto, Werte, Fahrzeugbild) statt Browser-Meldung; Rückfragen mit Eingabefeld statt Browser-Abfrage.
 
