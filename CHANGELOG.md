@@ -1,101 +1,15 @@
 # Changelog
 
-## 0.1.75b30 (unveröffentlicht)
-- Tacho/Kilometerstand: Plausibilitätsprüfung über Verbrauch (getankte Menge, gefahrene km seit dem letzten vollen Tanken, Durchschnitt der letzten fünf); bei mehr als 40 % Abweichung Warnung und Rückfrage, ob der Stand trotzdem übernommen werden soll. Warnung auch unter Belegen. Texte in allen Sprachen.
-
-## 0.1.75b29 (unveröffentlicht)
-- Seitenleiste: Das Panel heißt auf Deutsch „Tankbuch“, in den anderen Sprachen entsprechend (nach der Systemsprache von Home Assistant, z. B. „Fuel log“).
-
-## 0.1.75b28 (unveröffentlicht)
-- Panel: Das zuletzt gewählte Fahrzeug wird gemerkt (pro Browser) und beim nächsten Öffnen wieder ausgewählt.
-
-## 0.1.75b27 (unveröffentlicht)
-- Panel: Ergebnis des Uploads als großer, übersichtlicher Dialog (Haken, Belegfoto, Werte, Fahrzeugbild) statt Browser-Meldung; Rückfragen mit Eingabefeld statt Browser-Abfrage.
-
-## 0.1.75b26 (unveröffentlicht)
-- Anfrage an die KI jetzt auf Englisch (Anweisung und Feldbeschreibungen), mit Hinweisen zu Beleg-Begriffen in mehreren Sprachen; besser für andere KI-Anbieter.
-
-## 0.1.75b25 (unveröffentlicht)
-- Beleg per KI: Name und Anschrift der Tankstelle sowie die Uhrzeit werden mitgelesen und in den Eintrag übernommen (bisher blieb die Tankstelle leer, die Zeit stand auf 12:00).
-
-## 0.1.75b24 (unveröffentlicht)
-- Panel: Der Warte-Dialog zeigt den Beleg, der gerade gelesen wird, mit einer wandernden Lupe.
-
-## 0.1.75b23 (unveröffentlicht)
-- Panel: Der Warte-Dialog nach dem Upload zeigt das Bild des Fahrzeugs.
-
-## 0.1.75b22 (unveröffentlicht)
-- Upload aus dem Panel: Hinweis „Beleg wird gelesen …“ mit Ladeanzeige während der KI liest; die Verarbeitung läuft auch weiter, wenn der Browser die Verbindung abbricht; Protokolleintrag je Upload.
-
-## 0.1.75b21 (unveröffentlicht)
-- Fehler behoben: Foto-Upload aus dem Panel schlug mit Fehler 500 fehl (`msg` war in `upload()` nicht definiert, seit 0.1.66). Neuer Test findet solche undefinierten Namen.
-
-## 0.1.75b20 (unveröffentlicht)
-- Konfigurieren-Menü eines Fahrzeugs: erst Fahrzeugdaten, dann Kommunikation, dann Tankerkennung.
-
-## 0.1.75b19 (unveröffentlicht)
-- Panel: Beschriftung „Foto aus der Galerie“ jetzt auch im Panel-Code (b18 hatte nur die Übersetzungen umbenannt).
-
-## 0.1.75b18 (unveröffentlicht)
-- Panel: „Foto aus dem Archiv“ heißt jetzt „Foto aus der Galerie“.
-
-## 0.1.75b17 (unveröffentlicht)
-- Panel (Handy): Der Foto-Knopf fragt jetzt „Kamera“ oder „Foto aus der Galerie“; am PC öffnet er direkt die Dateiauswahl.
-
-## 0.1.75b16 (unveröffentlicht)
-- Panel: Im Fahrzeug-Auswahldialog steht rechts das Fahrzeugbild als kleines Bildchen.
-
-## 0.1.75b15 (unveröffentlicht)
-- Panel: Layout-Fehler im Kopfbereich behoben (Klassenname kollidierte mit dem alten Zähler-Stil).
-
-## 0.1.75b14 (unveröffentlicht)
-- Panel: Auswahlzeile der Fahrzeuge entfällt; ein Klick auf den Kopfbereich öffnet einen Auswahldialog mit allen Fahrzeugen.
-
-## 0.1.75b13 (unveröffentlicht)
-- Panel: In der Fahrzeugauswahl wählt auch ein Klick auf den Fahrzeugtyp neben dem Kennzeichen das Fahrzeug aus.
-
-## 0.1.75b12 (unveröffentlicht)
-- Panel: Fahrzeugauswahl nur noch über das Kennzeichen (angeklicktes Schild wird hervorgehoben, keine eigenen Knöpfe); Fahrzeuge ohne Kennzeichen erscheinen mit ihrem Namen.
-
-## 0.1.75b11 (unveröffentlicht)
-- Panel: Foto-Kachel heißt „Beleg / km Stand fotografieren“ (in allen Sprachen übersetzt).
-
-## 0.1.75b10 (unveröffentlicht)
-- Kennzeichen und Land sind wieder im Konfigurationsdialog (mit Schild-Vorschau); die Länderauswahl braucht keine Übersetzungsschlüssel mehr (Hassfest).
-- Panel: Bei mehreren Fahrzeugen zeigt die Auswahl das Kennzeichen; ein Klick darauf wählt das Fahrzeug. Der Kennzeichen-Dialog im Panel entfällt.
-
-## 0.1.75b9 (unveröffentlicht)
-- Panel: Anzahl der Einträge und Status stehen gestapelt (Wert über Beschriftung) links neben den Knöpfen.
-
-## 0.1.75b8 (unveröffentlicht)
-- Panel: Druck-Standard ist jetzt Hochformat; der Foto-Knopf ist höher.
-
-## 0.1.75b7 (unveröffentlicht)
-- Panel: großer Foto-Knopf („Beleg fotografieren“) als Kachel neben den Kennzahlen; der Status steht jetzt in der Knopfleiste.
-
-## 0.1.75b6 (unveröffentlicht)
-- Panel: Kennzeichen-Knopf entfernt; ein Klick auf das Kennzeichen in der Kopfzeile öffnet den Kennzeichen-Dialog (ohne Kennzeichen steht dort ein Platzhalter zum Anklicken).
-
-## 0.1.75b5 (Beta)
-- Panel: Notiz hinzufügen und ändern über einen eigenen Knopf mit Textfeld-Dialog (statt Browser-Abfragen, die in der Handy-App nicht zuverlässig funktionieren).
-
-## 0.1.75b4 (Beta)
-- Hassfest: Manifest-Schlüssel sortiert, ungültige Länder-Übersetzung entfernt, `CONFIG_SCHEMA` ergänzt.
-
-## 0.1.75b3 (Beta)
-- Marketplace-Vorbereitung: Kategorien im Manifest (`vehicles_transport.cars_evs`, `energy.ev_charging`), Installationshinweis für den Marketplace.
-
-## 0.1.75b2 (Beta)
-- Kennzeichen und Land sind nicht mehr im Konfigurationsdialog, sondern nur noch im Panel einstellbar (bestehende Werte bleiben erhalten); Schild-Vorschau-Schritt entfällt.
-- README: Screenshot des Kennzeichen-Dialogs.
-
-## 0.1.75b1 (Beta)
-- Mehrsprachig: Panel und Bot in 36 Sprachen (alle europäischen Sprachen und Russisch), Sprache der Bot-Antworten je Fahrzeug einstellbar, Kommandos in allen Sprachen verständlich.
-- README: Hinweis auf weiteres Verbrauchsmaterial, Abschnitt Sprachen.
-
-## 0.1.74b1 (Beta)
-- README zusätzlich auf Englisch.
-- Foto-Betrieb: Tacho-Foto ohne vorhandenen Eintrag legt einen neuen an; README beschreibt den Betrieb ohne Auto-Anbindung (Flottenmanagement).
+## 0.1.76
+Neu seit 0.1.69:
+- **36 Sprachen** für Panel und Bot (alle europäischen Sprachen und Russisch), Sprache der Bot-Antworten je Fahrzeug einstellbar, Kommandos in allen Sprachen verständlich. Die Seitenleiste heißt auf Deutsch „Tankbuch“, sonst entsprechend (nach der Systemsprache).
+- **Foto-Betrieb ohne Auto-Anbindung** (Flottenmanagement): Füllstand-, Kilometerstand- und GPS-Sensor sind optional; Tacho-Foto und Beleg-Foto per Telegram legen die Einträge an.
+- **Tacho-Foto und Kilometerstand:** Zuordnung zum passenden Tankvorgang, Rückfrage bei groben Abweichungen und **Plausibilitätsprüfung über den Verbrauch** (Tankmenge, gefahrene km, Durchschnitt) mit Warnung und Frage, ob der Stand trotzdem übernommen werden soll.
+- **Beleg per KI:** Anfrage jetzt auf Englisch (besser für andere KI-Anbieter), liest zusätzlich Tankstelle, Anschrift und Uhrzeit.
+- **Panel:** Kartenansicht am Handy, kompaktere Tabelle (Uhrzeit unter dem Datum), Notiz als Symbol mit eigenem Dialog, Fotoauswahl bei mehreren Fotos, großer Foto-Knopf mit kleinem Dialog „Kamera / Foto aus der Galerie“, Warte-Dialog mit Fahrzeugbild und Lupe über dem Beleg, großes Ergebnis-Fenster nach dem Upload, Fahrzeugauswahl per Klick auf den Kopfbereich (gemerkt pro Browser), Standard-Druck im Hochformat.
+- **Fehler behoben:** Foto-Upload aus dem Panel schlug mit Fehler 500 fehl (seit 0.1.66); die Verarbeitung läuft jetzt auch bei abgebrochener Verbindung weiter. Neuer Test findet undefinierte Namen.
+- **Marketplace/HACS:** Kategorien im Manifest, Hassfest- und HACS-Prüfungen grün, README auf Deutsch und Englisch mit Kapiteln zu Telegram, WhatsApp und Elektrofahrzeugen.
+- Konfigurieren-Menü: erst Fahrzeugdaten, dann Kommunikation, dann Tankerkennung; Kennzeichen und Land im Konfigurationsdialog.
 
 ## 0.1.73
 - Panel: Fotoauswahl erscheint beim Überfahren des Bildes (ohne Zähler-Symbol).
