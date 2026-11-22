@@ -2,7 +2,7 @@
 const DEFW = { nr: 46 };   // Standardbreite einzelner Spalten in px (sonst 120 bei fester Breite)
 const COLS = ["nr", "date", "km", "station", "qty", "price", "total", "cons", "receipt", "note", "act"];
 
-const VERSION = "0.1.77b4";
+const VERSION = "0.1.77";
 
 class DriveEnergyDocPanel extends HTMLElement {
   set hass(h) {

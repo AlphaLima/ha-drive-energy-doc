@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.1.77 (in Arbeit)
+## 0.1.77
 - Panel: Spalten lassen sich über einen Spalten-Knopf ein- und ausblenden (pro Browser gemerkt); die Nummern-Spalte ist schmal (46 px).
 - Panel: Mehrere Fotos gleichzeitig hochladen (Dateiauswahl mit Mehrfachauswahl, Verarbeitung nacheinander mit Fortschritt „(1 / 3)“, Rückfragen des Bots sofort, am Ende eine Übersicht).
 - Tankvorgänge werden laufend nummeriert (Spalte „Nr.“ im Panel, in CSV und Ausdruck; älteste = 1).
