@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.1.75b23 (unveröffentlicht)
+- Panel: Der Warte-Dialog nach dem Upload zeigt das Bild des Fahrzeugs.
+
 ## 0.1.75b22 (unveröffentlicht)
 - Upload aus dem Panel: Hinweis „Beleg wird gelesen …“ mit Ladeanzeige während der KI liest; die Verarbeitung läuft auch weiter, wenn der Browser die Verbindung abbricht; Protokolleintrag je Upload.
 
