@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.1.75b6 (unveröffentlicht)
+- Panel: Kennzeichen-Knopf entfernt; ein Klick auf das Kennzeichen in der Kopfzeile öffnet den Kennzeichen-Dialog (ohne Kennzeichen steht dort ein Platzhalter zum Anklicken).
+
 ## 0.1.75b5 (Beta)
 - Panel: Notiz hinzufügen und ändern über einen eigenen Knopf mit Textfeld-Dialog (statt Browser-Abfragen, die in der Handy-App nicht zuverlässig funktionieren).
 
