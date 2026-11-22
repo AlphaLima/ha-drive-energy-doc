@@ -550,6 +550,15 @@ class Vehicle:
             await self._say(f"Kilometerstand {self._fmt_km(km)} km vorgemerkt, er wird beim Abschluss des laufenden Tankvorgangs übernommen.")
             return
         m = stats.match_odometer(self.data["entries"], km, sent)
+        if not self.o.get(CONF_LEVEL) and m["status"] in ("none", "too_old"):
+            # reiner Foto-Betrieb: der Tacho kommt zuerst, der Beleg wird danach (bis 48 h) diesem Eintrag zugeordnet
+            e = self._new_manual_entry()
+            e["ts"] = e["ts_start"] = sent
+            self.data["entries"].append(e)
+            self.data["entries"].sort(key=lambda x: x["ts"])
+            await self._apply_odometer(e, km, photo, 0)
+            await self._say("Neuer Eintrag angelegt. Schick jetzt noch das Foto vom Beleg oder der Zapfsäule.")
+            return
         if m["status"] == "none":
             await self._say("Es gibt noch keinen Tankvorgang, dem ich den Kilometerstand zuordnen könnte.")
             return

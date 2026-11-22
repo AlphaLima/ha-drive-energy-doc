@@ -2,12 +2,21 @@
 
 # Drive Energy Doc für Home Assistant
 
-Ein **Tank- und Ladebuch für beliebig viele Fahrzeuge** (Verbrenner und Elektro), das sich weitgehend selbst führt:
-Home Assistant erkennt das Tanken oder Laden aus den Sensoren des Autos, holt den Preis, bittet per Telegram um den Beleg,
-liest den Beleg per KI und rechnet den Verbrauch aus. Alles landet in einer Liste im Seitenmenü (mit CSV- und PDF-Druck).
+Ein **Tank- und Ladebuch für beliebig viele Fahrzeuge** (Verbrenner und Elektro), das sich weitgehend selbst führt.
+Es gibt zwei Arten, es zu nutzen, die sich auch mischen lassen:
+
+- **Mit Verbindung zum Auto:** Home Assistant erkennt das Tanken oder Laden aus den Sensoren des Autos (Füllstand, Kilometerstand, GPS),
+  holt den Preis, bittet per Telegram um den Beleg, liest ihn per KI und rechnet den Verbrauch aus.
+- **Ganz ohne Verbindung zum Auto (Foto-Betrieb):** Es genügt, ein **Foto vom Tachostand** und ein **Foto von der Zapfsäule oder dem Beleg**
+  per Telegram zu schicken. Die KI liest Kilometerstand, Menge, Preis und Summe, das Tankbuch wird geführt und die Belege werden archiviert.
+  Dafür sind beim Fahrzeug keinerlei Sensoren nötig. Das ist **ideal für ein Flottenmanagement**: jedes Fahrzeug bekommt einen eigenen
+  Telegram-Chat (z. B. mit dem Fahrer), und alle Fahrzeuge landen in einer Liste mit CSV- und PDF-Druck.
+
+Alles landet in einer Liste im Seitenmenü (mit CSV- und PDF-Druck).
 
 ## Inhalt
 0. [Wozu das Ganze? Der Sinn des Tankbuches](#wozu-das-ganze-der-sinn-des-tankbuches) · [Die Wege ins Buch](#die-wege-daten-ins-buch-zu-bekommen)
+0. [Foto-Betrieb ohne Auto-Anbindung](#foto-betrieb-ohne-auto-anbindung-flottenmanagement)
 1. [So funktioniert es (Überblick)](#so-funktioniert-es-überblick)
 2. [Wie ein Tanken erkannt wird (genau)](#wie-ein-tanken-erkannt-wird-genau)
 3. [Welche Position und welcher Preis verwendet wird](#welche-position-und-welcher-preis-verwendet-wird)
@@ -53,6 +62,19 @@ Der Aufwand soll dabei so klein wie möglich sein: Das Auto meldet das Tanken vo
 
 Der **Beleg hat immer Vorrang** vor dem Automatischen: Das Auto schätzt, der Bon stimmt. Alle Wege führen in dasselbe Buch;
 du kannst sie beliebig mischen (z. B. automatisch erkennen lassen und nur gelegentlich den Bon schicken).
+
+## Foto-Betrieb ohne Auto-Anbindung (Flottenmanagement)
+
+Beim Anlegen des Fahrzeugs sind nur Name, Energieart und Tankgröße Pflicht. Lässt du Füllstand-, Kilometerstand- und GPS-Sensor leer, arbeitet
+das Fahrzeug rein über Nachrichten:
+
+1. Der Fahrer schickt dem Bot ein **Foto vom Tacho** (oder `km 54210` als Text). Es wird ein neuer Eintrag mit diesem Kilometerstand angelegt.
+2. Danach schickt er das **Foto vom Beleg oder der Zapfsäule** (bis 48 Stunden später). Die KI liest Menge, Preis, Summe und Datum, das Foto
+   wird zugeschnitten und am Eintrag archiviert. Die Reihenfolge ist egal: kommt der Beleg zuerst, legt er den Eintrag an, der Tacho ergänzt ihn.
+3. Zubehör (AdBlue, Öl …) geht genauso mit `+ 24,90` oder per Foto mit Bildtext.
+
+Der Verbrauch (Voll-zu-Voll) wird aus den Kilometerständen und Mengen berechnet. Weil ohne Sensoren nicht bekannt ist, ob voll getankt wurde, gilt
+jedes Tanken als voll. Für eine **Flotte** legst du je Fahrzeug einen eigenen Eintrag mit eigenem Telegram-Chat an; die Zuordnung läuft über die Chat-ID.
 
 ---
 

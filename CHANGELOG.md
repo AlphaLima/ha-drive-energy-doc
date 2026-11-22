@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.1.74
+- Foto-Betrieb: Tacho-Foto ohne vorhandenen Eintrag legt einen neuen an; README beschreibt den Betrieb ohne Auto-Anbindung (Flottenmanagement).
+
 ## 0.1.73
 - Panel: Fotoauswahl erscheint beim Überfahren des Bildes (ohne Zähler-Symbol).
 
