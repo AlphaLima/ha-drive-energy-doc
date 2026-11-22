@@ -176,7 +176,9 @@ class UploadView(HomeAssistantView):
         # als eigene Aufgabe laufen lassen: bricht der Browser die Verbindung ab (Netz, Seitenwechsel), wird der Beleg trotzdem fertig verarbeitet
         task = request.app["hass"].async_create_task(v.upload(image, text))
         replies = await asyncio.shield(task)
-        return self.json({"replies": replies, "awaiting": bool(v.data.get("awaiting") or v.data.get("awaiting_overwrite") or v.data.get("awaiting_odo"))})
+        ao = v.data.get("awaiting_odo")
+        yn = bool(v.data.get("awaiting_overwrite") or (ao and ao.get("confirm")))   # Ja/Nein-Frage: Panel zeigt Knöpfe
+        return self.json({"replies": replies, "awaiting": bool(v.data.get("awaiting") or v.data.get("awaiting_overwrite") or ao), "confirm": yn})
 
 
 class VehicleImageView(HomeAssistantView):

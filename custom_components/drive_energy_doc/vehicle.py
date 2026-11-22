@@ -729,14 +729,27 @@ class Vehicle:
         await self._apply_and_report(target, values, photo)
 
     async def _apply_and_report(self, entry: dict, values: dict, photo: str | None) -> None:
-        self._apply_values(entry, values, photo)
+        rkm = values.get("odometer")
+        ask = None
+        if rkm:   # Kilometerstand vom Beleg erst prüfen: passt der Verbrauch nicht, wird er nur nach Rückfrage übernommen
+            self._apply_values(entry, {**values, "odometer": None}, photo)
+            chk = stats.check_consumption(self.data["entries"], entry, float(rkm))
+            if chk and not chk["ok"]:
+                why = self.tr("würde bei {0} km seit dem letzten Tanken {1} ergeben (Durchschnitt {2})", self._fmt_km(chk["driven"]), self._cons_txt(chk["cons"]), self._cons_txt(chk["avg"]))
+                when = dt_util.as_local(dt_util.utc_from_timestamp(entry["ts"])).strftime("%d.%m.%Y %H:%M")
+                ask = self.tr("Der Kilometerstand {0} km {1}. Tankvorgang: {2}. Antworte „ja“, um ihn trotzdem zu übernehmen, oder „nein“.", self._fmt_km(float(rkm)), why, when)
+                self.data["awaiting_odo"] = {"id": entry["id"], "km": float(rkm), "photo": None, "ts": time.time(), "confirm": True}
+            else:
+                entry["odometer"] = float(rkm)
+        else:
+            self._apply_values(entry, values, photo)
         self._save()
         self._notify_entities()
         warn = "" if receipt.plausible(entry) else "\n" + self.tr("⚠️ Menge × Preis passt nicht zum Betrag, bitte prüfen.")
         chk = stats.check_consumption(self.data["entries"], entry, entry["odometer"]) if entry.get("odometer") is not None else None
         if chk and not chk["ok"]:
             warn += "\n" + self.tr("⚠️ Verbrauch ungewöhnlich: {0} bei {1} km seit dem letzten Tanken (Durchschnitt {2}), bitte Kilometerstand prüfen.", self._cons_txt(chk["cons"]), self._fmt_km(chk["driven"]), self._cons_txt(chk["avg"]))
-        await self._say(self._summary(entry, self.tr("Beleg übernommen")) + warn)
+        await self._say(self._summary(entry, self.tr("Beleg übernommen")) + warn + ((chr(10) + ask) if ask else ""))
 
     def _apply_values(self, entry: dict, values: dict, photo: str | None) -> None:
         q, p, t = values.get("quantity"), values.get("unit_price"), values.get("total")
