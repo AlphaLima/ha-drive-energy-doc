@@ -270,7 +270,7 @@ class Vehicle:
         self._capture = []
         try:
             if image:
-                await self.receive_photo(image, text, sent_ts=msg.get("date"))
+                await self.receive_photo(image, text)
             elif text:
                 await self.receive_text(text)
             return list(self._capture)

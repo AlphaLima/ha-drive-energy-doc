@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.1.75b21 (unveröffentlicht)
+- Fehler behoben: Foto-Upload aus dem Panel schlug mit Fehler 500 fehl (`msg` war in `upload()` nicht definiert, seit 0.1.66). Neuer Test findet solche undefinierten Namen.
+
 ## 0.1.75b20 (unveröffentlicht)
 - Konfigurieren-Menü eines Fahrzeugs: erst Fahrzeugdaten, dann Kommunikation, dann Tankerkennung.
 
