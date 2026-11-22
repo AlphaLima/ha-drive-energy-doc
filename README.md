@@ -2,6 +2,12 @@
 
 # Drive Energy Doc für Home Assistant
 
+<p align="center">
+<a href="https://github.com/AlphaLima/ha-drive-energy-doc/releases"><img src="https://img.shields.io/github/v/release/AlphaLima/ha-drive-energy-doc" alt="Release"></a>
+<a href="LICENSE"><img src="https://img.shields.io/github/license/AlphaLima/ha-drive-energy-doc" alt="Lizenz MIT"></a>
+<a href="https://github.com/AlphaLima/ha-drive-energy-doc/actions"><img src="https://img.shields.io/github/actions/workflow/status/AlphaLima/ha-drive-energy-doc/validate.yaml?label=HACS%20%2F%20Marketplace" alt="Prüfung"></a>
+</p>
+
 🇩🇪 Deutsch · [🇬🇧 English (below)](#english)
 
 ### Das smarte, vollautomatische Tankbuch
@@ -27,7 +33,7 @@ Alles landet in einer Liste im Seitenmenü (mit CSV- und PDF-Druck).
 0. [Foto-Betrieb ohne Auto-Anbindung](#foto-betrieb-ohne-auto-anbindung-flottenmanagement)
 1. [So funktioniert es (Überblick)](#so-funktioniert-es-überblick)
 2. [Wie ein Tanken erkannt wird (genau)](#wie-ein-tanken-erkannt-wird-genau)
-3. [Welche Position und welcher Preis verwendet wird](#welche-position-und-welcher-preis-verwendet-wird)
+3. [Welche Position und welcher Preis verwendet wird](#welche-position-und-welcher-preis-verwendet-wird) · [Länder mit Preisportalen](#länder-mit-preisportalen-unterstützt-und-nicht-unterstützt)
 4. [Beleg, Zubehör und Tacho per Nachricht](#beleg-zubehör-und-tacho-per-nachricht)
 5. [Wie der Verbrauch berechnet wird](#wie-der-verbrauch-berechnet-wird) · [Elektrofahrzeuge](#elektrofahrzeuge)
 6. [Das Panel](#das-panel)
