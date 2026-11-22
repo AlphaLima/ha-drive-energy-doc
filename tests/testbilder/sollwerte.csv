@@ -1,0 +1,11 @@
+﻿nr;datum;uhrzeit;station;ort;kraftstoff;menge;einheit;preis_pro_einheit;summe_eur;km_tacho;km_beleg;abweichung_km;lesbarkeit_beleg;lesbarkeit_tacho;hinweis
+01;04.11.2026;07:42;Nordring Energie;Kleve;Super E10;42,18;l;1,879;79,26;61240;61228;-12;gut;gut;Frontal, gutes Licht
+02;08.11.2026;18:15;Rheintal Tank GmbH;Emmerich;Super E10;38,64;l;1,859;71,83;61834;61809;-25;gut;gut;leicht gedreht, weicher Schatten
+03;12.11.2026;12:03;Autohof Wesel Sued;Wesel;Super E10;44,05;l;1,899;83,65;62386;62378;-8;mittel;mittel;starke Perspektive von der Seite, Blendung im Tacho
+04;15.11.2026;21:47;Delta Tankstelle;Goch;Super E10;35,72;l;1,919;68,55;62989;62958;-31;schwer;schwer;Nachtaufnahme, dunkel, starkes Rauschen
+05;19.11.2026;09:20;Markt Energie;Uedem;Super E10;40,30;l;1,869;75,32;63499;63495;-4;mittel;schwer;Bewegungsunschaerfe
+06;22.11.2026;16:31;Grenzland Tank;Kranenburg;Super E10;43,86;l;1,889;82,85;64059;64041;-18;mittel;mittel;Beleg zerknittert, Spiegelungen im Tacho
+07;24.11.2026;10:26;Eifel Energie;Bedburg-Hau;Motoroel 5W-30 1 l;1,00;l;11,990;11,99;64199;;;gut;gut;Kassenbon fuer 1 l Motoroel (Zubehoer, ohne Kilometerstand), Tacho zeigt den Stand beim Kauf
+08;27.11.2026;13:58;Eifel Energie;Bedburg-Hau;Super E10;41,55;l;1,909;79,32;64668;64628;-40;schwer;mittel;Beleg klein im Bild, Tacho unten angeschnitten
+09;30.11.2026;19:12;Sonnenhof Tank;Rees;Super E10;39,20;l;1,899;74,44;65253;65238;-15;schwer;schwer;Ueberbelichtung durch Gegenlicht
+10;03.12.2026;06:55;Fruehschicht Tank 24;Kleve;Super E10;45,10;l;1,939;87,45;65813;65791;-22;schwer;schwer;Thermodruck verblasst und Beleg quer, Tacho dunkel und schief
