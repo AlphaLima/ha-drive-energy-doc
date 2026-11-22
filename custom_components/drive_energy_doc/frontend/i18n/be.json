@@ -163,5 +163,6 @@
  "Dieser Beleg ist schon eingetragen (Eintrag vom {0}: {1}). Antworte „ja“, um ihn trotzdem zu überschreiben, oder „nein“.": "Гэты чэк ужо ўнесены (запіс ад {0}: {1}). Адкажыце «так», каб усё роўна перазапісаць, або «не».",
  "Gut, der neue Beleg wurde nicht übernommen.": "Добра, новы чэк не прыняты.",
  "Nr.": "№",
- "Spalten": "Слупкі"
+ "Spalten": "Слупкі",
+ "{0} Fotos verarbeitet": "Апрацавана фота: {0}"
 }

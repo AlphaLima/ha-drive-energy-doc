@@ -163,5 +163,6 @@
  "Dieser Beleg ist schon eingetragen (Eintrag vom {0}: {1}). Antworte „ja“, um ihn trotzdem zu überschreiben, oder „nein“.": "Este comprovativo já está registado (entrada de {0}: {1}). Responda «sim» para a substituir na mesma, ou «não».",
  "Gut, der neue Beleg wurde nicht übernommen.": "Certo, o novo comprovativo não foi aplicado.",
  "Nr.": "N.º",
- "Spalten": "Colunas"
+ "Spalten": "Colunas",
+ "{0} Fotos verarbeitet": "{0} fotos processadas"
 }

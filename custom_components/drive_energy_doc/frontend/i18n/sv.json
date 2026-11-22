@@ -163,5 +163,6 @@
  "Dieser Beleg ist schon eingetragen (Eintrag vom {0}: {1}). Antworte „ja“, um ihn trotzdem zu überschreiben, oder „nein“.": "Det här kvittot är redan registrerat (post från {0}: {1}). Svara ”ja” för att ändå skriva över, eller ”nej”.",
  "Gut, der neue Beleg wurde nicht übernommen.": "Okej, det nya kvittot tillämpades inte.",
  "Nr.": "Nr",
- "Spalten": "Kolumner"
+ "Spalten": "Kolumner",
+ "{0} Fotos verarbeitet": "{0} foton behandlade"
 }

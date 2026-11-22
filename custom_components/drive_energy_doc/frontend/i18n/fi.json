@@ -163,5 +163,6 @@
  "Dieser Beleg ist schon eingetragen (Eintrag vom {0}: {1}). Antworte „ja“, um ihn trotzdem zu überschreiben, oder „nein“.": "Tämä kuitti on jo kirjattu (merkintä {0}: {1}). Vastaa ”kyllä” korvataksesi sen silti, tai ”ei”.",
  "Gut, der neue Beleg wurde nicht übernommen.": "Selvä, uutta kuittia ei otettu käyttöön.",
  "Nr.": "Nro",
- "Spalten": "Sarakkeet"
+ "Spalten": "Sarakkeet",
+ "{0} Fotos verarbeitet": "{0} kuvaa käsitelty"
 }

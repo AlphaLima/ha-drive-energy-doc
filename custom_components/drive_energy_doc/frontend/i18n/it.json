@@ -163,5 +163,6 @@
  "Dieser Beleg ist schon eingetragen (Eintrag vom {0}: {1}). Antworte „ja“, um ihn trotzdem zu überschreiben, oder „nein“.": "Questo giustificativo è già registrato (voce del {0}: {1}). Rispondi «sì» per sovrascriverla comunque, oppure «no».",
  "Gut, der neue Beleg wurde nicht übernommen.": "Va bene, il nuovo giustificativo non è stato applicato.",
  "Nr.": "N.",
- "Spalten": "Colonne"
+ "Spalten": "Colonne",
+ "{0} Fotos verarbeitet": "{0} foto elaborate"
 }

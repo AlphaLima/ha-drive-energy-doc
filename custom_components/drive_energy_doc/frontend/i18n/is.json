@@ -163,5 +163,6 @@
  "Dieser Beleg ist schon eingetragen (Eintrag vom {0}: {1}). Antworte „ja“, um ihn trotzdem zu überschreiben, oder „nein“.": "Þessi kvittun hefur þegar verið skráð (færsla frá {0}: {1}). Svaraðu „já“ til að skrifa samt yfir, eða „nei“.",
  "Gut, der neue Beleg wurde nicht übernommen.": "Í lagi, nýja kvittunin var ekki notuð.",
  "Nr.": "Nr.",
- "Spalten": "Dálkar"
+ "Spalten": "Dálkar",
+ "{0} Fotos verarbeitet": "{0} myndir unnar"
 }

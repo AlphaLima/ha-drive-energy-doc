@@ -163,5 +163,6 @@
  "Dieser Beleg ist schon eingetragen (Eintrag vom {0}: {1}). Antworte „ja“, um ihn trotzdem zu überschreiben, oder „nein“.": "Оваа сметка е веќе внесена (запис од {0}: {1}). Одговорете „да“ за сепак да го препишам, или „не“.",
  "Gut, der neue Beleg wurde nicht übernommen.": "Во ред, новата сметка не ја применив.",
  "Nr.": "Бр.",
- "Spalten": "Колони"
+ "Spalten": "Колони",
+ "{0} Fotos verarbeitet": "Обработени фотографии: {0}"
 }

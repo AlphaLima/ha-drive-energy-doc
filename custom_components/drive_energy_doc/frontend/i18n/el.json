@@ -163,5 +163,6 @@
  "Dieser Beleg ist schon eingetragen (Eintrag vom {0}: {1}). Antworte „ja“, um ihn trotzdem zu überschreiben, oder „nein“.": "Αυτή η απόδειξη έχει ήδη καταχωριστεί (εγγραφή της {0}: {1}). Απαντήστε «ναι» για να την αντικαταστήσω παρ' όλα αυτά, ή «όχι».",
  "Gut, der neue Beleg wurde nicht übernommen.": "Εντάξει, η νέα απόδειξη δεν εφαρμόστηκε.",
  "Nr.": "Αρ.",
- "Spalten": "Στήλες"
+ "Spalten": "Στήλες",
+ "{0} Fotos verarbeitet": "Επεξεργάστηκαν {0} φωτογραφίες"
 }

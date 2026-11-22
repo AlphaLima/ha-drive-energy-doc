@@ -163,5 +163,6 @@
  "Dieser Beleg ist schon eingetragen (Eintrag vom {0}: {1}). Antworte „ja“, um ihn trotzdem zu überschreiben, oder „nein“.": "Aquest justificant ja està registrat (entrada del {0}: {1}). Respon «sí» per sobreescriure-la igualment, o «no».",
  "Gut, der neue Beleg wurde nicht übernommen.": "Molt bé, el nou justificant no s'ha aplicat.",
  "Nr.": "Núm.",
- "Spalten": "Columnes"
+ "Spalten": "Columnes",
+ "{0} Fotos verarbeitet": "{0} fotos processades"
 }

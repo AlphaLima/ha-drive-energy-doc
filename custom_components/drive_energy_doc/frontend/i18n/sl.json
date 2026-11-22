@@ -163,5 +163,6 @@
  "Dieser Beleg ist schon eingetragen (Eintrag vom {0}: {1}). Antworte „ja“, um ihn trotzdem zu überschreiben, oder „nein“.": "Ta račun je že vpisan (vnos z dne {0}: {1}). Odgovorite »da«, da ga vseeno prepišem, ali »ne«.",
  "Gut, der neue Beleg wurde nicht übernommen.": "V redu, novega računa nisem uporabil.",
  "Nr.": "Št.",
- "Spalten": "Stolpci"
+ "Spalten": "Stolpci",
+ "{0} Fotos verarbeitet": "Obdelanih fotografij: {0}"
 }

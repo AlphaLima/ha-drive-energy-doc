@@ -163,5 +163,6 @@
  "Dieser Beleg ist schon eingetragen (Eintrag vom {0}: {1}). Antworte „ja“, um ihn trotzdem zu überschreiben, oder „nein“.": "Šis čekis jau įvestas ({0} įrašas: {1}). Atsakykite „taip“, kad vis tiek perrašyčiau, arba „ne“.",
  "Gut, der neue Beleg wurde nicht übernommen.": "Gerai, naujo čekio nepritaikiau.",
  "Nr.": "Nr.",
- "Spalten": "Stulpeliai"
+ "Spalten": "Stulpeliai",
+ "{0} Fotos verarbeitet": "Apdorota nuotraukų: {0}"
 }

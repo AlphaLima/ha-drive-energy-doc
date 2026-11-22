@@ -163,5 +163,6 @@
  "Dieser Beleg ist schon eingetragen (Eintrag vom {0}: {1}). Antworte „ja“, um ihn trotzdem zu überschreiben, oder „nein“.": "Acest bon este deja înregistrat (intrarea din {0}: {1}). Răspundeți „da” pentru a-l suprascrie oricum, sau „nu”.",
  "Gut, der neue Beleg wurde nicht übernommen.": "Bine, noul bon nu a fost aplicat.",
  "Nr.": "Nr.",
- "Spalten": "Coloane"
+ "Spalten": "Coloane",
+ "{0} Fotos verarbeitet": "{0} fotografii procesate"
 }

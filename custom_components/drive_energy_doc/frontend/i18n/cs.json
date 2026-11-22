@@ -163,5 +163,6 @@
  "Dieser Beleg ist schon eingetragen (Eintrag vom {0}: {1}). Antworte „ja“, um ihn trotzdem zu überschreiben, oder „nein“.": "Tento doklad je už zapsán (záznam ze dne {0}: {1}). Odpovězte „ano“, pokud ho přesto přepsat, nebo „ne“.",
  "Gut, der neue Beleg wurde nicht übernommen.": "Dobře, nový doklad jsem nepřevzal.",
  "Nr.": "Č.",
- "Spalten": "Sloupce"
+ "Spalten": "Sloupce",
+ "{0} Fotos verarbeitet": "Zpracováno fotek: {0}"
 }

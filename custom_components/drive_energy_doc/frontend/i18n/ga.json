@@ -163,5 +163,6 @@
  "Dieser Beleg ist schon eingetragen (Eintrag vom {0}: {1}). Antworte „ja“, um ihn trotzdem zu überschreiben, oder „nein“.": "Tá an admháil seo taifeadta cheana (iontráil ón {0}: {1}). Freagair \"tá\" chun é a athscríobh ar aon nós, nó \"níl\".",
  "Gut, der neue Beleg wurde nicht übernommen.": "Ceart go leor, níor cuireadh an admháil nua i bhfeidhm.",
  "Nr.": "Uimh.",
- "Spalten": "Colúin"
+ "Spalten": "Colúin",
+ "{0} Fotos verarbeitet": "{0} ghrianghraf próiseáilte"
 }

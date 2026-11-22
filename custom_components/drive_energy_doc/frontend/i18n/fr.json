@@ -163,5 +163,6 @@
  "Dieser Beleg ist schon eingetragen (Eintrag vom {0}: {1}). Antworte „ja“, um ihn trotzdem zu überschreiben, oder „nein“.": "Ce justificatif est déjà enregistré (entrée du {0} : {1}). Répondez « oui » pour l'écraser quand même, ou « non ».",
  "Gut, der neue Beleg wurde nicht übernommen.": "D'accord, le nouveau justificatif n'a pas été repris.",
  "Nr.": "N°",
- "Spalten": "Colonnes"
+ "Spalten": "Colonnes",
+ "{0} Fotos verarbeitet": "{0} photos traitées"
 }

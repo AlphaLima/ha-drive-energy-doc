@@ -2,7 +2,7 @@
 const DEFW = { nr: 46 };   // Standardbreite einzelner Spalten in px (sonst 120 bei fester Breite)
 const COLS = ["nr", "date", "km", "station", "qty", "price", "total", "cons", "receipt", "note", "act"];
 
-const VERSION = "0.1.77b3";
+const VERSION = "0.1.77b4";
 
 class DriveEnergyDocPanel extends HTMLElement {
   set hass(h) {
@@ -352,6 +352,7 @@ class DriveEnergyDocPanel extends HTMLElement {
       .res .mid{display:flex;align-items:center;gap:16px}.res .rshot{height:110px;max-width:34%;object-fit:cover;border-radius:8px;box-shadow:0 1px 5px #0004}
       .res .rows{flex:1;background:var(--secondary-background-color,#f1f1f1);border-radius:10px;padding:10px 14px;font-size:18px;line-height:1.65}.res .rows div:last-child{font-weight:600;font-size:20px}
       .res .rpic{max-height:64px;max-width:28%;object-fit:contain;flex:none}.res #ra{font-size:17px;padding:12px}
+      .smlist{display:flex;flex-direction:column;gap:10px;max-height:52vh;overflow:auto}.sm{display:flex;gap:12px;align-items:center;background:var(--secondary-background-color,#f1f1f1);border-radius:10px;padding:8px 10px}.sm img{height:64px;width:48px;object-fit:cover;border-radius:6px;flex:none}.smr{font-size:13px;color:var(--secondary-text-color);margin-top:2px}
       .res .df button{font-size:17px;padding:10px 28px}
       .busy{position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;z-index:120}
       .busy .card{background:var(--card-background-color,#fff);color:var(--primary-text-color);border-radius:14px;padding:22px 28px;display:flex;flex-direction:column;align-items:center;gap:14px;font-size:16px;max-width:min(90vw,420px)}
@@ -449,7 +450,7 @@ class DriveEnergyDocPanel extends HTMLElement {
         <div><b>${this._fmt(s.cost_12m)} €</b><span>${this.T("Kosten 12 Monate")}</span></div>
         <button class="shoot" data-act="shoot" title="${this.T("Beleg fotografieren oder hochladen")}" aria-label="${this.T("Beleg fotografieren")}">${this._ico("camera")}<span>${this.T("Beleg / km Stand fotografieren")}</span></button>
       </div>
-      <div class="bar"><button data-act="csv" title="${this.T("CSV-Export")}" aria-label="${this.T("CSV-Export")}">${this._ico("csv")}</button><button data-act="print" title="${this.T("Drucken / PDF")}" aria-label="${this.T("Drucken")}">${this._ico("print")}</button><button data-act="ori" title="${this._ori === "portrait" ? this.T("Hochformat") : this.T("Querformat")} (${this.T("zum Wechseln klicken")})" aria-label="${this.T("Seitenformat")}">${this._ico(this._ori)}</button><button data-act="rcp" title="${this.T("Belege im Druck")}: ${this._rcp ? this.T("mit") : this.T("ohne")} (${this.T("zum Wechseln klicken")})" aria-label="${this.T("Belege im Druck")}" aria-pressed="${this._rcp}">${this._ico(this._rcp ? "photo" : "photoOff")}</button><button data-act="cols" title="${this.T("Spalten")}" aria-label="${this.T("Spalten")}">${this._ico("cols")}</button><button data-act="add" title="${this.T("Eintrag von Hand hinzufügen")}" aria-label="${this.T("Eintrag von Hand")}">${this._ico("plus")}</button><span class="stat"><b>${s.count}</b><span>${this.T("Einträge")}</span></span><span class="stat"><b>${this.T({ idle: "Bereit", candidate: "Anstieg erkannt", refuelling: "Tankt" }[s.status])}</b><span>${this.T("Status")}</span></span><input type="file" id="cam" accept="image/*" capture="environment" hidden><input type="file" id="pic" accept="image/*" hidden></div>
+      <div class="bar"><button data-act="csv" title="${this.T("CSV-Export")}" aria-label="${this.T("CSV-Export")}">${this._ico("csv")}</button><button data-act="print" title="${this.T("Drucken / PDF")}" aria-label="${this.T("Drucken")}">${this._ico("print")}</button><button data-act="ori" title="${this._ori === "portrait" ? this.T("Hochformat") : this.T("Querformat")} (${this.T("zum Wechseln klicken")})" aria-label="${this.T("Seitenformat")}">${this._ico(this._ori)}</button><button data-act="rcp" title="${this.T("Belege im Druck")}: ${this._rcp ? this.T("mit") : this.T("ohne")} (${this.T("zum Wechseln klicken")})" aria-label="${this.T("Belege im Druck")}" aria-pressed="${this._rcp}">${this._ico(this._rcp ? "photo" : "photoOff")}</button><button data-act="cols" title="${this.T("Spalten")}" aria-label="${this.T("Spalten")}">${this._ico("cols")}</button><button data-act="add" title="${this.T("Eintrag von Hand hinzufügen")}" aria-label="${this.T("Eintrag von Hand")}">${this._ico("plus")}</button><span class="stat"><b>${s.count}</b><span>${this.T("Einträge")}</span></span><span class="stat"><b>${this.T({ idle: "Bereit", candidate: "Anstieg erkannt", refuelling: "Tankt" }[s.status])}</b><span>${this.T("Status")}</span></span><input type="file" id="cam" accept="image/*" capture="environment" hidden><input type="file" id="pic" accept="image/*" multiple hidden></div>
       <div class="wrap"><table class="${fixed ? "fx" : ""}" ${fixed ? `style="width:${sumW}px"` : ""}><colgroup>${order.map(c => `<col data-c="${c}" ${cw[c] || (fixed && DEFW[c]) ? `style="width:${cw[c] || DEFW[c]}px"` : ""}>`).join("")}</colgroup><thead><tr>${order.map(c => { const H = { nr: [this.T("Nr."), "n"], date: [this.T("Datum"), ""], km: [this.T("km"), "n"], station: [this.T("Tankstelle"), ""], qty: [this.T("Menge"), "n"], price: [`€/${u}`, "n"], total: [this.T("Betrag"), "n"], cons: [`${u}/100 ${this.T("km")}`, "n"], receipt: [this.T("Beleg"), ""], note: [this.T("Notiz"), ""], act: ["", ""] }[c]; return `<th data-c="${c}" class="${H[1]}" ${c === "act" ? "" : `draggable="true" title="${this.T("Auf eine andere Überschrift ziehen: Reihenfolge ändern")}"`}>${H[0]}<span class="rs" data-c="${c}" title="${this.T("Ziehen: Spaltenbreite ändern · Doppelklick: Breiten und Reihenfolge zurücksetzen")}"></span></th>`; }).join("")}</tr></thead><tbody>${rows}</tbody></table></div>
       <div class="ver">Drive Energy Doc ${VERSION}</div>`;
     this._cur = v;
@@ -596,14 +597,14 @@ class DriveEnergyDocPanel extends HTMLElement {
       const input = this.shadowRoot.getElementById(id);
       input.value = "";
       input.onchange = async () => {
-        const file = input.files[0];
-        if (!file) return;
+        const files = [...input.files];
+        if (!files.length) return;
         let caption = "";
         if (entry) {
           const dt = new Date(entry.ts * 1000);
           caption = `+ ${dt.getDate()}.${dt.getMonth() + 1}.${dt.getFullYear()}`;
         }
-        await this._send(v, file, caption);
+        await this._sendFiles(v, files, caption);
       };
       input.click();
     };
@@ -644,27 +645,75 @@ class DriveEnergyDocPanel extends HTMLElement {
     });
   }
 
-  async _send(v, file, text) {
-    const busy = document.createElement("div");
-    busy.className = "busy";
-    const pic = this._pic(v);
-    const shot = file ? URL.createObjectURL(file) : "";   // das Foto, das gerade untersucht wird, mit wandernder Lupe
-    busy.innerHTML = `<div class="card">${pic ? `<img class="bpic" src="${pic}" alt="">` : ""}${shot ? `<div class="scan"><img src="${shot}" alt=""><svg class="lupe" viewBox="0 0 64 64" aria-hidden="true"><circle cx="26" cy="26" r="19" fill="rgba(255,255,255,.28)" stroke="#1b1b1b" stroke-width="5"/><path d="M40 40 L58 58" stroke="#1b1b1b" stroke-width="8" stroke-linecap="round"/><path d="M15 20 A13 13 0 0 1 24 12" stroke="rgba(255,255,255,.9)" stroke-width="3" fill="none" stroke-linecap="round"/></svg></div>` : ""}<div class="brow"><div class="spin"></div><div>${this.T("Beleg wird gelesen …")}</div></div></div>`;
-    this.shadowRoot.appendChild(busy);
+  async _upload(v, file, text) {
     const fd = new FormData();
     if (file) fd.append("file", file, file.name || "beleg.jpg");
     fd.append("text", text || "");
-    let ans = null;
+    const r = await this._hass.fetchWithAuth(`/api/drive_energy_doc/upload/${v.id}`, { method: "POST", body: fd });
+    if (!r.ok) throw new Error(`${this.T("Fehler")} ${r.status}`);
+    return r.json();
+  }
+
+  _send(v, file, text) { return this._sendFiles(v, file ? [file] : [], text); }
+
+  async _sendFiles(v, files, text) {
+    // Ein oder mehrere Fotos nacheinander hochladen (in der gewählten Reihenfolge). Rückfragen des Bots werden sofort gestellt;
+    // bei mehreren Fotos folgt am Ende eine Übersicht.
+    const total = Math.max(files.length, 1), results = [], urls = [];
+    const pic = this._pic(v);
+    const busy = document.createElement("div");
+    busy.className = "busy";
+    this.shadowRoot.appendChild(busy);
+    const paint = (shot, i) => {
+      busy.innerHTML = `<div class="card">${pic ? `<img class="bpic" src="${pic}" alt="">` : ""}${shot ? `<div class="scan"><img src="${shot}" alt=""><svg class="lupe" viewBox="0 0 64 64" aria-hidden="true"><circle cx="26" cy="26" r="19" fill="rgba(255,255,255,.28)" stroke="#1b1b1b" stroke-width="5"/><path d="M40 40 L58 58" stroke="#1b1b1b" stroke-width="8" stroke-linecap="round"/><path d="M15 20 A13 13 0 0 1 24 12" stroke="rgba(255,255,255,.9)" stroke-width="3" fill="none" stroke-linecap="round"/></svg></div>` : ""}<div class="brow"><div class="spin"></div><div>${this.T("Beleg wird gelesen …")}${total > 1 ? ` (${i + 1} / ${total})` : ""}</div></div></div>`;
+    };
     try {
-      const r = await this._hass.fetchWithAuth(`/api/drive_energy_doc/upload/${v.id}`, { method: "POST", body: fd });
-      if (!r.ok) throw new Error(`${this.T("Fehler")} ${r.status}`);
-      const j = await r.json();
-      busy.remove();
-      ans = await this._result(v, j.replies || [], shot, !!j.awaiting);
-    } catch (e) { busy.remove(); alert(this.T("Upload fehlgeschlagen: ") + (e.message || e)); }
-    finally { busy.remove(); if (shot) URL.revokeObjectURL(shot); }
-    if (ans) return this._send(v, null, ans);
+      for (let i = 0; i < total; i++) {
+        const file = files[i] || null;
+        const shot = file ? URL.createObjectURL(file) : "";
+        if (shot) urls.push(shot);
+        paint(shot, i);
+        let j = await this._upload(v, file, file ? text : text);
+        for (let guard = 0; j.awaiting && guard < 3; guard++) {   // Rückfrage des Bots: Antwort abfragen und weiter
+          busy.style.display = "none";
+          const ans = await this._result(v, j.replies || [], shot, true);
+          busy.style.display = "";
+          if (!ans) { j = { replies: j.replies, awaiting: false }; break; }
+          paint(shot, i);
+          j = await this._upload(v, null, ans);
+        }
+        if (total === 1) {   // einzelnes Foto: Ergebnis sofort groß zeigen
+          busy.style.display = "none";
+          await this._result(v, j.replies || [], shot, false);
+        } else results.push({ shot, replies: j.replies || [] });
+      }
+      if (total > 1) {
+        busy.style.display = "none";
+        await this._summary(v, results);
+      }
+    } catch (e) { alert(this.T("Upload fehlgeschlagen: ") + (e.message || e)); }
+    finally { busy.remove(); urls.forEach(u => URL.revokeObjectURL(u)); }
     this._load();
+  }
+
+  _summary(v, results) {
+    // Übersicht nach mehreren Fotos: je Foto Vorschaubild und Ergebnis
+    return new Promise(resolve => {
+      const items = results.map(r => {
+        const lines = (r.replies.join("\n") || this.T("Gespeichert.")).split(/\n/).map(s => s.trim()).filter(Boolean);
+        const head = lines[0].replace(/^[^\p{L}\p{N}]+/u, "") || lines[0];
+        return `<div class="sm">${r.shot ? `<img src="${r.shot}" alt="">` : ""}<div><b>${this._esc(head)}</b><div class="smr">${this._esc(lines.slice(1).join(" · "))}</div></div></div>`;
+      }).join("");
+      const dlg = document.createElement("div");
+      dlg.className = "dlg res";
+      dlg.innerHTML = `<div class="card"><div class="hd"><div class="mark">✓</div><div class="ttl">${this.T("{0} Fotos verarbeitet", results.length)}</div></div><div class="smlist">${items}</div><div class="df"><button data-d="ok" class="pri">OK</button></div></div>`;
+      this.shadowRoot.appendChild(dlg);
+      this._dlg = dlg;
+      const done = () => { dlg.remove(); this._dlg = null; resolve(); };
+      dlg.onclick = ev => { ev.stopPropagation(); if (ev.target === dlg || ev.target.closest("[data-d=ok]")) done(); };
+      dlg.onkeydown = ev => { if (ev.key === "Escape" || ev.key === "Enter") done(); };
+      dlg.querySelector("button").focus();
+    });
   }
 
   _print(v, orient = this._ori) {

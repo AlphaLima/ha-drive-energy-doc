@@ -165,5 +165,6 @@
  "Dieser Beleg ist schon eingetragen (Eintrag vom {0}: {1}). Antworte „ja“, um ihn trotzdem zu überschreiben, oder „nein“.": "Този документ вече е въведен (запис от {0}: {1}). Отговорете „да“, за да го презапиша въпреки това, или „не“.",
  "Gut, der neue Beleg wurde nicht übernommen.": "Добре, новият документ не беше приложен.",
  "Nr.": "№",
- "Spalten": "Колони"
+ "Spalten": "Колони",
+ "{0} Fotos verarbeitet": "Обработени снимки: {0}"
 }
