@@ -1,6 +1,7 @@
 # Changelog
 
 ## 0.1.78 (in Arbeit)
+- Panel: Lange Rückfragen im Ergebnisdialog stehen jetzt unter dem Bild statt in einer schmalen Spalte; der Dialog scrollt, die Antwort-Knöpfe bleiben unten sichtbar (auch am Handy).
 - Tacho-Foto mit unplausiblem Verbrauch: In der Rückfrage gibt es zusätzlich „Neuer Eintrag“ (Panel-Knopf bzw. Antwort „neu“), wenn das Foto zu keinem vorhandenen Tankvorgang gehört.
 - Panel: Der Fortschrittsdialog bei mehreren Fotos zeigt alle Fotos als Leiste (fertige mit Haken, aktuelles hervorgehoben), den Zähler „(2 / 3)“ und einen Fortschrittsbalken; Vorschau und Zähler wechseln mit jedem Foto.
 - Fix: Fehlermeldung beim Hochladen mehrerer Fotos kurz nacheinander (zwei gleichzeitige Uploads überschrieben sich die Antwortliste, „NoneType is not iterable“); Uploads laufen jetzt je Fahrzeug nacheinander. KI-Fehler werden mit Typ protokolliert.

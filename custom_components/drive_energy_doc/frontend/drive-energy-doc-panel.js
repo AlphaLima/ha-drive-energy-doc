@@ -2,7 +2,7 @@
 const DEFW = { nr: 46 };   // Standardbreite einzelner Spalten in px (sonst 120 bei fester Breite)
 const COLS = ["nr", "date", "km", "station", "qty", "price", "total", "cons", "receipt", "note", "act"];
 
-const VERSION = "0.1.78b10";
+const VERSION = "0.1.78b11";
 
 class DriveEnergyDocPanel extends HTMLElement {
   set hass(h) {
@@ -346,7 +346,7 @@ class DriveEnergyDocPanel extends HTMLElement {
       .dlg .card{background:var(--card-background-color,#fff);color:var(--primary-text-color);border-radius:14px;padding:16px;width:min(620px,94vw);max-height:90vh;display:flex;flex-direction:column;gap:10px;box-sizing:border-box}
       .dh{font-size:18px;font-weight:500}
       .pvp{height:60px;align-self:flex-start}
-      .res .card{width:min(540px,94vw);gap:16px;padding:22px}
+      .res .card{width:min(540px,94vw);gap:16px;padding:22px;overflow:auto}.res .ask{font-size:18px;font-weight:600;line-height:1.4}.res .mid{flex-wrap:wrap;justify-content:center}.res .mid>*{min-width:0}.res .rows{overflow-wrap:anywhere;flex:1 1 220px}.res .df{position:sticky;bottom:-22px;background:var(--card-background-color,#fff);padding:10px 0 0;flex-wrap:wrap}
       .res .hd{display:flex;align-items:center;gap:16px}.res .ttl{font-size:20px;font-weight:600;line-height:1.3}
       .res .mark{flex:none;width:52px;height:52px;border-radius:50%;background:#2e9e5b;color:#fff;font-size:30px;display:flex;align-items:center;justify-content:center}.res .mark.q{background:var(--primary-color)}
       .res .mid{display:flex;align-items:center;gap:16px}.res .rshot{height:110px;max-width:34%;object-fit:cover;border-radius:8px;box-shadow:0 1px 5px #0004}
@@ -632,11 +632,12 @@ class DriveEnergyDocPanel extends HTMLElement {
     return new Promise(resolve => {
       const lines = (replies.join("\n") || this.T("Gespeichert.")).split(/\n/).map(s => s.trim()).filter(Boolean);
       const head = lines[0].replace(/^[^\p{L}\p{N}]+/u, "") || lines[0];
-      const rows = lines.slice(1).map(s => `<div>${this._esc(s)}</div>`).join("");
+      const ask = awaiting && lines.length > 2 ? lines[lines.length - 1] : "";   // lange Rückfrage unter dem Bild statt in der schmalen Spalte
+      const rows = lines.slice(1, ask ? -1 : undefined).map(s => `<div>${this._esc(s)}</div>`).join("");
       const pic = this._pic(v);
       const dlg = document.createElement("div");
       dlg.className = "dlg res";
-      dlg.innerHTML = `<div class="card"><div class="hd"><div class="mark${awaiting ? " q" : ""}">${awaiting ? "?" : "✓"}</div><div class="ttl">${this._esc(head)}</div></div><div class="mid">${shot ? `<img class="rshot" src="${shot}" alt="">` : ""}${rows ? `<div class="rows">${rows}</div>` : ""}${pic ? `<img class="rpic" src="${pic}" alt="">` : ""}</div>${awaiting && !answers.includes("yes") ? `<input id="ra" type="text" placeholder="${answers.includes("km") ? "km 61240" : this._esc(this.T("Antwort (Datum z. B. 27.10. oder „neu“):"))}" autocomplete="off">` : ""}<div class="df">${answers.includes("no") ? `<button data-d="no">${this.T("Abbrechen")}</button>` : ""}${answers.includes("new") ? `<button data-d="new">${this.T("Neuer Eintrag")}</button>` : ""}${answers.includes("yes") ? `<button data-d="yes" class="pri">${this.T("Übernehmen")}</button>` : `<button data-d="ok" class="pri">OK</button>`}</div></div>`;
+      dlg.innerHTML = `<div class="card"><div class="hd"><div class="mark${awaiting ? " q" : ""}">${awaiting ? "?" : "✓"}</div><div class="ttl">${this._esc(head)}</div></div><div class="mid">${shot ? `<img class="rshot" src="${shot}" alt="">` : ""}${rows ? `<div class="rows">${rows}</div>` : ""}${pic ? `<img class="rpic" src="${pic}" alt="">` : ""}</div>${ask ? `<div class="ask">${this._esc(ask)}</div>` : ""}${awaiting && !answers.includes("yes") ? `<input id="ra" type="text" placeholder="${answers.includes("km") ? "km 61240" : this._esc(this.T("Antwort (Datum z. B. 27.10. oder „neu“):"))}" autocomplete="off">` : ""}<div class="df">${answers.includes("no") ? `<button data-d="no">${this.T("Abbrechen")}</button>` : ""}${answers.includes("new") ? `<button data-d="new">${this.T("Neuer Eintrag")}</button>` : ""}${answers.includes("yes") ? `<button data-d="yes" class="pri">${this.T("Übernehmen")}</button>` : `<button data-d="ok" class="pri">OK</button>`}</div></div>`;
       this.shadowRoot.appendChild(dlg);
       this._dlg = dlg;
       const inp = dlg.querySelector("#ra");
