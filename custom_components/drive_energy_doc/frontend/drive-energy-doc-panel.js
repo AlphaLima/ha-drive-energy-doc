@@ -2,7 +2,7 @@
 const DEFW = { nr: 46 };   // Standardbreite einzelner Spalten in px (sonst 120 bei fester Breite)
 const COLS = ["nr", "date", "km", "station", "qty", "price", "total", "cons", "receipt", "note", "act"];
 
-const VERSION = "0.1.81b30";
+const VERSION = "0.1.81b32";
 
 class DriveEnergyDocPanel extends HTMLElement {
   set hass(h) {
@@ -23,6 +23,11 @@ class DriveEnergyDocPanel extends HTMLElement {
         const t = ev.target;
         if (ev.pointerType !== "touch" && t.dataset && t.dataset.multi) this._selShow(t);
         else if (ev.pointerType !== "touch" && t.classList && t.classList.contains("thumb")) this._pvShow(t, ev);
+        else if (ev.pointerType !== "touch") { const n = t.closest ? t.closest("[data-note]") : null; if (n) this._noteShow(n, true); }   // Notiz beim Darüberfahren zeigen
+      });
+      this.shadowRoot.addEventListener("pointerout", ev => {
+        const n = ev.target.closest ? ev.target.closest("[data-note]") : null;
+        if (n && this._noteEl) { this._noteEl.remove(); this._noteEl = null; }
       });
       this.shadowRoot.addEventListener("pointerout", ev => {
         if (ev.pointerType === "touch" || !ev.target.dataset || !ev.target.dataset.multi) return;
@@ -173,6 +178,15 @@ class DriveEnergyDocPanel extends HTMLElement {
     pop.addEventListener("pointerleave", ev => { if (ev.pointerType !== "touch") pop.remove(); });
     this._pvHide();
     this.shadowRoot.append(pop);
+  }
+
+  _noteShow(t, hover) {
+    const old = this.shadowRoot.querySelector(".pop"); if (old) old.remove();
+    const r = t.getBoundingClientRect(), pop = document.createElement("div");
+    pop.className = "pop"; pop.textContent = t.dataset.note;
+    pop.style.cssText = `position:fixed;z-index:98;max-width:min(80vw,320px);padding:8px 12px;border-radius:8px;background:var(--card-background-color);color:var(--primary-text-color);box-shadow:0 2px 12px #0006;border:1px solid var(--divider-color);font-size:13px;white-space:pre-wrap;top:${r.bottom + 6}px;left:${Math.max(8, Math.min(r.left, window.innerWidth - 328))}px` + (hover ? ";pointer-events:none" : "");
+    this.shadowRoot.append(pop);
+    this._noteEl = hover ? pop : null;
   }
 
   _pvHide() {
@@ -409,7 +423,7 @@ class DriveEnergyDocPanel extends HTMLElement {
       .tm{display:block;color:var(--secondary-text-color);font-size:12px}
       td[data-c=station] .src{display:inline}td[data-c=station] .src.gps{margin-left:8px}
       td[data-c=act] button{padding:3px 7px}td[data-c=act] .ico{width:18px;height:18px}
-      .notei{display:inline-flex;cursor:pointer;opacity:.8}.notei:hover{opacity:1}.notei .ico{width:20px;height:20px}
+      .notec{cursor:pointer}.notei{display:inline-flex;cursor:pointer;opacity:.8}.notei:hover{opacity:1}.notei .ico{width:20px;height:20px}
       @media(max-width:700px){
         :host{padding:8px}
         .head{gap:8px}
@@ -472,7 +486,7 @@ class DriveEnergyDocPanel extends HTMLElement {
         total: `<td class="n">${this._fmt(e.total)} €</td>`,
         cons: `<td class="n">${e.consumption != null ? this._fmt(e.consumption) : "–"}</td>`,
         receipt: (() => { const ph = e.photo_urls || [], im = (p, k) => `<img class="${k}" src="${p}" data-p="${p}" data-entry="${e.id}" data-name="${this._esc((e.photos || [])[ph.indexOf(p)] || "")}"${ph.length > 1 && k === "thumb" ? ` data-multi="${e.id}"` : ""} alt="${ph.indexOf(p) === 0 && e.receipt ? this.T("Beleg") : this.T("Zusatzfoto")}">`; return `<td>${ph.length ? im(ph[0], "thumb") : ""}${e.receipt ? "" : `<span class="no" title="${this.T("Beleg fehlt")}">${this._ico("warn")}</span>`}</td>`; })(),
-        note: `<td>${e.kind === "extra" ? `<span class="tag" title="${this._esc(e.item || this.T("Zubehör"))}">${this._esc(e.item || this.T("Zubehör"))}</span> ` : ""}${e.note ? `<span class="notei" data-note="${this._esc(e.note)}" title="${this._esc(e.note)}" tabindex="0" role="button" aria-label="${this.T("Notiz anzeigen")}">${this._ico("note")}</span>` : ""}</td>`,
+        note: (() => { const full = [e.kind === "extra" ? (e.item || this.T("Zubehör")) : "", e.note || ""].filter(Boolean).join("\n"); return `<td>${full ? `<span class="notec" data-note="${this._esc(full)}">` : ""}${e.kind === "extra" ? `<span class="tag">${this._esc(e.item || this.T("Zubehör"))}</span> ` : ""}${e.note ? `<span class="notei" tabindex="0" role="button" aria-label="${this.T("Notiz anzeigen")}">${this._ico("note")}</span>` : ""}${full ? "</span>" : ""}</td>`; })(),
         act: `<td><button data-act="edit" title="${this.T("Bearbeiten")}" aria-label="${this.T("Bearbeiten")}">${this._ico("edit")}</button> <button data-act="del" title="${this.T("Eintrag löschen")}" aria-label="${this.T("Eintrag löschen")}">${this._ico("trash")}</button></td>`,
       };
       return `<tr data-id="${e.id}" class="${e.kind === "extra" ? "ex" : ""}${this._selId === e.id ? " rsel" : ""}">${order.map(k => cell[k].replace("<td", `<td data-c="${k}"`)).join("")}</tr>`;
@@ -524,13 +538,7 @@ class DriveEnergyDocPanel extends HTMLElement {
     if (ev.target.closest && ev.target.closest(".head") && (this._data || []).length > 1) return this._vehDlg();
     const t = ev.target.closest ? (ev.target.closest("button,[data-p],[data-tab],[data-note],[data-multi]") || ev.target) : ev.target;
     if (t.dataset.multi) { this._selShow(t); return; }
-    if (t.dataset.note) {
-      const r = t.getBoundingClientRect(), pop = document.createElement("div");
-      pop.className = "pop"; pop.textContent = t.dataset.note;
-      pop.style.cssText = `position:fixed;z-index:98;max-width:min(80vw,320px);padding:8px 12px;border-radius:8px;background:var(--card-background-color);color:var(--primary-text-color);box-shadow:0 2px 12px #0006;border:1px solid var(--divider-color);font-size:13px;white-space:pre-wrap;top:${r.bottom + 6}px;left:${Math.max(8, Math.min(r.left, window.innerWidth - 328))}px`;
-      this.shadowRoot.append(pop);
-      return;
-    }  // Klick kann auf dem Symbol im Knopf landen
+    if (t.dataset.note) { this._noteShow(t, false); return; }  // Klick kann auf dem Symbol im Knopf landen
     if (t.dataset.tab != null) { this._tab = +t.dataset.tab; this._sort = null; this._selId = null; return this._render(); }
     if (t.dataset.p) {
       const lb = document.createElement("div");
