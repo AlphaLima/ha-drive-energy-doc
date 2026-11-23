@@ -24,6 +24,8 @@ _BUILTIN = {
     "no": "nein|n|no",
     "new": "neu|new",
     "photo": "zusatz|additional",
+    "doc": "doku|dokumentation|nur dokumentation|doc|documentation",
+    "del": "löschen|loeschen|delete|del",
     "km": "km|kilometer|kilometerstand|tacho|odometer|mileage",
     "items": "adblue=AdBlue=l|ad blue=AdBlue=l|ad-blue=AdBlue=l|motoröl=Motoröl=l|motoroel=Motoröl=l|öl=Öl=l|oel=Öl=l|oil=Oil=l|"
              "engine oil=Engine oil=l|scheibenwischer=Scheibenwischer|wischer=Scheibenwischer|wipers=Wipers|"

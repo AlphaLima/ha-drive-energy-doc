@@ -81,6 +81,8 @@ class Vehicle:
         self._pos: tuple[float, float] | None = None
         self._capture: list[str] | None = None
         self._upload_lock = asyncio.Lock()
+        self.last_extra_id: str | None = None
+        self.last_entry_id: str | None = None   # zuletzt durch einen Upload angelegter oder geänderter Eintrag (das Panel springt in der Liste dorthin)
         self._batch: set[str] | None = None   # Stapel-Upload aus dem Panel: Plausibilitätsprüfung erst am Ende (batch_finish)
         self._unsubs: list = []
         self.photo_dir = Path(hass.config.path(DOMAIN, entry.entry_id, "photos"))
@@ -91,8 +93,7 @@ class Vehicle:
     async def async_setup(self) -> None:
         saved = await self.store.async_load() or {}
         self.data.update(saved)
-        if not self.data["entries"]:
-            await self.hass.async_add_executor_job(self._import_folder)
+        await self.hass.async_add_executor_job(self._import_folder)   # Erstimport (leeres Fahrzeug) oder Neuimport (Datei REPLACE im Importordner)
         self.detector.pending = FuelDetector(pending=self.data.get("pending")).pending
         o = self.o
         for e in self.data["entries"]:
@@ -105,11 +106,18 @@ class Vehicle:
         if self.data.get("awaiting_adblue"):
             self.data["awaiting_extra"] = self.data.pop("awaiting_adblue")
         for e in self.data["entries"]:   # frühere Fassungen haben Belegnummern o. ä. als Kilometerstand übernommen: unmögliche, nicht von Hand gesetzte Stände entfernen
-            if e.get("odometer") is not None and e.get("odometer_source") != "manuell" and e.get("kind") != "extra" and not self._km_sane(e["odometer"], e["id"]):
+            if e.get("odometer") is not None and e.get("odometer_source") not in ("manuell", "sensor") and e.get("kind") != "extra" and not self._km_sane(e["odometer"], e["id"]):
                 _LOGGER.info("Unmöglicher Kilometerstand %s im Eintrag %s entfernt (%s)", e["odometer"], e["id"], self.name)
                 e["odometer"] = None
                 e["odometer_source"] = None
+        if self.data.get("photos_v", 0) < 1:   # einmalig (auch nach einem Neuimport): sprechende Dateinamen und kleinere Dateien für schon vorhandene Fotos
+            try:
+                await self.hass.async_add_executor_job(self._migrate_photos)
+            except Exception as err:  # noqa: BLE001 - die Fotos bleiben dann unverändert
+                _LOGGER.warning("Foto-Migration übersprungen: %r", err)
         self._save()
+        if self._rescan_marker().is_file():   # Datei config/drive_energy_doc/rescan/<Fahrzeugname>: alle Fotos mit der KI neu einlesen und neu ablegen (einmalig, kurz nach dem Start)
+            self._unsubs.append(async_call_later(self.hass, 90, lambda _now: self.hass.async_create_task(self.rescan_photos())))
         self._pos = self._read_pos()
         lvl = self._read_float(o.get(CONF_LEVEL))
         if lvl is not None:
@@ -122,8 +130,53 @@ class Vehicle:
         if o.get(CONF_WA_PHONE):
             whatsapp.hub(self.hass)["routes"][whatsapp.norm_phone(o[CONF_WA_PHONE])] = self
 
+    def _migrate_photos(self) -> None:
+        """Einmalig (Executor): schon abgelegte Fotos in sprechende Namen umbenennen (Datei in photos/ und originals/ sowie der Eintrag) und größere Dateien stärker komprimieren."""
+        import re as _re
+
+        keep = {(self.data.get("unread_photo") or {}).get("name")}
+        renamed = shrunk = 0
+        for e in self.data["entries"]:
+            names = e.get("photos") or []
+            for i, n in enumerate(names):
+                if not isinstance(n, str) or _re.match(r"\d{4}-\d\d-\d\d_\d{4}_", n) or n in keep or not (self.photo_dir / n).is_file():
+                    continue
+                if i:
+                    label = "Zusatzfoto"
+                elif e.get("kind") == "extra":
+                    label = e.get("item") or "Zubehoer"
+                else:
+                    label = "Tanken" if e.get("receipt") else "Foto"
+                new = receipt.new_photo_name({"station": e.get("station")}, e.get("ts"), label, self.photo_dir)
+                try:
+                    (self.photo_dir / n).rename(self.photo_dir / new)
+                    if (self.orig_dir / n).is_file():
+                        (self.orig_dir / n).rename(self.orig_dir / new)
+                except OSError as err:
+                    _LOGGER.warning("Foto %s nicht umbenannt: %r", n, err)
+                    continue
+                names[i] = new
+                renamed += 1
+        for folder, side, q, limit in ((self.photo_dir, 1400, 80, 250_000), (self.orig_dir, 1800, 82, 400_000)):
+            if not folder.is_dir():
+                continue
+            for f in folder.iterdir():
+                if f.suffix.lower() == ".jpg" and f.stat().st_size > limit:
+                    old = f.read_bytes()
+                    new = receipt.recompress(old, side, q)
+                    if len(new) < 0.8 * len(old):
+                        f.write_bytes(new)
+                        shrunk += 1
+        self.data["photos_v"] = 1
+        _LOGGER.info("%s: %d Fotos umbenannt, %d verkleinert", self.name, renamed, shrunk)
+
+    def _rescan_marker(self) -> Path:
+        return Path(self.hass.config.path(DOMAIN, "rescan", self.name))
+
     def _import_folder(self) -> None:
-        """Einmaliger Import: config/drive_energy_doc/import/<Fahrzeugname>/entries.json (+ photos/, originals/). Läuft im Executor."""
+        """Import: config/drive_energy_doc/import/<Fahrzeugname>/entries.json (+ photos/, originals/). Läuft im Executor.
+        Nur bei leerem Fahrzeug, es sei denn, im Ordner liegt eine Datei REPLACE: dann werden die vorhandenen Einträge und Fotos
+        zuerst nach config/drive_energy_doc/backup/<Fahrzeugname>_<Zeit>/ gesichert (verschoben, nichts wird gelöscht) und durch den Import ersetzt."""
         import json
         import shutil
 
@@ -131,6 +184,18 @@ class Vehicle:
         f = src / "entries.json"
         if not f.is_file():
             return
+        replace = (src / "REPLACE").is_file()
+        if self.data["entries"] and not replace:
+            return
+        if replace:
+            bk = Path(self.hass.config.path(DOMAIN, "backup", f"{self.name}_{datetime.now():%Y%m%d_%H%M%S}"))
+            bk.mkdir(parents=True, exist_ok=True)
+            (bk / "entries.json").write_text(json.dumps(self.data["entries"], ensure_ascii=False, indent=1), encoding="utf-8")
+            for d in (self.photo_dir, self.orig_dir):
+                if d.is_dir():
+                    shutil.move(str(d), str(bk / d.name))
+            self.data["photos_v"] = 0   # Fotos des Imports danach in die neue Namensform bringen
+            _LOGGER.info("%s: vorhandene Einträge und Fotos gesichert nach %s", self.name, bk)
         self.data["entries"] = json.loads(f.read_text(encoding="utf-8"))
         for sub, dst in (("photos", self.photo_dir), ("originals", self.orig_dir)):
             if (src / sub).is_dir():
@@ -141,6 +206,60 @@ class Vehicle:
         shutil.rmtree(done, ignore_errors=True)
         src.rename(done)
         _LOGGER.info("%s: %d Einträge importiert", self.name, len(self.data["entries"]))
+
+    async def rescan_photos(self) -> None:
+        """Jedes Foto aus ``originals/`` mit der KI neu einlesen, sauber zuschneiden und mit sprechendem Namen neu ablegen. Werte, die der Eintrag schon hat,
+        bleiben unverändert (Abweichungen stehen im Bericht config/drive_energy_doc/rescan_<Fahrzeug>_<Zeit>.csv); fehlende Werte werden ergänzt."""
+        marker = self._rescan_marker()
+        rows = ["Datum;Foto alt;Foto neu;Status;Hinweis"]
+        async with self._upload_lock:
+            for e in list(self.data["entries"]):
+                for i, n in enumerate(list(e.get("photos") or [])):
+                    when = dt_util.as_local(dt_util.utc_from_timestamp(e["ts"])).strftime("%d.%m.%Y %H:%M")
+                    src = next((p for p in (self.orig_dir / n, self.photo_dir / n) if p.is_file()), None)
+                    if src is None:
+                        rows.append(f"{when};{n};;Datei fehlt;")
+                        continue
+                    image = await self.hass.async_add_executor_job(lambda p=src: receipt.normalize(p.read_bytes()))
+                    ai = await receipt.ai_read(self.hass, self._ai_entity(), image, self.media_dir)
+                    if ai and ai.get("busy"):
+                        rows.append(f"{when};{n};;KI überlastet, unverändert;")
+                        _LOGGER.warning("Foto-Neueinlesen: KI überlastet, Foto %s bleibt unverändert", n)
+                        continue
+                    note = []
+                    info = None
+                    if ai:
+                        info = {**ai, "station": ai.get("station") or e.get("station")}
+                        for k, lab in (("quantity", "Menge"), ("total", "Betrag")):
+                            if ai.get(k) and e.get(k) and abs(ai[k] - e[k]) > 0.02:
+                                note.append(f"{lab} Foto {ai[k]} / Eintrag {e[k]}")
+                            elif ai.get(k) and not e.get(k) and e.get("kind") != "extra":
+                                e[k] = ai[k]
+                                note.append(f"{lab} ergänzt {ai[k]}")
+                        if ai.get("unit_price") and not e.get("unit_price") and e.get("kind") != "extra":
+                            e["unit_price"] = ai["unit_price"]
+                        if ai.get("odometer") and self._km_sane(ai["odometer"], e.get("id")) and stats.km_better(e, "foto" if not (ai.get("quantity") or ai.get("total")) else "beleg"):
+                            e["odometer"], e["odometer_source"] = float(ai["odometer"]), "foto" if not (ai.get("quantity") or ai.get("total")) else "beleg"
+                            note.append(f"km ergänzt {ai['odometer']:.0f}")
+                        for k in ("station", "address"):
+                            if ai.get(k) and not e.get(k):
+                                e[k] = ai[k]
+                                note.append(f"{k} ergänzt")
+                    label = "Zusatzfoto" if i else None
+                    if e.get("kind") == "extra" and not (info or {}).get("category"):
+                        label = label or e.get("item") or "Zubehoer"
+                    new = receipt.new_photo_name(info or {"station": e.get("station")}, e["ts"], label, self.photo_dir)
+                    box = (ai or {}).get("crop")
+                    await self.hass.async_add_executor_job(receipt.crop_and_save, image, box, self.photo_dir, new, self.orig_dir)
+                    for d in (self.photo_dir, self.orig_dir):
+                        (d / n).unlink(missing_ok=True)
+                    e["photos"][i] = new
+                    rows.append(f"{when};{n};{new};{'gelesen' if ai else 'KI ohne Ergebnis, nur neu abgelegt'};{' | '.join(note)}")
+                    self._save()
+            self._notify_entities()
+        rep = Path(self.hass.config.path(DOMAIN, f"rescan_{self.name}_{datetime.now():%Y%m%d_%H%M%S}.csv"))
+        await self.hass.async_add_executor_job(lambda: (rep.write_text("\n".join(rows) + "\n", encoding="utf-8-sig"), marker.unlink(missing_ok=True)))
+        _LOGGER.info("%s: %d Fotos neu eingelesen, Bericht %s", self.name, len(rows) - 1, rep)
 
     async def async_unload(self) -> None:
         for u in self._unsubs:
@@ -240,6 +359,7 @@ class Vehicle:
             "ts": done["last_increase_ts"],
             "ts_start": done["start_ts"],
             "odometer": done.get("odometer"),
+            "odometer_source": "sensor" if done.get("odometer") is not None else None,
             "lat": done.get("lat"),
             "lon": done.get("lon"),
             "station": ex.get("station"),
@@ -263,7 +383,8 @@ class Vehicle:
             self._apply_values(entry, r["values"], r.get("photo"))
         od = ex.get("odometer")
         if od:
-            entry["odometer"], entry["odometer_source"] = float(od["km"]), "foto"
+            if stats.km_better(entry, "foto"):   # der Sensor des Autos geht vor
+                entry["odometer"], entry["odometer_source"] = float(od["km"]), "foto"
             if od.get("photo"):
                 entry["photos"].append(od["photo"])
         self.data["entries"].append(entry)
@@ -289,7 +410,7 @@ class Vehicle:
             return ["new"]
         if ao:
             return ["no"]
-        return ["km"] if live("unread_photo") and self._batch is None else []   # im Stapel nicht mitten drin fragen
+        return ["km", "doc", "del"] if live("unread_photo") and self._batch is None else []   # im Stapel nicht mitten drin fragen
 
     async def upload(self, image: bytes | None, text: str, batch: bool = False, finish: bool = False) -> list[str]:
         """Beleg aus dem Panel (Handykamera). Antworten kommen als Liste zurück statt per Messenger."""
@@ -297,6 +418,7 @@ class Vehicle:
             if finish:
                 return self.batch_finish()
             self._batch = (self._batch if self._batch is not None else set()) if batch else None
+            self.last_extra_id = self.last_entry_id = None
             return await self._upload_locked(image, text)
 
     def batch_finish(self) -> list[str]:
@@ -310,7 +432,7 @@ class Vehicle:
                 out.append(f"{when}: " + self.tr("⚠️ Verbrauch ungewöhnlich: {0} bei {1} km seit dem letzten Tanken (Durchschnitt {2}), bitte Kilometerstand prüfen.", self._cons_txt(chk["cons"]), self._fmt_km(chk["driven"]), self._cons_txt(chk["avg"])))
         up = self.data.get("unread_photo")
         if up and time.time() - up["ts"] < AWAIT_TTL:   # im Stapel unlesbar gebliebenes Foto: am Ende melden statt mittendrin zu fragen
-            out.append(self.tr("Auf dem Foto konnte ich weder Beleg noch Kilometerstand lesen. Schick den Kilometerstand als Text, z. B. „km 61240“, dann lege ich den Eintrag mit dem Foto an."))
+            out.append(self.tr("Auf dem Foto konnte ich weder Beleg noch Kilometerstand lesen. Schick den Kilometerstand als Text (z. B. „km 61240“) oder lege das Foto nur zur Dokumentation ab, oder lösche es."))
         return out
 
     async def _upload_locked(self, image: bytes | None, text: str) -> list[str]:
@@ -413,6 +535,8 @@ class Vehicle:
             lines.append(self._dec(f"{e['unit_price']:.3f} €{'/' + unit if unit else ''} ({self.tr(e.get('price_source') or '?')})"))
         if e.get("total"):
             lines.append(self.tr("Summe {0} €", self._dec(f"{e['total']:.2f}")))
+        if e.get("note"):
+            lines.append("💱 " + e["note"] if "EZB" in e["note"] or "EUR" in e["note"] else "📝 " + e["note"])
         return "\n".join(lines)
 
     async def handle_message(self, msg: dict[str, Any]) -> None:
@@ -436,13 +560,15 @@ class Vehicle:
         """Zubehör erfassen (AdBlue, Öl, Scheibenwischer …): Bezeichnung, optional Menge, Preis, Betrag, Foto.
         Ohne Zahlen wartet der Eintrag auf die nächste Nachricht mit Menge/Betrag."""
         values = values or receipt.parse_extra_values(rest)
-        d = receipt.parse_date_hint(rest)
+        d = receipt.parse_date_hint(rest) or (values or {}).get("date")
         entry = self._new_manual_entry()
+        self.last_extra_id = self.last_entry_id = entry["id"]
         entry["kind"] = "extra"
         entry["item"] = item
         entry["unit"] = {v[0].lower(): v[1] for v in messages.items().values()}.get(item.lower(), "")
+        hm = (values or {}).get("time")
         if d:
-            entry["ts"] = entry["ts_start"] = datetime.combine(d, dtime(12, 0), tzinfo=dt_util.DEFAULT_TIME_ZONE).timestamp()
+            entry["ts"] = entry["ts_start"] = datetime.combine(d, dtime(*hm) if hm else dtime(12, 0), tzinfo=dt_util.DEFAULT_TIME_ZONE).timestamp()
         if values:
             self._apply_values(entry, values, photo)
         elif photo:
@@ -506,6 +632,22 @@ class Vehicle:
                     await self._remove_files([ow["photo"]])
                 self._save()
                 return await self._say(self.tr("Gut, der neue Beleg wurde nicht übernommen."))
+        up = self.data.get("unread_photo")
+        if up and time.time() - up["ts"] < AWAIT_TTL and text.strip().lower() in (messages.keywords("doc") | messages.keywords("del")):
+            self.data["unread_photo"] = None
+            if text.strip().lower() in messages.keywords("del"):   # unlesbares Foto verwerfen
+                await self._remove_files([up["name"]])
+                self._save()
+                return await self._say(self.tr("Foto gelöscht."))
+            e = self._new_manual_entry()   # nur zur Dokumentation: Eintrag ohne Zahlen, zählt nicht in den Verbrauch
+            e["kind"], e["item"], e["unit"] = "extra", self.tr("Dokumentation"), ""
+            e["photos"].append(up["name"])
+            e["receipt"] = True
+            self.data["entries"].append(e)
+            self.data["entries"].sort(key=lambda x: x["ts"])
+            self._save()
+            self._notify_entities()
+            return await self._say(self.tr("Foto zur Dokumentation abgelegt."))
         px = receipt.parse_extra(text)
         if px:
             return await self._extra(px[0], px[1], None)
@@ -597,25 +739,34 @@ class Vehicle:
                 ai = await receipt.ai_read(self.hass, self._ai_entity(), image, self.media_dir)
                 if ai and receipt.plausible(ai):
                     values, box = ai, ai.get("crop")
-            name = receipt.new_photo_name()
+            name = receipt.new_photo_name(values, sent_ts, item or "Zubehoer", self.photo_dir)
             await self.hass.async_add_executor_job(receipt.crop_and_save, image, box, self.photo_dir, name, self.orig_dir)
             return await self._extra(item, rest, name, values)
         extra = low.startswith(tuple(messages.keywords("photo")))
         values = None if extra else receipt.parse_text(caption)
         km = None if (extra or values) else receipt.parse_km(caption)   # Tacho-Foto mit Bildtext „km 54210“
         box = None
+        ai = None
         if not extra and not values and km is None:
             t0 = time.time()
             ai = await receipt.ai_read(self.hass, self._ai_entity(), image, self.media_dir)
             if not ai and time.time() - t0 < 60:   # schneller Fehlschlag (z. B. Überlastung des KI-Dienstes): einmal wiederholen
                 await asyncio.sleep(3)
                 ai = await receipt.ai_read(self.hass, self._ai_entity(), image, self.media_dir)
+            if ai and ai.get("busy"):   # Google überlastet: nichts ablegen, kein Eintrag
+                return await self._say("⚠ " + self.tr("Die KI ist gerade überlastet (Google). Bitte schick das Foto in ein paar Minuten noch einmal.") + " " + self.tr("Es wurde nichts gespeichert."))
             if ai and receipt.plausible(ai):
                 values, box = ai, ai.get("crop")
             elif ai and ai.get("odometer") and self._km_sane(ai["odometer"], ts=sent_ts):   # mit bekannter Aufnahme-/Sendezeit gegen die Reihenfolge der Einträge prüfen
                 km, box = float(ai["odometer"]), ai.get("crop")           # nur Kilometerstand erkannt: Foto vom Tacho
-        name = receipt.new_photo_name()
+        info = values if isinstance(values, dict) and values else (ai if isinstance(ai, dict) and not ai.get("busy") else None)
+        name = receipt.new_photo_name(info, sent_ts, "Tacho" if (km is not None and not values) else ("Zusatzfoto" if extra else None), self.photo_dir)
         await self.hass.async_add_executor_job(receipt.crop_and_save, image, box, self.photo_dir, name, self.orig_dir)
+        cat = (values or {}).get("category") if isinstance(values, dict) else None
+        if cat in ("adblue", "oil", "washer", "carwash", "other"):   # Beleg für Zubehör/Verbrauchsmaterial: eigener Eintrag, nie einen Tankvorgang überschreiben
+            item = {"adblue": "AdBlue", "oil": "Öl", "washer": "Scheibenreiniger", "carwash": "Waschen"}.get(cat) or (values.get("item") or "Zubehör")
+            item = self.tr(item) if cat != "other" else item
+            return await self._extra(item, "", name, {k: v for k, v in values.items() if k != "odometer"})
         if km is not None:
             return await self._odometer(km, name, sent_ts)
         if extra or not values:
@@ -634,7 +785,7 @@ class Vehicle:
             else:   # nichts lesbar und noch kein Eintrag: Foto merken, der Kilometerstand kommt als Text
                 self.data["unread_photo"] = {"name": name, "ts": time.time()}
                 self._save()
-                await self._say(self.tr("Auf dem Foto konnte ich weder Beleg noch Kilometerstand lesen. Schick den Kilometerstand als Text, z. B. „km 61240“, dann lege ich den Eintrag mit dem Foto an."))
+                await self._say(self.tr("Auf dem Foto konnte ich weder Beleg noch Kilometerstand lesen. Schick den Kilometerstand als Text (z. B. „km 61240“) oder lege das Foto nur zur Dokumentation ab, oder lösche es."))
             return
         await self._route(values, name)
 
@@ -661,7 +812,7 @@ class Vehicle:
         if photo_only and m["status"] in ("none", "too_old"):
             # reiner Foto-Betrieb: der Tacho kommt zuerst, der Beleg wird danach (bis 48 h) diesem Eintrag zugeordnet
             e = self._new_manual_entry()
-            e["ts"] = e["ts_start"] = sent
+            self._retime(e, sent)
             self.data["entries"].append(e)
             self.data["entries"].sort(key=lambda x: x["ts"])
             await self._apply_odometer(e, km, photo, 0)
@@ -712,8 +863,15 @@ class Vehicle:
     async def _apply_odometer(self, entry: dict, km: float, photo: str | None, dt: float) -> None:
         if self._batch is not None:
             self._batch.add(entry["id"])
+        source = "foto" if photo else "manuell"
+        if not stats.km_better(entry, source):   # der Eintrag hat schon einen besseren Stand (Sensor des Autos): nur das Foto ablegen
+            if photo:
+                entry["photos"].append(photo)
+            self._save()
+            self._notify_entities()
+            return await self._say(self.tr("Zusatzfoto gespeichert."))
         entry["odometer"] = float(km)
-        entry["odometer_source"] = "foto" if photo else "manuell"
+        entry["odometer_source"] = source
         if photo:
             entry["photos"].append(photo)
         self._save()
@@ -735,7 +893,7 @@ class Vehicle:
 
     def _new_manual_entry(self) -> dict:
         return {
-            "id": uuid.uuid4().hex[:12], "created": time.time(), "ts": time.time(), "ts_start": time.time(), "odometer": self._read_float(self.o.get(CONF_ODOMETER)),
+            "id": uuid.uuid4().hex[:12], "created": time.time(), "ts": time.time(), "ts_start": time.time(), "odometer": self._read_float(self.o.get(CONF_ODOMETER)), "odometer_source": "sensor" if self._read_float(self.o.get(CONF_ODOMETER)) is not None else None,
             "lat": self._pos[0] if self._pos else None, "lon": self._pos[1] if self._pos else None, "station": None, "address": None,
             "station_id": None, "level_from": None, "level_to": None, "quantity": None, "quantity_source": "manuell", "unit_price": None,
             "price_source": None, "total": None, "photos": [], "receipt": False, "note": "",
@@ -744,6 +902,14 @@ class Vehicle:
     def _km_sane(self, km, exclude: str | None = None, ts: float | None = None) -> bool:
         """Von der KI gelesener Kilometerstand möglich? Siehe stats.km_plausible (mit Datum vom Beleg: Reihenfolge der Einträge, sonst Abstand zum Mittelwert)."""
         return stats.km_plausible(self.data["entries"], km, ts, exclude)
+
+    @staticmethod
+    def _retime(entry: dict, ts: float) -> None:
+        """Zeitpunkt eines Eintrags setzen. Ein beim Anlegen vom Sensor gelesener Kilometerstand passt nur zu \"jetzt\": liegt der Zeitpunkt (z. B. Datum vom Beleg) mehr als 3 Stunden davon entfernt, wird er verworfen."""
+        entry["ts"] = entry["ts_start"] = ts
+        if entry.get("odometer_source") == "sensor" and abs(ts - entry.get("created", ts)) > 3 * 3600:
+            entry["odometer"] = None
+            entry["odometer_source"] = None
 
     def _entry_by_km(self, km: float, tolerance: float = 50.0) -> dict | None:
         """Eintrag ohne Beleg, dessen Kilometerstand (vom Tacho-Foto) fast genau zum Stand auf dem Beleg passt: so finden Beleg und Tacho auch bei gemischter Reihenfolge zusammen."""
@@ -791,7 +957,7 @@ class Vehicle:
         if open_e:   # das Tacho-Foto kam zuerst und hat schon eine neue Zeile angelegt: der Beleg gehört dazu (Datum und Uhrzeit vom Beleg gelten)
             if d:
                 hm = values.get("time")
-                open_e["ts"] = open_e["ts_start"] = dt_util.start_of_local_day(d).timestamp() + ((hm[0] * 3600 + hm[1] * 60) if hm else 12 * 3600)
+                self._retime(open_e, dt_util.start_of_local_day(d).timestamp() + ((hm[0] * 3600 + hm[1] * 60) if hm else 12 * 3600))
                 self.data["entries"].sort(key=lambda x: x["ts"])
             await self._apply_and_report(open_e, values, photo)
             return
@@ -800,7 +966,7 @@ class Vehicle:
             if not target and photo_only:
                 target = self._new_manual_entry()
                 hm = values.get("time")
-                target["ts"] = target["ts_start"] = dt_util.start_of_local_day(d).timestamp() + ((hm[0] * 3600 + hm[1] * 60) if hm else 12 * 3600)
+                self._retime(target, dt_util.start_of_local_day(d).timestamp() + ((hm[0] * 3600 + hm[1] * 60) if hm else 12 * 3600))
                 self.data["entries"].append(target)
                 self.data["entries"].sort(key=lambda x: x["ts"])
             if not target:
@@ -834,17 +1000,21 @@ class Vehicle:
         await self._apply_and_report(target, values, photo)
 
     async def _apply_and_report(self, entry: dict, values: dict, photo: str | None) -> None:
+        self.last_entry_id = entry["id"]
         rkm = values.get("odometer")
         batch = self._batch is not None
         if batch:
             self._batch.add(entry["id"])
-        if rkm:   # Kilometerstand vom Beleg nur übernehmen, wenn der Verbrauch dazu passt; im Zweifel weglassen (keine Rückfrage)
+        if rkm:   # Kilometerstand vom Beleg ist die schlechteste Quelle (von Hand getippt): nur wenn der Eintrag noch keinen hat und der Verbrauch passt, sonst weglassen
             self._apply_values(entry, {**values, "odometer": None}, photo)
-            chk = stats.check_consumption(self.data["entries"], entry, float(rkm))
-            if chk and not chk["ok"]:
-                _LOGGER.info("Kilometerstand %s vom Beleg ausgelassen (Verbrauch unplausibel, %s)", rkm, self.name)
+            if not stats.km_better(entry, "beleg"):
+                _LOGGER.info("Kilometerstand %s vom Beleg ignoriert: der Eintrag hat schon einen besseren (%s)", rkm, self.name)
             else:
-                entry["odometer"] = float(rkm)
+                chk = stats.check_consumption(self.data["entries"], entry, float(rkm))
+                if chk and not chk["ok"]:
+                    _LOGGER.info("Kilometerstand %s vom Beleg ausgelassen (Verbrauch unplausibel, %s)", rkm, self.name)
+                else:
+                    entry["odometer"], entry["odometer_source"] = float(rkm), "beleg"
         else:
             self._apply_values(entry, values, photo)
         self._save()
@@ -871,12 +1041,33 @@ class Vehicle:
             entry["station"] = values["station"]  # Name und Anschrift vom Beleg gehen vor (genauer als die Suche nach der nächsten Tankstelle)
             if values.get("address"):
                 entry["address"] = values["address"]
-        if values.get("odometer"):
-            entry["odometer"] = float(values["odometer"])  # Kilometerstand vom Beleg ist genauer als der beim Erkennen
+        if values.get("odometer") and stats.km_better(entry, "beleg"):
+            entry["odometer"], entry["odometer_source"] = float(values["odometer"]), "beleg"   # nur wenn kein besserer Stand da ist
         if q or p or t:
             entry["receipt"] = True
+        note = self.currency_note(values.get("orig"))
+        if note:
+            entry["note"] = f"{entry['note']} · {note}" if entry.get("note") else note
         if photo:
             entry["photos"].insert(0, photo)
+
+    def currency_note(self, orig: dict | None) -> str:
+        """Notiz für einen Beleg in Fremdwährung: Originalpreis und -währung, dazu der verwendete Kurs."""
+        if not orig:
+            return ""
+        dec = messages.decimal(self.lang)
+        f = lambda x, n: f"{x:.{n}f}".replace(".", dec)   # noqa: E731
+        parts = []
+        if orig.get("total"):
+            parts.append(f"{f(orig['total'], 2)} {orig['currency']}")
+        if orig.get("unit_price"):
+            parts.append(self.tr("Preis {0}", f"{f(orig['unit_price'], 3)} {orig['currency']}"))
+        original = ", ".join(parts)
+        if not orig.get("rate"):
+            return self.tr("Beleg in {0}, Umrechnung nicht möglich, Werte nicht in Euro! Original: {1}", orig["currency"], original)
+        day = dt_util.parse_date(orig["date"]) if orig.get("date") else None
+        eur = f"{orig['total'] / orig['rate']:.2f}".replace(".", dec) if orig.get("total") else "?"
+        return self.tr("Original: {0} → {4} € · Kurs: 1 EUR = {1} {2} (EZB, {3})", original, f(orig["rate"], 4), orig["currency"], day.strftime("%d.%m.%Y") if day else orig.get("date") or "", eur)
 
     # ---------------------------------------------------------------- Bearbeiten (Panel)
     def get_entry(self, entry_id: str) -> dict | None:
@@ -892,6 +1083,16 @@ class Vehicle:
         for k in ("quantity", "unit_price", "total", "odometer"):
             if k in fields:
                 e[k] = float(fields[k]) if fields[k] not in (None, "") else None
+        if "odometer" in fields:
+            e["odometer_source"] = "manuell" if e.get("odometer") is not None else None
+        if "kind" in fields:   # Art umstellen: Kraftstoff/Strom oder Zubehör (Verbrauchsmaterial)
+            if fields["kind"] == "extra":
+                e["kind"] = "extra"
+                if not e.get("item"):
+                    e["item"] = self.tr("Zubehör")
+            else:
+                for k in ("kind", "item", "unit"):
+                    e.pop(k, None)
         if "quantity" in fields and fields["quantity"] not in (None, ""):
             e["quantity_source"] = "manuell"
         if "unit_price" in fields and fields["unit_price"] not in (None, ""):
@@ -903,8 +1104,50 @@ class Vehicle:
         self._notify_entities()
         return True
 
+    async def scan_photo(self, image: bytes, read: bool = True) -> dict:
+        """Foto für den Dialog „Eintrag von Hand“ auslesen, ohne einen Eintrag anzulegen: liefert die gefundenen Werte und den Namen des abgelegten Fotos."""
+        sent = None
+        taken = await self.hass.async_add_executor_job(receipt.exif_time, image)
+        if taken:
+            ts = dt_util.as_timestamp(taken.replace(tzinfo=dt_util.get_default_time_zone()))
+            if ts <= time.time() + 3600:
+                sent = ts
+        image = await self.hass.async_add_executor_job(receipt.normalize, image)
+        t0 = time.time()
+        ai = await receipt.ai_read(self.hass, self._ai_entity(), image, self.media_dir) if read else None   # read=False: Foto nur ablegen (die KI hat es schon vergeblich gelesen)
+        if read and not ai and time.time() - t0 < 60:   # schneller Fehlschlag: einmal wiederholen
+            await asyncio.sleep(3)
+            ai = await receipt.ai_read(self.hass, self._ai_entity(), image, self.media_dir)
+        out: dict[str, Any] = {"found": False, "ts": sent}
+        box = None
+        if ai and ai.get("busy"):   # KI überlastet: Foto nicht ablegen, der Nutzer soll es später noch einmal versuchen
+            return {"found": False, "busy": True}
+        if ai:
+            km = ai.get("odometer")
+            if km is not None and not self._km_sane(km):
+                km = None
+            d, hm = ai.get("date"), ai.get("time")
+            when = dt_util.start_of_local_day(d).timestamp() + ((hm[0] * 3600 + hm[1] * 60) if hm else 12 * 3600) if d else sent
+            if receipt.plausible(ai) or km is not None:
+                box = ai.get("crop")
+                out = {"note": self.currency_note(ai.get("orig")), "found": True, "quantity": ai.get("quantity"), "unit_price": ai.get("unit_price"), "total": ai.get("total"), "odometer": km,
+                       "station": ai.get("station"), "address": ai.get("address"), "ts": when, "receipt": bool(receipt.plausible(ai)), "category": ai.get("category"), "item": ai.get("item")}
+        name = receipt.new_photo_name(ai if isinstance(ai, dict) else None, sent, None, self.photo_dir)
+        await self.hass.async_add_executor_job(receipt.crop_and_save, image, box, self.photo_dir, name, self.orig_dir)
+        out["photo"] = name
+        return out
+
+    async def discard_photo(self, name: str) -> None:
+        """Noch keinem Eintrag zugeordnetes Foto (aus scan_photo) verwerfen."""
+        if not any(name in (e.get("photos") or []) for e in self.data["entries"]):
+            await self._remove_files([name])
+
     def add_manual(self, fields: dict) -> dict:
         e = self._new_manual_entry()
+        for n in fields.get("photos") or []:   # vorher mit scan_photo abgelegte Fotos
+            if isinstance(n, str) and "/" not in n and "\\" not in n and ".." not in n and (self.photo_dir / n).is_file():
+                e["photos"].append(n)
+                e["receipt"] = True
         if fields.get("kind") == "extra":
             e["kind"] = "extra"
         if fields.get("ts"):

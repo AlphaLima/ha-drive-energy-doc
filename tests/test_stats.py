@@ -84,6 +84,16 @@ def test_km_plausible():
     assert st.km_plausible([], 5000, 100) and not st.km_plausible([], 0, 100)
 
 
+def test_km_rank():
+    none, beleg, foto = {"odometer": None}, {"odometer": 1, "odometer_source": "beleg"}, {"odometer": 1, "odometer_source": "foto"}
+    sensor, hand, alt = {"odometer": 1, "odometer_source": "sensor"}, {"odometer": 1, "odometer_source": "manuell"}, {"odometer": 1}
+    assert all(st.km_better(none, s) for s in ("beleg", "foto", "sensor", "manuell"))                # noch nichts da: jede Quelle darf
+    assert st.km_better(beleg, "foto") and not st.km_better(foto, "beleg")                            # Tacho-Foto schlägt Quittung, nie umgekehrt
+    assert not st.km_better(sensor, "foto") and not st.km_better(sensor, "beleg")                     # Sensor des Autos schlägt beides
+    assert st.km_better(foto, "sensor") and st.km_better(sensor, "manuell")                           # von Hand gesetzt gewinnt immer
+    assert not st.km_better(hand, "sensor") and not st.km_better(alt, "foto")                         # alter Eintrag ohne Quelle zählt wie Sensor
+
+
 for n, fn in list(globals().items()):
     if n.startswith("test_"):
         fn(); print("ok", n)

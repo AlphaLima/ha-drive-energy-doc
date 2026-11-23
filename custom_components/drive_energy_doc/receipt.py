@@ -122,7 +122,52 @@ def plausible(values: dict[str, Any]) -> bool:
     return bool(q or t)  # Menge allein (oder Betrag allein) reicht, z. B. Kundenbeleg ohne Preis
 
 
+_RATES: dict[tuple[str, str], tuple[float, str]] = {}
+
+
+async def eur_rate(hass, currency: str, on: date | None) -> tuple[float, str] | None:
+    """Tageskurs (EZB, über frankfurter.dev): 1 EUR = x Fremdwährung am Tag ``on`` (Wochenende/Feiertag: letzter Handelstag davor). None = nicht verfügbar."""
+    key = (currency, (on or date.today()).isoformat())
+    if key in _RATES:
+        return _RATES[key]
+    from homeassistant.helpers.aiohttp_client import async_get_clientsession
+
+    try:
+        async with asyncio.timeout(15):
+            r = await async_get_clientsession(hass).get(f"https://api.frankfurter.dev/v1/{key[1]}", params={"base": "EUR", "symbols": currency})
+            if r.status != 200:
+                return None
+            j = await r.json()
+        rate = float((j.get("rates") or {}).get(currency))
+        if rate > 0:
+            _RATES[key] = (rate, str(j.get("date") or key[1]))
+            return _RATES[key]
+    except Exception as err:  # noqa: BLE001 - ohne Kurs bleibt der Beleg unumgerechnet, mit Hinweis
+        _LOGGER.warning("Wechselkurs %s nicht verfügbar: %r", currency, err)
+    return None
+
+
+async def convert_to_eur(hass, out: dict[str, Any]) -> None:
+    """Betrag und Preis eines Belegs in Fremdwährung zum Tageskurs des Belegdatums in Euro umrechnen. Die Originalwerte stehen danach in ``out["orig"]`` (für die Notiz)."""
+    cur = out.get("currency")
+    if not cur or cur == "EUR" or not (out.get("total") or out.get("unit_price")):
+        return
+    orig = {"currency": cur, "total": out.get("total"), "unit_price": out.get("unit_price"), "rate": None, "date": None}
+    out["orig"] = orig
+    got = await eur_rate(hass, cur, out.get("date"))
+    if not got:
+        return   # nicht umgerechnet: die Notiz weist darauf hin
+    rate, day = got
+    orig["rate"], orig["date"] = rate, day
+    for k in ("total", "unit_price"):
+        if out.get(k):
+            out[k] = out[k] / rate
+
+
 STRUCTURE = {
+    "currency": {"description": "ISO 4217 code of the currency printed on the receipt, for example EUR, CHF, GBP, PLN, CZK, HUF, SEK, DKK, NOK, RON. Use the country, the language and the symbols (EUR, zl, Kc, kr, £) to decide; empty if not readable.", "required": False, "selector": {"text": {}}},
+    "category": {"description": "What was bought. One of: fuel (petrol, diesel, LPG, CNG, hydrogen), charging (EV electricity), adblue (AdBlue / DEF / urea), oil (engine oil), washer (windscreen washer fluid), carwash (car wash), other (anything else for the car, e.g. wiper blades, bulbs, cleaner). Use fuel if the receipt shows fuel, even with a shop item on it.", "required": False, "selector": {"text": {}}},
+    "item": {"description": "For category other only: short name of the main article as printed, empty otherwise", "required": False, "selector": {"text": {}}},
     "quantity": {"description": "Amount of fuel (litres) or energy (kWh) as a number, dot as decimal separator", "required": False, "selector": {"number": {"mode": "box", "step": "any"}}},
     "unit_price": {"description": "Price per litre or per kWh as a number (currency of the receipt, normally EUR)", "required": False, "selector": {"number": {"mode": "box", "step": "any"}}},
     "total": {"description": "Total amount paid as a number", "required": False, "selector": {"number": {"mode": "box", "step": "any"}}},
@@ -140,6 +185,7 @@ INSTRUCTIONS = (
     "The text may be in any language (German, French, Dutch, Polish, Italian, Spanish, and so on). "
     "CASE B, instrument cluster: return ONLY the total odometer reading (odometer): the small digital or mechanical digit display, usually 5 or 6 digits, often marked total or km, "
     "NOT the trip meter and NOT the speed or fuel gauge. No text label is needed; the display may be dim, tilted, low-contrast, blurred or partly reflecting light, so read it carefully. Leave all other fields empty. "
+    "CASE A may also be a receipt for AdBlue, oil, washer fluid, a car wash or other car accessories: set the category accordingly; for those, quantity is the amount in litres or pieces (empty for a car wash). "
     "CASE A, receipt or pump display: extract the amount of fuel or energy (litres or kWh; on receipts often labelled Volumen, Menge, Liter, Volume, Quantité, Quantity); "
     "the price per unit; the total amount paid (Summe, Betrag, Total, Montant); the date and time; and the name and address of the filling station or merchant (usually at the top of the receipt). "
     "On a receipt the odometer is returned ONLY if a line is explicitly labelled as such (Kilometerstand, km-Stand, Odometer, Mileage, Compteur); receipt numbers, pump numbers, card numbers, "
@@ -162,26 +208,35 @@ async def ai_read(hass, entity_id: str, image: bytes, media_dir: Path) -> dict[s
         (folder / name).write_bytes(image)
 
     await hass.async_add_executor_job(_write)
+    resp = None
     try:
-        resp = await asyncio.wait_for(
-            hass.services.async_call(
-                "ai_task",
-                "generate_data",
-                {
-                    "entity_id": entity_id,
-                    "task_name": "fuel_receipt",
-                    "instructions": INSTRUCTIONS,
-                    "structure": STRUCTURE,
-                    "attachments": [{"media_content_id": f"media-source://media_source/local/drive_energy_doc_tmp/{name}", "media_content_type": "image/jpeg"}],
-                },
-                blocking=True,
-                return_response=True,
-            ),
-            timeout=120,
-        )
-    except Exception as err:  # noqa: BLE001 - KI-Fehler dürfen nie den Ablauf stoppen
-        _LOGGER.warning("Beleg-KI fehlgeschlagen: %r", err)
-        return None
+        for attempt, wait in enumerate((5, 12, 25, None)):   # Google meldet bei Überlastung 503: ein paar Mal mit Pause wiederholen
+            try:
+                resp = await asyncio.wait_for(
+                    hass.services.async_call(
+                        "ai_task",
+                        "generate_data",
+                        {
+                            "entity_id": entity_id,
+                            "task_name": "fuel_receipt",
+                            "instructions": INSTRUCTIONS,
+                            "structure": STRUCTURE,
+                            "attachments": [{"media_content_id": f"media-source://media_source/local/drive_energy_doc_tmp/{name}", "media_content_type": "image/jpeg"}],
+                        },
+                        blocking=True,
+                        return_response=True,
+                    ),
+                    timeout=120,
+                )
+                break
+            except Exception as err:  # noqa: BLE001 - KI-Fehler dürfen nie den Ablauf stoppen
+                busy = isinstance(err, asyncio.TimeoutError) or any(s in repr(err) for s in ("503", "UNAVAILABLE", "429", "high demand", "overloaded", "RESOURCE_EXHAUSTED"))
+                _LOGGER.warning("Beleg-KI fehlgeschlagen (Versuch %d): %r", attempt + 1, err)
+                if not busy:
+                    return None
+                if wait is None:
+                    return {"busy": True}   # KI überlastet: kein „nichts gelesen“, der Aufrufer sagt das dem Nutzer
+                await asyncio.sleep(wait)
     finally:
         await hass.async_add_executor_job(lambda: (folder / name).unlink(missing_ok=True))
     data = (resp or {}).get("data") or {}
@@ -193,11 +248,14 @@ async def ai_read(hass, entity_id: str, image: bytes, media_dir: Path) -> dict[s
         except (TypeError, ValueError):
             return None
 
-    out = {"quantity": num("quantity"), "unit_price": num("unit_price"), "total": num("total"), "odometer": num("odometer"), "date": parse_date_hint(str(data.get("date") or "")), "time": parse_time(str(data.get("time") or "")), "station": clean_text(data.get("station"), 60), "address": clean_text(data.get("address"), 120), "crop": None}
+    out = {"quantity": num("quantity"), "unit_price": num("unit_price"), "total": num("total"), "odometer": num("odometer"), "date": parse_date_hint(str(data.get("date") or "")), "time": parse_time(str(data.get("time") or "")), "currency": (re.sub(r"[^A-Z]", "", str(data.get("currency") or "").upper())[:3] or None), "category": (lambda c: c if c in ("fuel", "charging", "adblue", "oil", "washer", "carwash", "other") else None)(re.sub(r"[^a-z]", "", str(data.get("category") or "").lower())), "item": clean_text(data.get("item"), 60), "station": clean_text(data.get("station"), 60), "address": clean_text(data.get("address"), 120), "crop": None}
     box = [int(float(x)) for x in re.findall(r"\d+(?:\.\d+)?", str(data.get("crop") or ""))]
     if len(box) == 4 and box[2] > box[0] and box[3] > box[1] and all(0 <= b <= 1000 for b in box):
         out["crop"] = box
-    return out if (out["quantity"] or out["total"] or out["odometer"]) else None   # ein Tacho-Foto hat nur den Kilometerstand
+    if not (out["quantity"] or out["total"] or out["odometer"]):
+        return None   # ein Tacho-Foto hat nur den Kilometerstand
+    await convert_to_eur(hass, out)   # Fremdwährung: zum Tageskurs des Belegdatums in Euro
+    return out
 
 
 def auto_box(img) -> list[int] | None:
@@ -235,7 +293,7 @@ def crop_and_save(image: bytes, box: list[int] | None, folder: Path, name: str, 
     folder.mkdir(parents=True, exist_ok=True)
     if keep_original:
         keep_original.mkdir(parents=True, exist_ok=True)
-        (keep_original / name).write_bytes(image)
+        (keep_original / name).write_bytes(recompress(image, 1800, 82))   # Original: etwas kleiner, aber immer noch voll lesbar
     data = image
     try:
         from PIL import Image, ImageOps  # Pillow liegt Home Assistant bei
@@ -248,9 +306,9 @@ def crop_and_save(image: bytes, box: list[int] | None, folder: Path, name: str, 
             pad = 15  # etwas Rand, die KI-Box sitzt oft knapp
             y0, x0, y1, x1 = max(0, box[0] - pad), max(0, box[1] - pad), min(1000, box[2] + pad), min(1000, box[3] + pad)
             img = img.crop((int(x0 * w / 1000), int(y0 * h / 1000), int(x1 * w / 1000), int(y1 * h / 1000)))
-        img.thumbnail((1600, 1600))
+        img.thumbnail((1400, 1400))
         buf = io.BytesIO()
-        img.save(buf, "JPEG", quality=85)
+        img.save(buf, "JPEG", quality=80, optimize=True, progressive=True)
         data = buf.getvalue()
     except Exception as err:  # noqa: BLE001 - dann bleibt das Original
         _LOGGER.warning("Zuschnitt nicht möglich, Original bleibt: %s", err)
@@ -303,8 +361,54 @@ def save_vehicle_image(data: bytes, folder: Path, max_side: int = 1000) -> str:
     return name
 
 
-def new_photo_name() -> str:
-    return f"{int(time.time())}_{uuid.uuid4().hex[:10]}.jpg"
+_FOLD = str.maketrans({"ä": "ae", "ö": "oe", "ü": "ue", "Ä": "Ae", "Ö": "Oe", "Ü": "Ue", "ß": "ss", "æ": "ae", "ø": "o", "å": "a", "ł": "l", "Ł": "L", "đ": "d", "ð": "d", "þ": "th"})
+_LABEL = {"fuel": "Tanken", "charging": "Laden", "adblue": "AdBlue", "oil": "Oel", "washer": "Scheibenreiniger", "carwash": "Autowaesche"}
+
+
+def slug(text: Any, n: int = 32) -> str:
+    """Text als Dateinamenteil: nur A-Z a-z 0-9, Wörter mit Bindestrich (Umlaute werden aufgelöst)."""
+    import unicodedata
+
+    s = unicodedata.normalize("NFKD", str(text or "").translate(_FOLD))
+    s = "".join(c for c in s if not unicodedata.combining(c))
+    return re.sub(r"[^A-Za-z0-9]+", "-", s).strip("-")[:n].strip("-")
+
+
+def new_photo_name(values: dict | None = None, ts: float | None = None, label: str | None = None, folder: Path | None = None) -> str:
+    """Sprechender Dateiname: ``2026-10-15_1240_Oel_Cerpaci-stanice-Zlaty-Lan.jpg`` (Datum und Uhrzeit vom Beleg, sonst ``ts``, sonst jetzt;
+    dann Art und Händler). Gibt es den Namen im ``folder`` schon, wird ``_2``, ``_3`` … angehängt."""
+    v = values or {}
+    d, hm = v.get("date"), v.get("time")
+    if d:
+        when = datetime(d.year, d.month, d.day, *(hm or (12, 0)))
+    else:
+        when = datetime.fromtimestamp(ts or time.time())
+    if not label:
+        cat = v.get("category")
+        label = _LABEL.get(cat) or (slug(v.get("item"), 24) if cat == "other" else "") or ("Beleg" if (v.get("quantity") or v.get("total")) else ("Tacho" if v.get("odometer") else "Foto"))
+    parts = [f"{when:%Y-%m-%d_%H%M}", slug(label, 24) or "Foto"]
+    st = slug(v.get("station"), 32)
+    if st:
+        parts.append(st)
+    base = "_".join(parts)
+    name, i = f"{base}.jpg", 2
+    while folder is not None and (folder / name).exists():
+        name, i = f"{base}_{i}.jpg", i + 1
+    return name
+
+
+def recompress(data: bytes, max_side: int, quality: int) -> bytes:
+    """JPEG verkleinern und stärker komprimieren (progressiv, optimiert). Gibt das Original zurück, wenn das Ergebnis nicht kleiner ist. Läuft im Executor."""
+    try:
+        from PIL import Image, ImageOps
+
+        img = ImageOps.exif_transpose(Image.open(io.BytesIO(data))).convert("RGB")
+        img.thumbnail((max_side, max_side))
+        buf = io.BytesIO()
+        img.save(buf, "JPEG", quality=quality, optimize=True, progressive=True)
+        return buf.getvalue() if len(buf.getvalue()) < len(data) else data
+    except Exception:  # noqa: BLE001
+        return data
 
 
 def fmt_dt(ts: float) -> str:

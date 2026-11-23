@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.1.81 (in Arbeit)
+- Fotos: sprechende Dateinamen wie `2026-10-15_1240_Oel_Cerpaci-stanice-Zlaty-Lan.jpg` (Datum, Art, Händler) statt zufälliger Namen, auch in `originals/`. Vorhandene Fotos werden beim ersten Start einmalig umbenannt und die Einträge angepasst.
+- Fotos: stärker komprimiert (Zuschnitt max. 1400 px / Qualität 80, Original max. 1800 px / Qualität 82, progressives JPEG). Vorhandene größere Dateien werden einmalig verkleinert, wenn das mindestens 20 % spart.
+- KI überlastet (Google 503): bis zu vier Versuche mit Pause, dann deutliche Warnung statt „nichts lesbar“; es wird nichts gespeichert.
+- Bearbeiten-Dialog: Auswahl „Art“ (Kraftstoff/Strom oder Zubehör / Verbrauchsmaterial), auch nachträglich umstellbar (z. B. ein Ölbon, der als Tanken gelesen wurde); bei Zubehör erscheinen Bezeichnung und Einheit.
+- Verbrauchsmaterial: Kategorie-Auswahl mit AdBlue, Öl, Scheibenreiniger und Waschen (füllt Bezeichnung und Einheit vor) und „Sonstiges“ zum freien Eintragen. Verbrauchsmaterial fließt nicht in den Verbrauch ein.
+- Kilometerstand: feste Rangfolge der Quellen. 1. Entität des Autos, 2. Foto vom Tacho, 3. Stand auf der Quittung (oft von Hand eingetragen, daher nie vor den anderen). Ein von Hand gesetzter Stand gewinnt immer. Der Sensorwert gilt nur, wenn der Eintrag zeitlich zum Anlegen passt (sonst Belege, die später hochgeladen werden, mit dem falschen aktuellen Stand).
+- „Eintrag von Hand“: Das Kamera-Symbol liest ein Foto per KI und trägt die gefundenen Werte in den offenen Dialog ein (Datum, Menge, Preis, Betrag, Kilometerstand, Notiz). Erst „Speichern“ legt den Eintrag mit dem Foto an. Liefert das Foto keine Daten, fragt ein Dialog, ob es trotzdem zur Dokumentation behalten oder verworfen wird. Der Foto-Button im Bearbeiten-Dialog fragt immer nach Kamera oder Galerie; das Notiz-Symbol in der Liste entfällt (die Notiz steht im Dialog). Ein neuer Eintrag von Hand beginnt mit „Zubehör / Sonstiges“.
+- Unlesbares Foto (normaler Upload): Rückfrage mit „Nur Dokumentation“ (Eintrag ohne Zahlen, zählt nicht in den Verbrauch) oder „Löschen“.
+- Fremdwährung: Belege in anderen Währungen (CHF, PLN, CZK, GBP, SEK, DKK …) werden zum EZB-Tageskurs des Belegdatums (frankfurter.dev) in Euro umgerechnet. Originalbetrag, -währung und Kurs stehen in der Notiz. Ist kein Kurs abrufbar, bleiben die Werte unverändert und die Notiz warnt.
+- Handy: Der Eintragsdialog öffnet ohne Tastatur, zeigt Mengen und Preise zweispaltig und passt sich der Bildschirmtastatur an.
+- Testbilder `tests/test_images_zubehoer/`: 13 Dummy-Belege für Verbrauchsmaterial von Tankstellen und Autoteile-Händlern aus ganz Europa.
+
 ## 0.1.80
 - Panel: Die Liste lässt sich per Klick auf jede Spaltenüberschrift sortieren (erster Klick aufsteigend ▲, jeder weitere wechselt auf absteigend ▼); leere Werte stehen immer unten, die Wahl wird pro Browser gemerkt, ein Doppelklick auf einen Spaltenteiler setzt sie zurück. Standard ohne Wahl: Datum absteigend, der neueste Eintrag steht oben und trägt die höchste Nummer. Wie im Device und Entity Inventory.
 - Dokumentation: Kapitel „KI für die Belegerkennung einrichten“ (AI Task, Gemini, Links zu Home Assistant) und ein Beispiel-Ausdruck (Liste und Belege, als Bild und PDF).

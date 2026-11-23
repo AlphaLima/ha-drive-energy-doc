@@ -2,7 +2,7 @@
 const DEFW = { nr: 46 };   // Standardbreite einzelner Spalten in px (sonst 120 bei fester Breite)
 const COLS = ["nr", "date", "km", "station", "qty", "price", "total", "cons", "receipt", "note", "act"];
 
-const VERSION = "0.1.80";
+const VERSION = "0.1.81b30";
 
 class DriveEnergyDocPanel extends HTMLElement {
   set hass(h) {
@@ -16,6 +16,7 @@ class DriveEnergyDocPanel extends HTMLElement {
       this.attachShadow({ mode: "open" });
       // ShadowRoot kennt kein onclick: echten Listener setzen
       this.shadowRoot.addEventListener("click", ev => { if (this._cur) this._click(ev, this._cur); });
+      document.addEventListener("keydown", ev => { if (this.isConnected) this._keys(ev); });
       this.shadowRoot.addEventListener("pointerdown", ev => this._rsStart(ev));
       // Beleg beim Darüberfahren vergrößern (Maus/Stift; am Handy gibt es den Foto-Viewer per Tipp)
       this.shadowRoot.addEventListener("pointerover", ev => {
@@ -72,7 +73,7 @@ class DriveEnergyDocPanel extends HTMLElement {
     this._hide = [];
     try { this._hide = JSON.parse(localStorage.getItem("deHide") || "[]") || []; } catch (e) { /* ignore */ }
     this._sort = null;   // Sortierung per Klick auf die Spaltenüberschrift: {c: Spalte, dir: 1 aufsteigend | -1 absteigend}
-    try { this._sort = JSON.parse(localStorage.getItem("deSort") || "null"); } catch (e) { /* ignore */ }
+    // Sortierung wird nicht gespeichert: beim Öffnen und beim Fahrzeugwechsel gilt immer der Standard (Nr. absteigend)
     this._cw = {};
     this._co = null;
     try { this._co = JSON.parse(localStorage.getItem("deCo") || "null"); } catch (e) { /* ignore */ }
@@ -113,7 +114,10 @@ class DriveEnergyDocPanel extends HTMLElement {
           if (i >= 0) this._tab = i;
         } catch (e) { /* ignore */ }
       }
-      if (!this._dlg && !this.shadowRoot.querySelector(".busy, .dlg")) this._render();   // nicht neu zeichnen, solange der Fortschritts- oder ein anderer Dialog offen ist
+      if (!this._dlg && !this.shadowRoot.querySelector(".busy, .dlg")) {   // nicht neu zeichnen, solange der Fortschritts- oder ein anderer Dialog offen ist
+        this._render();
+        if (this._jumpId) { const id = this._jumpId; this._jumpId = null; setTimeout(() => { const r = [...this.shadowRoot.querySelectorAll("tr[data-id]")].find(x => x.dataset.id === id); if (r) { this._selId = id; r.classList.add("rsel"); r.scrollIntoView({ block: "center", behavior: "smooth" }); } }, 50); }   // zur Zeile des gerade erfassten Belegs springen
+      }
     } catch (e) { this._err = String(e.message || e); this._render(); }
   }
   _fmt(n, d = 2) { return n == null ? "–" : Number(n).toLocaleString(this._locale || "de-DE", { minimumFractionDigits: d, maximumFractionDigits: d }); }
@@ -336,7 +340,7 @@ class DriveEnergyDocPanel extends HTMLElement {
       th.sortable{cursor:pointer;user-select:none}th.sortable:hover{background:var(--secondary-background-color,#f1f1f1)}.si{font-size:10px;margin-left:5px;opacity:.75}
       th{position:sticky;top:0;background:var(--card-background-color);font-weight:500}
       .src{font-size:11px;color:var(--secondary-text-color)}
-      .tag{display:inline-block;padding:0 7px;border-radius:9px;background:#0ea5e9;color:#fff;font-size:11px;vertical-align:middle}
+      .tag{display:inline-block;padding:0 7px;border-radius:9px;background:#0ea5e9;color:#fff;font-size:11px;vertical-align:middle;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;box-sizing:border-box}
       .gps{font-size:10px;opacity:.85}.gps a{color:inherit}
       .thumb{height:28px;width:28px;object-fit:cover;border-radius:4px;margin-right:3px;vertical-align:middle;cursor:pointer}
       .no{color:var(--secondary-text-color);display:inline-flex;vertical-align:middle}
@@ -352,7 +356,7 @@ class DriveEnergyDocPanel extends HTMLElement {
       .pvp{height:60px;align-self:flex-start}
       .res .card{width:min(540px,94vw);gap:12px;padding:18px;max-height:92vh;max-height:92dvh;overflow:hidden}.res .bd{display:flex;flex-direction:column;gap:14px;overflow:auto;min-height:0;flex:1 1 auto}.res .ask{font-size:16px;font-weight:600;line-height:1.4}.res .mid{flex-wrap:wrap;justify-content:center}.res .mid>*{min-width:0}.res .rows{overflow-wrap:anywhere;flex:1 1 220px}.res .df{flex:none;flex-wrap:wrap}
       .res .hd{display:flex;align-items:center;gap:16px}.res .ttl{font-size:20px;font-weight:600;line-height:1.3}
-      .res .mark{flex:none;width:52px;height:52px;border-radius:50%;background:#2e9e5b;color:#fff;font-size:30px;display:flex;align-items:center;justify-content:center}.res .mark.q{background:var(--primary-color)}
+      .res .mark{flex:none;width:52px;height:52px;border-radius:50%;background:#2e9e5b;color:#fff;font-size:30px;display:flex;align-items:center;justify-content:center}.res .mark.q{background:var(--primary-color)}.res .mark.w{background:var(--warning-color,#f59e0b)}
       .res .mid{display:flex;align-items:center;gap:16px}.res .rshot{height:110px;max-width:34%;object-fit:cover;border-radius:8px;box-shadow:0 1px 5px #0004}
       .res .rows{flex:1;background:var(--secondary-background-color,#f1f1f1);border-radius:10px;padding:10px 14px;font-size:18px;line-height:1.65}.res .rows div:last-child{font-weight:600;font-size:20px}
       .res .rpic{max-height:64px;max-width:28%;object-fit:contain;flex:none}.res #ra{font-size:17px;padding:12px}
@@ -361,7 +365,7 @@ class DriveEnergyDocPanel extends HTMLElement {
       .res .df button{font-size:17px;padding:10px 28px}
       .busy{position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;z-index:120}
       .busy .card{background:var(--card-background-color,#fff);color:var(--primary-text-color);border-radius:14px;padding:22px 28px;display:flex;flex-direction:column;align-items:center;gap:14px;font-size:16px;max-width:min(90vw,420px)}
-      .busy .brow{display:flex;align-items:center;gap:16px}.bpic{max-width:100%;max-height:90px;object-fit:contain}
+      .busy .brow{display:flex;align-items:center;gap:16px}.bpic{max-width:100%;max-height:90px;object-fit:contain}.bplate{display:flex;justify-content:center;margin-top:-4px}.bplate .plateimg{height:38px;width:auto}
       .scan{position:relative;line-height:0;border-radius:8px;overflow:hidden;box-shadow:0 1px 6px #0004}.scan img{max-width:min(78vw,340px);max-height:min(38vh,300px);object-fit:contain;display:block}
       .lupe{position:absolute;width:76px;height:76px;left:8%;top:6%;animation:lupe 4.2s ease-in-out infinite;filter:drop-shadow(0 3px 4px #0006)}
       @keyframes lupe{0%{left:6%;top:4%}20%{left:52%;top:10%}40%{left:20%;top:34%}60%{left:56%;top:46%}80%{left:14%;top:62%}100%{left:6%;top:4%}}
@@ -370,7 +374,10 @@ class DriveEnergyDocPanel extends HTMLElement {
       .stopb{font:inherit;font-size:15px;padding:8px 22px;border-radius:8px;border:1px solid var(--divider-color);background:var(--card-background-color,#fff);color:var(--primary-text-color);cursor:pointer}
       .spin{width:26px;height:26px;border:4px solid var(--divider-color);border-top-color:var(--primary-color);border-radius:50%;animation:sp 1s linear infinite}@keyframes sp{to{transform:rotate(360deg)}}
       .ck{display:flex;align-items:center;gap:12px;padding:8px 4px;font-size:16px;cursor:pointer}.ck input{padding:0;width:20px;height:20px;border:0;background:none;accent-color:var(--primary-color)}
-      .form .card{width:min(400px,94vw);padding:20px;gap:14px;max-height:92vh;max-height:92dvh;overflow:hidden}.form .bd{display:flex;flex-direction:column;gap:14px;overflow:auto;min-height:0;flex:1 1 auto;padding:2px}.form .dh{font-size:22px;font-weight:600}.form .g2{display:flex;flex-direction:column;gap:14px}.form .fl{display:flex;flex-direction:column;gap:5px;font-size:14px;color:var(--secondary-text-color)}.form .fl input,.form .fl textarea{font-size:19px;padding:11px 12px;color:var(--primary-text-color);width:100%;box-sizing:border-box;min-height:0}.form .fl input[type=datetime-local]{min-height:48px}.form .fl textarea{min-height:130px}.form .hint{font-size:13px;color:var(--secondary-text-color);margin-top:-8px}.form .df{flex:none}.form .df button{font-size:17px;padding:10px 26px}
+      .form .card{width:min(400px,94vw);padding:20px;gap:14px;max-height:92vh;max-height:92dvh;overflow:hidden}.form .bd{display:flex;flex-direction:column;gap:14px;overflow:auto;min-height:0;flex:1 1 auto;padding:2px}.form .dh{font-size:22px;font-weight:600}.form .g2{display:flex;flex-direction:column;gap:14px}
+      .phn{font-size:14px;color:var(--secondary-text-color)}
+      .spin{width:44px;height:44px;border:5px solid var(--divider-color);border-top-color:var(--primary-color);border-radius:50%;animation:dspin 1s linear infinite}@keyframes dspin{to{transform:rotate(360deg)}}
+      @media (pointer:coarse){.g2{display:grid;grid-template-columns:1fr 1fr;gap:10px}.form .fl textarea{min-height:64px}.form .bd{gap:10px}}.form .fl{display:flex;flex-direction:column;gap:5px;font-size:14px;color:var(--secondary-text-color)}.form .fl input,.form .fl textarea{font-size:19px;padding:11px 12px;color:var(--primary-text-color);width:100%;box-sizing:border-box;min-height:0}.form .fl input[type=datetime-local]{min-height:48px}.form .fl textarea{min-height:130px}.form .fl select{font:inherit;font-size:19px;padding:11px 12px;border:1px solid var(--divider-color);border-radius:8px;background:var(--primary-background-color);color:var(--primary-text-color);width:100%;box-sizing:border-box;min-height:48px}.form .hint{font-size:13px;color:var(--secondary-text-color);margin-top:-8px}.form .df{flex:none}.form .df button{font-size:17px;padding:10px 26px}
       .dlg textarea{font:inherit;min-height:120px;padding:8px 10px;border:1px solid var(--divider-color);border-radius:8px;background:var(--primary-background-color);color:inherit;resize:vertical}
       .dlg .big{justify-content:center;font-size:17px;padding:16px 12px}
       .dlg input{font:inherit;padding:8px 10px;border:1px solid var(--divider-color);border-radius:8px;background:var(--primary-background-color);color:inherit}
@@ -380,6 +387,7 @@ class DriveEnergyDocPanel extends HTMLElement {
       .cty span{font-size:12px;color:var(--secondary-text-color)}
       .cty.on{outline:2px solid var(--primary-color);outline-offset:0}
       .df{display:flex;justify-content:flex-end;gap:8px}
+      .df button.ico{flex:0 0 72px;width:72px;min-width:0;min-height:52px;padding:0;display:flex;align-items:center;justify-content:center;margin-right:auto}.df button.ico svg{width:30px;height:30px}
       button.pri{background:var(--primary-color,#03a9f4);color:var(--text-primary-color,#fff);border-color:var(--primary-color,#03a9f4)}
       .pv{position:fixed;z-index:98;pointer-events:none;background:var(--card-background-color,#fff);border:1px solid var(--divider-color,#ccc);border-radius:8px;padding:4px;box-shadow:0 6px 24px rgba(0,0,0,.35);left:0;top:0}
       .pv img{display:block;max-width:min(440px,60vw);max-height:min(72vh,560px);border-radius:4px}
@@ -391,7 +399,12 @@ class DriveEnergyDocPanel extends HTMLElement {
       th.dropt{outline:2px dashed var(--primary-color);outline-offset:-2px}
       table.fx{table-layout:fixed}
       table.fx td,table.fx th{overflow:hidden;text-overflow:ellipsis}
+      tbody tr{cursor:pointer}tbody tr:hover{background:color-mix(in srgb,var(--primary-color) 8%,var(--card-background-color))}
+      tbody tr.ex,tbody tr.ex:hover{background:color-mix(in srgb,var(--warning-color,#ff9800) 20%,var(--card-background-color))}
+      tbody tr.rsel,tbody tr.rsel:hover{background:color-mix(in srgb,var(--primary-color) 30%,var(--card-background-color));outline:2px solid var(--primary-color);outline-offset:-2px}
+      tbody tr.rsel td:first-child{box-shadow:inset 5px 0 0 var(--primary-color)}
       .bar{display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap}
+      .bar button[data-act=add]{background:var(--primary-color);color:var(--text-primary-color,#fff);border-color:var(--primary-color);padding:8px 14px}.bar button[data-act=add] .ico{width:30px;height:30px;stroke-width:2.6}
       td.nr{color:var(--secondary-text-color);font-size:12px}
       .tm{display:block;color:var(--secondary-text-color);font-size:12px}
       td[data-c=station] .src{display:inline}td[data-c=station] .src.gps{margin-left:8px}
@@ -436,8 +449,10 @@ class DriveEnergyDocPanel extends HTMLElement {
     const sumW = order.reduce((t, c) => t + (cw[c] || DEFW[c] || 120), 0);
     const nums = {};
     [...v.entries].filter(x => x.kind !== "extra").sort((a, b) => a.ts - b.ts).forEach((x, i) => { nums[x.id] = i + 1; });   // laufende Nummer der Tankvorgänge, ältester = 1
-    const sk = this._sort && COLS.includes(this._sort.c) ? this._sort : { c: "date", dir: -1 };   // Standard: neueste Einträge oben
-    const skey = (e, c) => ({ nr: nums[e.id], date: e.ts, km: e.odometer, station: (e.station || "").toLowerCase(), qty: e.quantity, price: e.unit_price, total: e.total, cons: e.consumption, receipt: (e.photo_urls || []).length, note: (e.note || "").toLowerCase() })[c];
+    const sk = this._sort && COLS.includes(this._sort.c) ? this._sort : { c: "nr", dir: -1 };   // Standard: nach Nummer absteigend (neueste oben)
+    const nrKey = {};   // Zubehör hat keine Nummer: es steht direkt hinter dem davor liegenden Tankvorgang, damit die Reihenfolge zeitlich stimmt
+    { let last = 0; [...v.entries].sort((a, b) => a.ts - b.ts).forEach(x => { if (nums[x.id]) last = nums[x.id]; nrKey[x.id] = nums[x.id] || last + 0.5; }); }
+    const skey = (e, c) => ({ nr: nrKey[e.id], date: e.ts, km: e.odometer, station: (e.station || "").toLowerCase(), qty: e.quantity, price: e.unit_price, total: e.total, cons: e.consumption, receipt: (e.photo_urls || []).length, note: (e.note || "").toLowerCase() })[c];
     const none = x => x == null || x === "" || (typeof x === "number" && isNaN(x));
     const list = [...v.entries].sort((a, b) => {   // leere Werte stehen immer unten, egal in welche Richtung
       const x = skey(a, sk.c), y = skey(b, sk.c);
@@ -451,16 +466,16 @@ class DriveEnergyDocPanel extends HTMLElement {
         nr: `<td class="n nr">${nums[e.id] || ""}</td>`,
         date: `<td data-nr="${nums[e.id] ? "#" + nums[e.id] : ""}"><span>${this._d(e.ts)}</span><span class="tm">${this._tm(e.ts)}</span></td>`,
         km: `<td class="n">${e.odometer != null ? this._fmt(e.odometer, 0) : "–"}</td>`,
-        station: `<td><div>${e.kind === "extra" ? `<span class="tag">${this._esc(e.item || this.T("Zubehör"))}</span> ` : ""}${this._esc(e.station || "")}</div><div class="src">${this._esc(e.address || "")}</div><div class="src gps">${this._gps(e)}</div></td>`,
+        station: `<td><div>${this._esc(e.station || "")}</div><div class="src">${this._esc(e.address || "")}</div><div class="src gps">${this._gps(e)}</div></td>`,
         qty: `<td class="n">${e.quantity != null ? this._fmt(e.quantity) + " " + (e.kind === "extra" ? (e.unit || "") : u) : "–"}<div class="src">${e.level_from != null && e.level_to != null ? Math.round(e.level_from) + "→" + Math.round(e.level_to) + " %" : (e.increase != null ? "+" + Math.round(e.increase) + " %" : "")} ${this._esc(this.T(e.quantity_source || ""))}</div></td>`,
         price: `<td class="n">${this._fmt(e.unit_price, 3)}<div class="src">${this._esc(this.T(e.price_source || ""))}</div></td>`,
         total: `<td class="n">${this._fmt(e.total)} €</td>`,
         cons: `<td class="n">${e.consumption != null ? this._fmt(e.consumption) : "–"}</td>`,
         receipt: (() => { const ph = e.photo_urls || [], im = (p, k) => `<img class="${k}" src="${p}" data-p="${p}" data-entry="${e.id}" data-name="${this._esc((e.photos || [])[ph.indexOf(p)] || "")}"${ph.length > 1 && k === "thumb" ? ` data-multi="${e.id}"` : ""} alt="${ph.indexOf(p) === 0 && e.receipt ? this.T("Beleg") : this.T("Zusatzfoto")}">`; return `<td>${ph.length ? im(ph[0], "thumb") : ""}${e.receipt ? "" : `<span class="no" title="${this.T("Beleg fehlt")}">${this._ico("warn")}</span>`}</td>`; })(),
-        note: `<td>${e.note ? `<span class="notei" data-note="${this._esc(e.note)}" title="${this._esc(e.note)}" tabindex="0" role="button" aria-label="${this.T("Notiz anzeigen")}">${this._ico("note")}</span>` : ""}</td>`,
-        act: `<td><button data-act="note" title="${this.T("Notiz")}" aria-label="${this.T("Notiz")}">${this._ico("note")}</button> <button data-act="photo" title="${this.T("Foto zu diesem Eintrag")}" aria-label="${this.T("Foto hinzufügen")}">${this._ico("camera")}</button> <button data-act="edit" title="${this.T("Bearbeiten")}" aria-label="${this.T("Bearbeiten")}">${this._ico("edit")}</button> <button data-act="del" title="${this.T("Eintrag löschen")}" aria-label="${this.T("Eintrag löschen")}">${this._ico("trash")}</button></td>`,
+        note: `<td>${e.kind === "extra" ? `<span class="tag" title="${this._esc(e.item || this.T("Zubehör"))}">${this._esc(e.item || this.T("Zubehör"))}</span> ` : ""}${e.note ? `<span class="notei" data-note="${this._esc(e.note)}" title="${this._esc(e.note)}" tabindex="0" role="button" aria-label="${this.T("Notiz anzeigen")}">${this._ico("note")}</span>` : ""}</td>`,
+        act: `<td><button data-act="edit" title="${this.T("Bearbeiten")}" aria-label="${this.T("Bearbeiten")}">${this._ico("edit")}</button> <button data-act="del" title="${this.T("Eintrag löschen")}" aria-label="${this.T("Eintrag löschen")}">${this._ico("trash")}</button></td>`,
       };
-      return `<tr data-id="${e.id}">${order.map(k => cell[k].replace("<td", `<td data-c="${k}"`)).join("")}</tr>`;
+      return `<tr data-id="${e.id}" class="${e.kind === "extra" ? "ex" : ""}${this._selId === e.id ? " rsel" : ""}">${order.map(k => cell[k].replace("<td", `<td data-c="${k}"`)).join("")}</tr>`;
     }).join("");
     this.shadowRoot.innerHTML = `<style>${css}</style>
       <div class="head${d.length > 1 ? " pick" : ""}"${d.length > 1 ? ` role="button" tabindex="0"` : ""}><div class="ttl"><img class="logo" src="/drive_energy_doc_static/icon.png?v=${VERSION}" alt=""><div><div class="app">Drive Energy Doc</div><h1>${this._esc(this._title(v))}${d.length > 1 ? ` <span class="chev">▾</span>` : ""}</h1></div>${v.plate ? this._plate(v) : ""}</div>${pic ? `<img class="car" src="${pic}" alt="${this._esc(v.name)}">` : ""}</div>
@@ -476,12 +491,32 @@ class DriveEnergyDocPanel extends HTMLElement {
     this.setAttribute("dir", this._rtl ? "rtl" : "ltr");
   }
 
+  _select(id, scroll) {   // Zeilen-Cursor: die markierte Zeile bleibt, bis eine andere gewählt wird (Klick oder Pfeiltasten)
+    this._selId = id;
+    this.shadowRoot.querySelectorAll("tr.rsel").forEach(x => x.classList.remove("rsel"));
+    const r = [...this.shadowRoot.querySelectorAll("tbody tr[data-id]")].find(x => x.dataset.id === id);
+    if (r) { r.classList.add("rsel"); if (scroll) r.scrollIntoView({ block: "nearest" }); }
+  }
+
+  _keys(ev) {
+    if (ev.key !== "ArrowDown" && ev.key !== "ArrowUp") return;
+    if (this._dlg || this.shadowRoot.querySelector(".dlg, .busy") || /^(INPUT|SELECT|TEXTAREA)$/.test((ev.composedPath()[0] || {}).tagName || "")) return;
+    const rows = [...this.shadowRoot.querySelectorAll("tbody tr[data-id]")];
+    if (!rows.length) return;
+    let i = rows.findIndex(x => x.dataset.id === this._selId);
+    i = i < 0 ? (ev.key === "ArrowDown" ? 0 : rows.length - 1) : Math.max(0, Math.min(rows.length - 1, i + (ev.key === "ArrowDown" ? 1 : -1)));
+    ev.preventDefault();
+    this._select(rows[i].dataset.id, true);
+  }
+
   async _click(ev, v) {
+    const rowEl = ev.target.closest ? ev.target.closest("tr[data-id]") : null;
+    if (rowEl && rowEl.closest("tbody")) this._select(rowEl.dataset.id);   // Klick setzt den Zeilen-Cursor
     const hth = ev.target.closest ? ev.target.closest("th[data-c]") : null;
     if (hth && hth.dataset.c !== "act" && !ev.target.closest(".rs")) {
       const c = hth.dataset.c, cur = this._sort || { c: "date", dir: -1 };   // ohne Wahl gilt: Datum absteigend, neueste oben
       this._sort = { c, dir: cur.c === c ? -cur.dir : 1 };
-      try { localStorage.setItem("deSort", JSON.stringify(this._sort)); } catch (e) { /* ignore */ }
+
       return this._render();
     }
     this._pvHide();
@@ -496,7 +531,7 @@ class DriveEnergyDocPanel extends HTMLElement {
       this.shadowRoot.append(pop);
       return;
     }  // Klick kann auf dem Symbol im Knopf landen
-    if (t.dataset.tab != null) { this._tab = +t.dataset.tab; return this._render(); }
+    if (t.dataset.tab != null) { this._tab = +t.dataset.tab; this._sort = null; this._selId = null; return this._render(); }
     if (t.dataset.p) {
       const lb = document.createElement("div");
       lb.className = "lb";
@@ -555,7 +590,7 @@ class DriveEnergyDocPanel extends HTMLElement {
       ev.stopPropagation();
       const o = ev.target.closest("[data-v]");
       if (o) {
-        this._tab = +o.dataset.v;
+        this._tab = +o.dataset.v; this._sort = null; this._selId = null;
         try { localStorage.setItem("deVeh", d[this._tab].id); } catch (e) { /* ignore */ }
         close();
         return this._render();
@@ -617,7 +652,7 @@ class DriveEnergyDocPanel extends HTMLElement {
     ta.focus();
   }
 
-  _pick(v, entry) {
+  _pick(v, entry, ask, onFiles) {
     // Mit Eintrag = Zusatzfoto zu genau diesem Tankvorgang. Am Handy fragt ein kleiner Dialog: Kamera oder Foto aus der Galerie (Galerie); am PC gleich die Dateiauswahl.
     const go = id => {
       const input = this.shadowRoot.getElementById(id);
@@ -630,11 +665,12 @@ class DriveEnergyDocPanel extends HTMLElement {
           const dt = new Date(entry.ts * 1000);
           caption = `+ ${dt.getDate()}.${dt.getMonth() + 1}.${dt.getFullYear()}`;
         }
+        if (onFiles) return onFiles(files);   // z. B. Dialog „Eintrag von Hand“: nur auslesen
         await this._sendFiles(v, files, caption);
       };
       input.click();
     };
-    if (!window.matchMedia("(pointer:coarse)").matches) return go("pic");
+    if (!ask && !window.matchMedia("(pointer:coarse)").matches) return go("pic");   // am PC gleich die Dateiauswahl, außer im Bearbeiten-Dialog (dort immer fragen)
     this._pvHide();
     const dlg = document.createElement("div");
     dlg.className = "dlg";
@@ -655,18 +691,19 @@ class DriveEnergyDocPanel extends HTMLElement {
     // Ergebnis des Uploads: größer und übersichtlicher als eine Browser-Meldung; bei Rückfragen mit Eingabefeld (liefert die Antwort)
     return new Promise(resolve => {
       const lines = (replies.join("\n") || this.T("Gespeichert.")).split(/\n/).map(s => s.trim()).filter(Boolean);
+      const warn = lines[0].startsWith("⚠");   // Warnung statt Erfolg (z. B. KI überlastet)
       const head = lines[0].replace(/^[^\p{L}\p{N}]+/u, "") || lines[0];
       const ask = awaiting && lines.length > 2 ? lines[lines.length - 1] : "";   // lange Rückfrage unter dem Bild statt in der schmalen Spalte
       const rows = lines.slice(1, ask ? -1 : undefined).map(s => `<div>${this._esc(s)}</div>`).join("");
       const pic = this._pic(v);
       const dlg = document.createElement("div");
       dlg.className = "dlg res";
-      dlg.innerHTML = `<div class="card"><div class="bd"><div class="hd"><div class="mark${awaiting ? " q" : ""}">${awaiting ? "?" : "✓"}</div><div class="ttl">${this._esc(head)}</div></div><div class="mid">${shot ? `<img class="rshot" src="${shot}" alt="">` : ""}${rows ? `<div class="rows">${rows}</div>` : ""}${pic ? `<img class="rpic" src="${pic}" alt="">` : ""}</div>${ask ? `<div class="ask">${this._esc(ask)}</div>` : ""}${awaiting && !answers.includes("yes") ? `<input id="ra" type="text" placeholder="${answers.includes("km") ? "km 61240" : this._esc(this.T("Antwort (Datum z. B. 27.10. oder „neu“):"))}" autocomplete="off">` : ""}</div><div class="df">${answers.includes("no") ? `<button data-d="no">${this.T("Abbrechen")}</button>` : ""}${answers.includes("new") ? `<button data-d="new"${answers.includes("yes") ? ' class="pri"' : ""}>${this.T("Neuer Eintrag")}</button>` : ""}${answers.includes("yes") ? `<button data-d="yes"${answers.includes("new") ? "" : ' class="pri"'}>${this.T("Übernehmen")}</button>` : `<button data-d="ok" class="pri">OK</button>`}</div></div>`;
+      dlg.innerHTML = `<div class="card"><div class="bd"><div class="hd"><div class="mark${awaiting ? " q" : warn ? " w" : ""}">${awaiting ? "?" : warn ? "!" : "✓"}</div><div class="ttl">${this._esc(head)}</div></div><div class="mid">${shot ? `<img class="rshot" src="${shot}" alt="">` : ""}${rows ? `<div class="rows">${rows}</div>` : ""}${pic ? `<img class="rpic" src="${pic}" alt="">` : ""}</div>${ask ? `<div class="ask">${this._esc(ask)}</div>` : ""}${awaiting && !answers.includes("yes") ? `<input id="ra" type="text" placeholder="${answers.includes("km") ? "km 61240" : this._esc(this.T("Antwort (Datum z. B. 27.10. oder „neu“):"))}" autocomplete="off">` : ""}</div><div class="df">${answers.includes("del") ? `<button data-d="del">${this.T("Löschen")}</button>` : ""}${answers.includes("doc") ? `<button data-d="doc">${this.T("Nur Dokumentation")}</button>` : ""}${answers.includes("no") ? `<button data-d="no">${this.T(answers.includes("yes") ? "Nein" : "Abbrechen")}</button>` : ""}${answers.includes("new") ? `<button data-d="new"${answers.includes("yes") ? ' class="pri"' : ""}>${this.T("Neuer Eintrag")}</button>` : ""}${answers.includes("yes") ? `<button data-d="yes"${answers.includes("new") ? "" : ' class="pri"'}>${this.T("Ja")}</button>` : `<button data-d="ok" class="pri">OK</button>`}</div></div>`;
       this.shadowRoot.appendChild(dlg);
       this._dlg = dlg;
       const inp = dlg.querySelector("#ra");
       const done = val => { dlg.remove(); this._dlg = null; resolve(val); };
-      dlg.onclick = ev => { ev.stopPropagation(); if (ev.target.closest("[data-d=yes]")) done("ja"); else if (ev.target.closest("[data-d=no]")) done("nein"); else if (ev.target.closest("[data-d=new]")) done("neu"); else if (ev.target.closest("[data-d=ok]")) done(inp ? (answers.includes("km") && /^[\d.\s]+$/.test(inp.value.trim()) ? "km " + inp.value.trim() : inp.value.trim()) || null : null); else if (ev.target === dlg && !awaiting) done(null); };
+      dlg.onclick = ev => { ev.stopPropagation(); if (ev.target.closest("[data-d=yes]")) done("ja"); else if (ev.target.closest("[data-d=no]")) done("nein"); else if (ev.target.closest("[data-d=new]")) done("neu"); else if (ev.target.closest("[data-d=doc]")) done("doku"); else if (ev.target.closest("[data-d=del]")) done("löschen"); else if (ev.target.closest("[data-d=ok]")) done(inp ? (answers.includes("km") && /^[\d.\s]+$/.test(inp.value.trim()) ? "km " + inp.value.trim() : inp.value.trim()) || null : null); else if (ev.target === dlg && !awaiting) done(null); };
       dlg.onkeydown = ev => { if (ev.key === "Enter" && inp) dlg.querySelector("[data-d=ok]").click(); if (ev.key === "Escape") done(null); };
       if (inp) inp.focus(); else (dlg.querySelector("button.pri") || dlg.querySelector("button")).focus();
     });
@@ -678,6 +715,8 @@ class DriveEnergyDocPanel extends HTMLElement {
     fd.append("text", text || "");
     if (mode === "batch") fd.append("batch", "1");     // Stapel: Plausibilitätsprüfung erst am Ende
     if (mode === "finish") fd.append("finish", "1");
+    if (mode === "scan" || mode === "keep") fd.append("scan", "1");       // nur auslesen, keinen Eintrag anlegen
+    if (mode === "keep") fd.append("keep", "1");       // ... und nicht mit der KI lesen, nur Foto ablegen
     const r = await this._hass.fetchWithAuth(`/api/drive_energy_doc/upload/${v.id}`, { method: "POST", body: fd, signal });
     if (!r.ok) throw new Error(`${this.T("Fehler")} ${r.status}`);
     return r.json();
@@ -730,7 +769,7 @@ class DriveEnergyDocPanel extends HTMLElement {
     const shots = files.map(f => { const u = URL.createObjectURL(f); urls.push(u); return u; });
     const strip = i => total > 1 ? `<div class="pstrip">${shots.map((u, k) => `<div class="pt${k < i ? " done" : k === i ? " cur" : ""}"><img src="${u}" alt="">${k < i ? "<b>✓</b>" : ""}</div>`).join("")}</div><div class="pbar"><i style="width:${Math.round(i / total * 100)}%"></i></div>` : "";
     const paint = (shot, i) => {
-      busy.innerHTML = `<div class="card">${pic ? `<img class="bpic" src="${pic}" alt="">` : ""}${shot ? `<div class="scan"><img src="${shot}" alt=""><svg class="lupe" viewBox="0 0 64 64" aria-hidden="true"><circle cx="26" cy="26" r="19" fill="rgba(255,255,255,.28)" stroke="#1b1b1b" stroke-width="5"/><path d="M40 40 L58 58" stroke="#1b1b1b" stroke-width="8" stroke-linecap="round"/><path d="M15 20 A13 13 0 0 1 24 12" stroke="rgba(255,255,255,.9)" stroke-width="3" fill="none" stroke-linecap="round"/></svg></div>` : ""}<div class="brow"><div class="spin"></div><div>${this.T("Beleg wird gelesen …")}${total > 1 ? ` (${i + 1} / ${total})` : ""}</div></div>${strip(i)}<button class="stopb" data-d="stop">${this.T("Abbrechen")}</button></div>`;
+      busy.innerHTML = `<div class="card">${pic ? `<img class="bpic" src="${pic}" alt="">` : ""}${v.plate ? `<div class="bplate">${this._plate(v)}</div>` : ""}${shot ? `<div class="scan"><img src="${shot}" alt=""><svg class="lupe" viewBox="0 0 64 64" aria-hidden="true"><circle cx="26" cy="26" r="19" fill="rgba(255,255,255,.28)" stroke="#1b1b1b" stroke-width="5"/><path d="M40 40 L58 58" stroke="#1b1b1b" stroke-width="8" stroke-linecap="round"/><path d="M15 20 A13 13 0 0 1 24 12" stroke="rgba(255,255,255,.9)" stroke-width="3" fill="none" stroke-linecap="round"/></svg></div>` : ""}<div class="brow"><div class="spin"></div><div>${this.T("Beleg wird gelesen …")}${total > 1 ? ` (${i + 1} / ${total})` : ""}</div></div>${strip(i)}<button class="stopb" data-d="stop">${this.T("Abbrechen")}</button></div>`;
     };
     try {
       for (let i = 0; i < total; i++) {
@@ -741,6 +780,14 @@ class DriveEnergyDocPanel extends HTMLElement {
         let j = await this._upload(v, file, file ? text : text, total > 1 ? "batch" : "", ctl.signal);
         for (let guard = 0; j.awaiting && guard < 3; guard++) {   // Rückfrage des Bots: Antwort abfragen und weiter
           busy.style.display = "none";
+          if (total === 1 && file && (j.answers || []).includes("doc")) {   // keine Tankquittung lesbar: Foto übergeben, Dialog „Eintrag von Hand“ mit dem Foto öffnen
+            let pre = null;
+            try {
+              await this._upload(v, null, "löschen", "", ctl.signal);
+              pre = (await this._upload(v, file, "", "keep", ctl.signal)).scan;
+            } catch (err) { /* dann eben die normale Rückfrage */ }
+            if (pre && pre.photo) { busy.remove(); this._load(); return this._form(v, null, pre); }
+          }
           const ans = await this._result(v, j.replies || [], shot, true, j.answers || []);
           busy.style.display = "";
           if (!ans) { j = { replies: j.replies, awaiting: false }; break; }
@@ -750,6 +797,7 @@ class DriveEnergyDocPanel extends HTMLElement {
         if (total === 1) {   // einzelnes Foto: Ergebnis sofort groß zeigen
           busy.style.display = "none";
           await this._result(v, j.replies || [], shot, false);
+          if (j.entry) { this._jumpId = j.entry; busy.remove(); await this._load(); return; }   // direkt in die Liste, die Zeile des Belegs ist markiert und im Blick
         } else results.push({ shot, replies: j.replies || [] });
       }
       if (cancelled) { this._upload(v, null, "", "finish").catch(() => {}); }   // Stapel auf dem Server abschließen, keine Übersicht
@@ -816,43 +864,104 @@ class DriveEnergyDocPanel extends HTMLElement {
     };
   }
 
-  _form(v, e, kind) {
+  _form(v, e, pre) {   // pre: Ergebnis von scan_photo (Foto schon abgelegt), z. B. wenn der Beleg nicht lesbar war
     // Korrigieren / von Hand anlegen: ein Dialog mit allen Feldern (statt einer Kette von Browser-Abfragen)
-    kind = e ? e.kind : kind;
     this._pvHide();
     const esc = x => this._esc(x == null ? "" : String(x));
     const pad = n => String(n).padStart(2, "0");
     const local = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
     const whenOrig = local(e ? new Date(e.ts * 1000) : new Date());
-    const isExtra = !!(e && e.kind === "extra");
+    const isExtra = e ? e.kind === "extra" : true;   // neuer Eintrag von Hand: Vorgabe Zubehör / Sonstiges, nicht Kraftstoff
+    // Verbrauchsmaterial: Auswahl mit Vorgaben (füllt Bezeichnung und Einheit), „Sonstiges“ = frei eintippen
+    const PRESETS = [{ k: "AdBlue", unit: "l", m: ["adblue"] }, { k: "Öl", unit: "l", m: ["öl", "oel", "oil"] }, { k: "Scheibenreiniger", unit: "l", m: ["scheibenreiniger", "scheibenwasser", "washer"] }, { k: "Waschen", unit: "", m: ["wasch", "wäsch", "wash"] }];
+    const itemLow = (e && e.item ? String(e.item) : "").toLowerCase();
+    const subSel = isExtra ? (PRESETS.find(x => [this.T(x.k).toLowerCase(), x.k.toLowerCase(), ...x.m].some(w => itemLow === w || itemLow.endsWith(w) || (w.length >= 5 && itemLow.includes(w)))) || {}).k || "other" : "other";
     const fld = (id, label, val, extra = "") => `<label class="fl"${extra}><span>${label}</span><input id="${id}" type="text" inputmode="${id === "f_date" || id === "f_item" || id === "f_unit" ? "text" : "decimal"}" value="${esc(val)}" autocomplete="off"></label>`;
     const dlg = document.createElement("div");
     dlg.className = "dlg form";
     dlg.innerHTML = `<div class="card"><div class="bd">
       <div class="dh">${this.T(e ? "Bearbeiten" : "Eintrag von Hand")}${e ? " · " + esc(this._date(e.ts)) : ""}</div>
             <label class="fl"><span>${this.T("Datum")}</span><input id="f_when" type="datetime-local" value="${whenOrig}"></label>
-      ${e ? "" : fld("f_art", this.T("Zubehör"), "") + `<div class="hint">${esc(this.T("Art: leer lassen = {0}, sonst Bezeichnung des Zubehörs (z. B. AdBlue, Öl, Scheibenwischer)", v.energy === "electric" ? this.T("Strom") : this.T("Kraftstoff")))}</div>`}
-      ${isExtra ? fld("f_item", this.T("Bezeichnung"), e.item || "") : ""}
+      <label class="fl"><span>${this.T("Art")}</span><select id="f_kind"><option value="fuel">${esc(v.energy === "electric" ? this.T("Strom") : this.T("Kraftstoff"))}</option>${PRESETS.map(x => `<option value="${x.k}"${isExtra && subSel === x.k ? " selected" : ""}>${esc(this.T(x.k))}</option>`).join("")}<option value="other"${isExtra && subSel === "other" ? " selected" : ""}>${esc(this.T("Sonstiges"))}</option></select></label>
+      ${fld("f_item", this.T("Bezeichnung"), e ? e.item || "" : "", ` id="w_item"${isExtra ? "" : ' style="display:none"'}`)}
       <div class="g2">
         ${fld("f_q", this.T("Menge"), e ? e.quantity : "")}
         ${fld("f_p", this.T("Preis") + " €", e ? e.unit_price : "")}
         ${fld("f_t", this.T("Betrag") + " €", e ? e.total : "")}
         ${fld("f_km", this.T("Kilometerstand"), e ? e.odometer : "")}
       </div>
-      ${isExtra || !e ? fld("f_unit", this.T("Einheit (z. B. l, Stk), leer = keine"), e ? e.unit : "", ` id="w_unit"${!e ? ' style="display:none"' : ""}`) : ""}
+      ${fld("f_unit", this.T("Einheit (z. B. l, Stk), leer = keine"), e ? e.unit : "", ` id="w_unit"${isExtra ? "" : ' style="display:none"'}`)}
       <label class="fl"><span>${this.T("Notiz")}</span><textarea id="f_note" maxlength="1000">${esc(e ? e.note : "")}</textarea></label>
-    </div><div class="df"><button data-d="cancel">${this.T("Abbrechen")}</button><button data-d="save" class="pri">${this.T("Speichern")}</button></div></div>`;
+      <div id="f_ph" class="phn" style="display:none"></div>
+    </div><div class="df"><button data-d="photo" class="ico" title="${this.T("Foto zu diesem Eintrag")}" aria-label="${this.T("Foto hinzufügen")}">${this._ico("camera")}</button><button data-d="cancel">${this.T("Abbrechen")}</button><button data-d="save" class="pri">${this.T("Speichern")}</button></div></div>`;
     this.shadowRoot.appendChild(dlg);
     this._dlg = dlg;
     const $ = id => dlg.querySelector("#" + id);
-    const close = () => { dlg.remove(); this._dlg = null; };
+    // Handy: die Bildschirmtastatur verkleinert nur den sichtbaren Bereich; der Dialog passt sich ihm an, damit nichts verdeckt wird
+    const vv = window.visualViewport;
+    const fit = () => { if (vv) { dlg.style.inset = "auto 0 auto 0"; dlg.style.top = vv.offsetTop + "px"; dlg.style.height = vv.height + "px"; dlg.querySelector(".card").style.maxHeight = Math.max(240, vv.height - 16) + "px"; } };
+    const coarse = window.matchMedia("(pointer:coarse)").matches;
+    if (vv && coarse) { vv.addEventListener("resize", fit); vv.addEventListener("scroll", fit); fit(); }
+    const photos = [];   // per Scan abgelegte Fotos, noch keinem Eintrag zugeordnet
+    const ph = txt => { const n = $("f_ph"); n.textContent = txt || ""; n.style.display = txt ? "" : "none"; };
+    const discard = async names => { for (const n of names) { try { await this._hass.callWS({ type: "drive_energy_doc/discard_photo", vehicle: v.id, photo: n }); } catch (err) { /* egal */ } } };
+    const ask = (msg, yes, no) => new Promise(res => {   // kleine Rückfrage über dem Dialog
+      const q = document.createElement("div");
+      q.className = "dlg";
+      q.style.zIndex = 110;
+      q.innerHTML = `<div class="card"><div class="dh">${esc(msg)}</div><div class="df"><button data-q="no">${esc(no)}</button><button data-q="yes" class="pri">${esc(yes)}</button></div></div>`;
+      this.shadowRoot.appendChild(q);
+      q.onclick = ev => { ev.stopPropagation(); const b = ev.target.closest("[data-q]"); if (b) { q.remove(); res(b.dataset.q === "yes"); } };
+    });
+    const scan = async files => {   // Foto per KI lesen und die gefundenen Werte in diesen Dialog eintragen (der Dialog bleibt offen)
+      const btn = dlg.querySelector('[data-d="photo"]');
+      btn.disabled = true;
+      ph(this.T("Foto wird gelesen …"));
+      const busy = document.createElement("div");   // Fortschritt mitten über dem Dialog (die Zeile im Dialog liegt am Handy oft außerhalb des sichtbaren Bereichs)
+      busy.className = "dlg";
+      busy.style.zIndex = 120;
+      busy.innerHTML = `<div class="card" style="align-items:center;text-align:center;gap:14px;padding:26px 30px;max-width:300px"><div class="spin"></div><div class="dh">${esc(this.T("Foto wird gelesen …"))}</div></div>`;
+      this.shadowRoot.appendChild(busy);
+      let r = null;
+      try { r = (await this._upload(v, files[0], "", "scan")).scan; } catch (err) { busy.remove(); ph(""); btn.disabled = false; alert(this.T("Fehler") + ": " + (err.message || err)); return; }
+      busy.remove();
+      btn.disabled = false;
+      if (!r) { ph(""); return; }
+      if (r.busy) { ph(""); alert(this.T("Die KI ist gerade überlastet (Google). Bitte in ein paar Minuten noch einmal versuchen.")); return; }
+      if (!r.found) {
+        ph("");
+        const keep = await ask(this.T("Auf dem Foto konnte ich keine Daten lesen. Soll es trotzdem zur Dokumentation behalten werden?"), this.T("Behalten"), this.T("Verwerfen"));
+        if (!keep) return discard([r.photo]);
+        photos.push(r.photo);
+        if (!$("f_item").value.trim()) $("f_item").value = this.T("Dokumentation");
+        ph(this.T("{0} Foto(s) angehängt", photos.length));
+        return;
+      }
+      photos.push(r.photo);
+      const set = (id, x) => { if (x != null && x !== "") $(id).value = x; };
+      const cat = { adblue: "AdBlue", oil: "Öl", washer: "Scheibenreiniger", carwash: "Waschen" }[r.category];   // Kategorie aus dem Beleg wählen
+      if (cat || r.category === "other") {
+        $("f_kind").value = cat || "other"; $("f_kind").onchange();
+        if (!cat && r.item) $("f_item").value = r.item;
+      } else if (r.receipt || r.quantity || r.total) { $("f_kind").value = "fuel"; $("f_kind").onchange(); }
+      set("f_q", r.quantity); set("f_p", r.unit_price); set("f_t", r.total); set("f_km", r.odometer ? Math.round(r.odometer) : null);
+      if (r.note) $("f_note").value = $("f_note").value.trim() ? $("f_note").value.trim() + " · " + r.note : r.note;   // Fremdwährung: Originalpreis und Kurs
+      if (r.ts) { const d = new Date(r.ts * 1000); if (!isNaN(d)) $("f_when").value = local(d); }
+      ph(this.T("Foto gelesen: Werte eingetragen, bitte prüfen.") + (photos.length > 1 ? " · " + this.T("{0} Foto(s) angehängt", photos.length) : ""));
+    };
+    const close = () => { if (photos.length) { discard(photos); photos.length = 0; } if (vv && coarse) { vv.removeEventListener("resize", fit); vv.removeEventListener("scroll", fit); } dlg.remove(); this._dlg = null; this._load(); };
     const num = s => (s == null || String(s).trim() === "" ? null : parseFloat(String(s).replace(",", ".")));
-    if (!e) $("f_art").oninput = () => { dlg.querySelector("#w_unit").style.display = $("f_art").value.trim() ? "" : "none"; };
+    const preset = k => { const m = PRESETS.find(x => x.k === k); if (m) { $("f_item").value = this.T(m.k); $("f_unit").value = m.unit; } };
+    $("f_kind").onchange = () => {   // alles außer Kraftstoff/Strom ist Zubehör: Bezeichnung und Einheit, bei den Vorgaben automatisch gefüllt
+      const k = $("f_kind").value, x = k !== "fuel";
+      ["w_item", "w_unit"].forEach(id => { dlg.querySelector("#" + id).style.display = x ? "" : "none"; });
+      if (PRESETS.some(m => m.k === k)) preset(k);
+    };
     const save = async () => {
       const f = { quantity: num($("f_q").value), unit_price: num($("f_p").value), total: num($("f_t").value), odometer: num(/^\d{1,3}(\.\d{3})+$/.test($("f_km").value.trim()) ? $("f_km").value.trim().replace(/\./g, "") : $("f_km").value), note: $("f_note").value };
-      let extra = isExtra, item = e ? e.item || "" : "";
-      if (!e) { const art = $("f_art").value.trim(); if (art) { extra = true; item = art; } }
-      if (extra) { f.unit = ($("f_unit") ? $("f_unit").value : "").trim(); if (e) f.item = ($("f_item").value || "").trim() || item; }
+      const extra = $("f_kind").value !== "fuel";
+      f.kind = extra ? "extra" : "fuel";   // auch nachträglich umstellbar (z. B. ein Ölbon, der als Tanken gelesen wurde)
+      if (extra) { f.item = ($("f_item").value || "").trim() || this.T("Zubehör"); f.unit = ($("f_unit").value || "").trim(); }
       if (e && $("f_when").value && $("f_when").value !== whenOrig) { const w = new Date($("f_when").value); if (!isNaN(w)) f.ts = w.getTime() / 1000; }
       try {
         if (e) await this._hass.callWS({ type: "drive_energy_doc/update", vehicle: v.id, entry: e.id, fields: f });
@@ -860,8 +969,9 @@ class DriveEnergyDocPanel extends HTMLElement {
           const w = new Date($("f_when").value);
           if (isNaN(w)) { $("f_when").focus(); return; }
           f.ts = w.getTime() / 1000;
-          if (extra) { f.kind = "extra"; f.item = item; }
+          if (photos.length) f.photos = [...photos];
           await this._hass.callWS({ type: "drive_energy_doc/add", vehicle: v.id, fields: f });
+          photos.length = 0;   // gehören jetzt zum Eintrag
         }
       } catch (err) { alert(this.T("Speichern fehlgeschlagen: ") + (err.message || err)); return; }
       close();
@@ -872,9 +982,16 @@ class DriveEnergyDocPanel extends HTMLElement {
       const b = ev.target.closest("[data-d]");
       if ((b && b.dataset.d === "cancel") || ev.target === dlg) return close();
       if (b && b.dataset.d === "save") save();
+      if (b && b.dataset.d === "photo") { if (e) { close(); this._pick(v, e, true); } else this._pick(v, null, true, scan); }
     };
     dlg.onkeydown = ev => { if (ev.key === "Escape") close(); else if (ev.key === "Enter" && ev.target.tagName === "INPUT") save(); };
-    ($("f_art") || $("f_q")).focus();
+    if (pre && pre.photo) {   // unlesbarer Beleg aus dem Hauptmenü: Foto hängt schon am Dialog, Rest von Hand
+      photos.push(pre.photo);
+      if (!$("f_item").value.trim()) $("f_item").value = this.T("Dokumentation");
+      if (pre.ts) { const d = new Date(pre.ts * 1000); if (!isNaN(d)) $("f_when").value = local(d); }
+      ph(this.T("Auf dem Foto konnte ich keine Daten lesen. Soll es trotzdem zur Dokumentation behalten werden?").split(".")[0] + ". " + this.T("{0} Foto(s) angehängt", photos.length));
+    }
+    if (!coarse) (e ? $("f_q") : $("f_kind")).focus();   // am Handy nicht: sonst springt gleich die Tastatur auf
   }
 }
 if (!customElements.get("drive-energy-doc-panel")) customElements.define("drive-energy-doc-panel", DriveEnergyDocPanel);

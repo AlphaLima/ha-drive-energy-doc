@@ -125,3 +125,20 @@ def km_plausible(entries: list[dict[str, Any]], km: float | None, ts: float | No
         return True
     odos = sorted(e["odometer"] for e in fuel)
     return not (len(odos) >= 3 and abs(km - odos[len(odos) // 2]) > 80000)
+
+
+# Rangfolge der Quellen eines Kilometerstands: die Entität des Autos ist immer die beste, dann das Foto vom Tacho, erst dann der Stand auf der Quittung
+# (der wird oft von Hand eingegeben und kann falsch sein). Ein von Hand eingetragener Stand (Panel oder getippt) gilt als bewusste Entscheidung und gewinnt immer.
+KM_RANK = {"beleg": 1, "foto": 2, "sensor": 3, "manuell": 4}
+
+
+def km_rank(entry: dict[str, Any]) -> int:
+    """0 = noch kein Kilometerstand; ältere Einträge ohne Quellenangabe zählen wie der Sensor."""
+    if entry.get("odometer") is None:
+        return 0
+    return KM_RANK.get(entry.get("odometer_source"), KM_RANK["sensor"])
+
+
+def km_better(entry: dict[str, Any], source: str) -> bool:
+    """Darf ein Kilometerstand aus ``source`` den vorhandenen des Eintrags ersetzen (oder setzen)?"""
+    return KM_RANK[source] > km_rank(entry)

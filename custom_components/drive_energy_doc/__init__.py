@@ -105,7 +105,7 @@ async def _register_once(hass: HomeAssistant) -> None:
     from .whatsapp import WhatsAppView
 
     hass.http.register_view(WhatsAppView)
-    for cmd in (ws_list, ws_update, ws_delete, ws_add, ws_delete_photo, ws_countries, ws_set_plate):
+    for cmd in (ws_list, ws_update, ws_delete, ws_add, ws_delete_photo, ws_discard_photo, ws_countries, ws_set_plate):
         websocket_api.async_register_command(hass, cmd)
 
     async def export_csv(call: ServiceCall) -> None:
@@ -160,7 +160,7 @@ class UploadView(HomeAssistantView):
         v = _vehicles(request.app["hass"]).get(entry_id)
         if v is None:
             return web.Response(status=404)
-        image, text, batch, finish = None, "", False, False
+        image, text, batch, finish, scan, keep = None, "", False, False, False, False
         reader = await request.multipart()
         async for part in reader:
             if part.name == "file":
@@ -177,11 +177,19 @@ class UploadView(HomeAssistantView):
                 batch = (await part.text()).strip() == "1"
             elif part.name == "finish":
                 finish = (await part.text()).strip() == "1"
+            elif part.name == "scan":
+                scan = (await part.text()).strip() in ("1", "2")
+                keep = False if not scan else keep
+            elif part.name == "keep":
+                keep = (await part.text()).strip() == "1"
+        if scan and image:   # Dialog „Eintrag von Hand“: nur auslesen, nichts anlegen
+            result = await asyncio.shield(request.app["hass"].async_create_task(v.scan_photo(image, read=not keep)))
+            return self.json({"scan": result})
         # als eigene Aufgabe laufen lassen: bricht der Browser die Verbindung ab (Netz, Seitenwechsel), wird der Beleg trotzdem fertig verarbeitet
         task = request.app["hass"].async_create_task(v.upload(image, text, batch, finish))
         replies = await asyncio.shield(task)
         answers = v.pending_answers()
-        return self.json({"replies": replies, "awaiting": bool(answers), "answers": answers})
+        return self.json({"replies": replies, "awaiting": bool(answers), "answers": answers, "entry": getattr(v, "last_entry_id", None) if not batch else None})
 
 
 class VehicleImageView(HomeAssistantView):
@@ -259,6 +267,13 @@ async def ws_delete(hass, connection, msg) -> None:
 async def ws_add(hass, connection, msg) -> None:
     e = _vehicle(hass, msg["vehicle"]).add_manual(msg["fields"])
     connection.send_result(msg["id"], e["id"])
+
+
+@websocket_api.websocket_command({vol.Required("type"): "drive_energy_doc/discard_photo", vol.Required("vehicle"): str, vol.Required("photo"): str})
+@websocket_api.async_response
+async def ws_discard_photo(hass, connection, msg) -> None:
+    await _vehicle(hass, msg["vehicle"]).discard_photo(msg["photo"])
+    connection.send_result(msg["id"], True)
 
 
 @websocket_api.websocket_command({vol.Required("type"): "drive_energy_doc/delete_photo", vol.Required("vehicle"): str, vol.Required("entry"): str, vol.Required("photo"): str})

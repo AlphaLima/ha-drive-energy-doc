@@ -108,7 +108,52 @@ def test_panel_titles_for_all_languages():
     assert not set(messages.languages()) - set(messages.PANEL_TITLE)
 
 
+def test_photo_names(tmp_path=None):
+    import tempfile
+    n = r.new_photo_name({"date": date(2026, 10, 15), "time": (12, 40), "station": "Čerpací stanice Zlatý Lán", "category": "oil"})
+    assert n == "2026-10-15_1240_Oel_Cerpaci-stanice-Zlaty-Lan.jpg", n
+    n = r.new_photo_name({"date": date(2026, 10, 15), "time": None, "station": "Müller & Söhne Tankstelle Große Straße 12 Nord", "quantity": 40})
+    assert n.startswith("2026-10-15_1200_Beleg_Mueller-Soehne-Tankstelle-Grosse") and n.endswith(".jpg") and " " not in n, n
+    assert r.new_photo_name({"odometer": 71000}, 1790000000).split("_")[2] == "Tacho.jpg"
+    d = pathlib.Path(tempfile.mkdtemp())
+    (d / "2026-10-15_1240_Oel_X.jpg").write_bytes(b"x")
+    assert r.new_photo_name({"date": date(2026, 10, 15), "time": (12, 40), "station": "X", "category": "oil"}, folder=d) == "2026-10-15_1240_Oel_X_2.jpg"
+
+
+def test_recompress():
+    import io
+    from PIL import Image
+    import random
+    rnd = random.Random(1)
+    img = Image.effect_noise((2400, 1800), 40).convert("RGB")
+    buf = io.BytesIO(); img.save(buf, "JPEG", quality=95)
+    out = r.recompress(buf.getvalue(), 1800, 82)
+    assert len(out) < len(buf.getvalue()) and max(Image.open(io.BytesIO(out)).size) == 1800
+    assert r.recompress(b"kein bild", 1800, 82) == b"kein bild"
+
+
 for n, f in list(globals().items()):
     if n.startswith("test_"):
         f(); print("ok", n)
 
+
+
+def test_convert_foreign_currency():
+    import asyncio
+
+    async def fake_rate(hass, cur, on):
+        return (4.0, "2026-10-06") if cur == "PLN" else None
+    orig = r.eur_rate
+    r.eur_rate = fake_rate
+    try:
+        v = {"quantity": 10.0, "unit_price": 4.0, "total": 40.0, "currency": "PLN", "date": date(2026, 10, 6)}
+        asyncio.run(r.convert_to_eur(None, v))
+        assert abs(v["total"] - 10.0) < 1e-9 and abs(v["unit_price"] - 1.0) < 1e-9 and v["orig"]["total"] == 40.0 and v["orig"]["rate"] == 4.0 and r.plausible(v)
+        w = {"total": 40.0, "currency": "CZK", "date": date(2026, 10, 6)}   # kein Kurs: bleibt unverändert, Hinweis in orig
+        asyncio.run(r.convert_to_eur(None, w))
+        assert w["total"] == 40.0 and w["orig"]["rate"] is None
+        e = {"total": 40.0, "currency": "EUR"}
+        asyncio.run(r.convert_to_eur(None, e))
+        assert "orig" not in e
+    finally:
+        r.eur_rate = orig

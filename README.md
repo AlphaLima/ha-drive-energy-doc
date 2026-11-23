@@ -232,6 +232,8 @@ Dasselbe als Bildtext zu einem Foto hängt den Beleg an den Eintrag. Zubehör er
 aber **nicht** in den Verbrauch.
 
 ### Tacho-Kilometerstand
+**Rangfolge der Quellen:** Der Kilometerstand eines Eintrags kommt aus der besten verfügbaren Quelle: **1. die Entität des Autos** (Kilometerstand-Sensor), **2. das Foto vom Tacho**, **3. erst dann der Stand auf der Quittung**. Auf der Quittung steht er oft von Hand eingetragen und kann falsch sein, deshalb überschreibt er nie einen besseren Stand. Ein Stand, den du selbst tippst oder im Panel änderst, gilt als bewusste Entscheidung und gewinnt immer. Der Sensorwert gilt nur für einen Eintrag, der zeitlich dazu passt: Wird ein Beleg erst später hochgeladen (Datum mehr als 3 Stunden weg), wird der aktuelle Sensorwert nicht übernommen.
+
 **Im Zweifel wird der Kilometerstand weggelassen.** Ein von der KI aus einem **Foto** gelesener Stand wird nie geraten und nie erfragt: Passt er nicht zum Eintrag,
 liegt er unter dem vorigen Stand oder ergibt er einen unplausiblen Verbrauch, bleibt er leer und das Tacho-Foto hängt als Zusatzfoto am Eintrag. Auf Belegen
 zählt ein Kilometerstand nur, wenn eine Zeile ausdrücklich so beschriftet ist (Belegnummer, Säulen- und Kartennummer sind es nicht) und er zur Reihenfolge der
@@ -276,7 +278,10 @@ Nach der Einrichtung erscheint das Panel in der Seitenleiste, benannt nach der S
 - Liste aller Tanken/Ladungen und Zubehör je Fahrzeug, Spalten verschiebbar und in der Breite änderbar. Der Spalten-Knopf über der Liste blendet nicht benötigte Spalten aus; die Auswahl wird pro Browser gemerkt, ein Doppelklick auf einen Spaltentrenner setzt alles zurück.
 - Kennzeichen-Darstellung (alle europäischen Länder, EU-Ring bzw. gelb für NL/GB), Fahrzeugbild und -typ in der Kopfzeile. Bei mehreren Fahrzeugen öffnet ein Klick auf den Kopfbereich (Logo, Fahrzeugtyp, Kennzeichen) einen Auswahldialog mit allen Fahrzeugen. Kennzeichen und Land stellst du in der Konfiguration des Fahrzeugs ein.
 - Belegfotos und Tacho-Fotos mit Vorschau beim Überfahren, Löschen mit Rückfrage; Foto-Upload, auch **mehrere Fotos auf einmal** (Fortschrittsdialog mit Abbrechen, Verarbeitung nach Aufnahmezeit, Übersicht mit Warnungen am Ende). Rückfragen im Dialog haben fertige Antwort-Knöpfe (z. B. „Übernehmen“, „Neuer Eintrag“, „Abbrechen“).
-- Bearbeiten und manueller Eintrag („+“) in **einem Dialog mit allen Feldern** (Datum und Uhrzeit, Menge, Preis, Betrag, Kilometerstand, Notiz; bei „+“ auch Zubehör), Ort mit kleiner Google-Maps-Verknüpfung.
+- Bearbeiten und manueller Eintrag („+“) in **einem Dialog mit allen Feldern** (Art: Kraftstoff bzw. Strom oder Zubehör / Verbrauchsmaterial, auch nachträglich umstellbar; Datum und Uhrzeit, Menge, Preis, Betrag, Kilometerstand, Notiz), Ort mit kleiner Google-Maps-Verknüpfung.
+- **Fremdwährung:** Belege in CHF, PLN, CZK, GBP, SEK, DKK u. a. werden zum EZB-Tageskurs des Belegdatums in Euro umgerechnet. Die Notiz enthält Originalbetrag, Euro-Betrag und den verwendeten Kurs. Ist kein Kurs abrufbar, bleiben die Werte unverändert und die Notiz warnt.
+- **Kategorie aus dem Beleg:** Die KI erkennt AdBlue, Öl, Scheibenreiniger, Autowäsche und sonstiges Zubehör und legt einen eigenen Zubehör-Eintrag an (nie wird ein Tankvorgang überschrieben). Ist ein Foto nicht lesbar, öffnet sich der Dialog „Eintrag von Hand“ mit dem Foto. Ist die KI überlastet (Google 503), gibt es einen Warnhinweis statt einer falschen Meldung.
+- **Fotos:** sprechende Dateinamen (`2026-10-15_1240_Oel_Haendler.jpg`), komprimiert gespeichert; Zubehör-Zeilen sind farbig hinterlegt, die Liste hat einen Zeilen-Cursor und ist standardmäßig nach Nummer absteigend sortiert. Testbelege (auch verknittert, ausgeblichen, schlecht beleuchtet) liegen in `tests/test_images_zubehoer/`.
 - **CSV-Export** (Excel-tauglich) und **Druck/PDF** (Hoch- oder Querformat, mit oder ohne Belege).
 
 ### Beispiel-Ausdruck
@@ -572,6 +577,8 @@ Messages run via **Telegram** (own bot, recommended), **WhatsApp** (Meta Cloud A
 Anything that costs money but is not fuel. Keyword **`+`, `e`, `x`, `extra`, `z`, `zub`** or `zubehör`, then optionally the name and the numbers: `+ 24,90`, `extra Öl 1 9,50`, `z Scheibenwischer 24,90`. Allowed are only amount, quantity amount or quantity price amount, optionally with a date. Short words without a keyword: `adblue`, `öl`, `scheibenwischer`, `scheibenwasser`, `frostschutz`. The same as the caption of a photo attaches the receipt to the entry. Accessories appear as their own row and count towards costs, but **not** towards consumption.
 
 ### Odometer reading
+**Order of the sources:** The mileage of an entry comes from the best available source: **1. the vehicle's entity** (odometer sensor), **2. the odometer photo**, **3. only then the reading on the receipt**. On the receipt it is often written in by hand and can be wrong, so it never overwrites a better reading. A reading you type or change in the panel yourself counts as a deliberate decision and always wins. The sensor value only counts for an entry that fits in time: if a receipt is uploaded later (date more than 3 hours away), the current sensor value is not taken over.
+
 **When in doubt the odometer reading is left out.** A reading the AI takes from a **photo** is never guessed and never asked about: if it does not fit the entry, is
 lower than the previous reading or gives an implausible consumption, it stays empty and the odometer photo is attached to the entry as an extra photo. On receipts a
 mileage only counts if a line is explicitly labelled as such (a receipt number, pump number or card number is not), and it must fit the order of the entries (not lower
@@ -611,8 +618,11 @@ After setup the panel appears in the sidebar, named after the Home Assistant sys
 - List of all refuellings/charges and accessories per vehicle; columns can be reordered and resized. The columns button (above the list) hides columns you do not need; the choice is remembered per browser, a double-click on a column divider resets everything.
 - Licence plate display (all European countries, EU ring or yellow for NL/GB), vehicle picture and type in the header. With several vehicles a click on the header area (logo, vehicle type, plate) opens a dialog to choose among all vehicles. You set the plate and its country in the vehicle's configuration.
 - Receipt and odometer photos with a preview on hover (several photos: a picker), delete with confirmation, photo upload, also **several photos at once** (progress dialog with cancel, processing by capture time, summary with warnings at the end). Follow-up questions in the dialog have ready-made answer buttons (e.g. "Accept", "New entry", "Cancel").
-- Edit and manual entry ("+") in **one dialog with all fields** (date and time, quantity, price, amount, odometer, note; accessory type for "+"), place with a small Google Maps link, notes as an icon.
+- Edit and manual entry ("+") in **one dialog with all fields** (type: fuel/electricity or accessory / consumable, changeable afterwards; date and time, quantity, price, amount, odometer, note), place with a small Google Maps link, notes as an icon.
 - Compact card view on phones.
+- **Foreign currency:** receipts in CHF, PLN, CZK, GBP, SEK, DKK and others are converted to euro at the ECB daily rate of the receipt date. The note holds the original amount, the euro amount and the rate used. If no rate is available the values stay unchanged and the note warns you.
+- **Category from the receipt:** the AI recognises AdBlue, oil, washer fluid, car wash and other accessories and creates its own accessory entry (a refuelling entry is never overwritten). If a photo cannot be read, the "manual entry" dialog opens with the photo. If the AI is overloaded (Google 503) you get a warning instead of a wrong message.
+- **Photos:** readable file names (`2026-10-15_1240_Oil_Merchant.jpg`), stored compressed; accessory rows are tinted, the list has a row cursor and is sorted by number descending by default. Test receipts (also crumpled, faded, badly lit) are in `tests/test_images_zubehoer/`.
 - **CSV export** (Excel-friendly) and **print/PDF** (portrait or landscape, with or without receipts).
 
 ### Example printout
