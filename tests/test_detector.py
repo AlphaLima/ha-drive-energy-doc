@@ -84,6 +84,55 @@ def test_restart_persistence():
     assert d2.check(100, FAR)["level"] == 50
 
 
+def moving(i):
+    """Fahrzeug fährt: alle 100 m ein neuer Punkt (ca. 0,0014 Grad Länge je 100 m)."""
+    return (51.7300, 6.2900 + i * 0.0014)
+
+
+def test_regen_is_not_charging():
+    """Rekuperation: der Akku steigt beim Fahren in kleinen Schritten, nach 400 m sind es keine 5 % (und es wird nie ein Ladevorgang)."""
+    d = det.FuelDetector(settle_seconds=60, require_distance=False, reject_moving=True)
+    d.on_level(40, 0, moving(0), 1000)
+    events = [d.on_level(40 + i, 10 * i, moving(i), 1000 + i * 0.1) for i in range(1, 16)]
+    assert "valid" not in events and not (d.pending and d.pending.valid)
+    assert "cancelled" in events
+
+
+def test_charging_stationary_is_detected():
+    d = det.FuelDetector(settle_seconds=60, require_distance=False, reject_moving=True)
+    d.on_level(40, 0, HOME, 1000)
+    events = [d.on_level(40 + i * 2, 10 + i * 30, (51.7300 + (i % 3) * 0.0001, 6.2900), 1000) for i in range(1, 16)]  # GPS-Rauschen von ca. 10 m
+    assert events.count("valid") == 1 and d.pending.level == 70
+    assert d.check(10 + 15 * 30 + 100, HOME)["level"] == 70
+
+
+def test_driving_off_after_charging_ignores_regen():
+    d = det.FuelDetector(settle_seconds=60, require_distance=False, reject_moving=True)
+    d.on_level(40, 0, HOME, 1000)
+    for i in range(1, 8):
+        d.on_level(40 + i * 5, i * 30, HOME, 1000)   # lädt auf 75 %
+    assert d.pending.valid and d.pending.level == 75
+    d.on_level(76, 400, FAR, 1001.5)                    # weggefahren, Rekuperation
+    d.on_level(77, 420, FAR, 1002)
+    assert d.pending.level == 75, "Anstieg nach dem Wegfahren zählt nicht"
+    assert d.check(210 + 100, FAR)["level"] == 75
+
+
+def test_odometer_rule_without_gps():
+    d = det.FuelDetector(settle_seconds=60, require_distance=False, reject_moving=True)
+    d.on_level(40, 0, None, 1000)
+    events = [d.on_level(40 + i, 10 * i, None, 1000 + i * 0.4) for i in range(1, 12)]
+    assert "valid" not in events
+
+
+def test_default_detector_unchanged():
+    """Verbrenner: kein Bewegungs-Test (beim Tanken fährt man nicht, aber es ändert sich nichts am Verhalten)."""
+    d = new()
+    for i in range(1, 8):
+        d.on_level(40 + i * 5, i * 30, HOME, 1000)
+    assert d.pending.valid
+
+
 if __name__ == "__main__":
     for name, fn in list(globals().items()):
         if name.startswith("test_"):

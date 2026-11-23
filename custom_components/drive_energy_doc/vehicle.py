@@ -69,15 +69,25 @@ class Vehicle:
         self.energy: str = o[CONF_ENERGY]
         self.electric = self.energy == ENERGY_ELECTRIC
         self.unit = "kWh" if self.electric else "l"
+        self.phev = bool(o.get(CONF_PHEV)) and not self.electric   # Plug-in-Hybrid: Kraftstoff (l) und Strom (kWh) in einer Liste
         self.capacity = float(o.get(CONF_CAPACITY) or 0)
         self.store = Store(hass, 1, f"{DOMAIN}.{entry.entry_id}")
-        self.data: dict[str, Any] = {"entries": [], "pending": None, "awaiting": None}
+        self.data: dict[str, Any] = {"entries": [], "pending": None, "pending_el": None, "awaiting": None}
         self.detector = FuelDetector(
             min_increase=float(o.get(CONF_MIN_INCREASE, DEFAULT_MIN_INCREASE)),
             settle_seconds=float(o.get(CONF_SETTLE) or (DEFAULT_SETTLE_ELECTRIC if self.electric else DEFAULT_SETTLE_FUEL)),
             min_distance=float(o.get(CONF_MIN_DISTANCE, DEFAULT_MIN_DISTANCE)),
             require_distance=bool(o.get(CONF_REQUIRE_DISTANCE, not self.electric)),
+            reject_moving=self.electric,   # Elektroauto: Anstieg während der Fahrt ist Rekuperation
         )
+        self.capacity_el = float(o.get(CONF_CAPACITY_EL) or 0)
+        # Plug-in-Hybrid: zweite Erkennung für den Akku (Laden), mit den Werten eines Elektroautos (kein Abstand zum Ladeort nötig)
+        self.detector_el: FuelDetector | None = FuelDetector(
+            min_increase=float(o.get(CONF_MIN_INCREASE, DEFAULT_MIN_INCREASE)),
+            settle_seconds=float(o.get(CONF_SETTLE) or DEFAULT_SETTLE_ELECTRIC),
+            require_distance=False,
+            reject_moving=True,   # Anstieg des Akkus beim Fahren (Rekuperation) ist kein Laden
+        ) if self.phev and o.get(CONF_LEVEL_EL) else None
         self._pos: tuple[float, float] | None = None
         self._capture: list[str] | None = None
         self._upload_lock = asyncio.Lock()
@@ -95,6 +105,8 @@ class Vehicle:
         self.data.update(saved)
         await self.hass.async_add_executor_job(self._import_folder)   # Erstimport (leeres Fahrzeug) oder Neuimport (Datei REPLACE im Importordner)
         self.detector.pending = FuelDetector(pending=self.data.get("pending")).pending
+        if self.detector_el:
+            self.detector_el.pending = FuelDetector(pending=self.data.get("pending_el")).pending
         o = self.o
         for e in self.data["entries"]:
             if e.get("quantity_source") == "import" and "increase" not in e and e.get("level_to") is not None:
@@ -122,7 +134,11 @@ class Vehicle:
         lvl = self._read_float(o.get(CONF_LEVEL))
         if lvl is not None:
             self.detector.prev_level = lvl
-        tracked = [e for e in (o.get(CONF_LEVEL), o.get(CONF_TRACKER)) if e]
+        if self.detector_el:
+            lvl_el = self._read_float(o.get(CONF_LEVEL_EL))
+            if lvl_el is not None:
+                self.detector_el.prev_level = lvl_el
+        tracked = [e for e in (o.get(CONF_LEVEL), o.get(CONF_LEVEL_EL) if self.detector_el else None, o.get(CONF_TRACKER)) if e]
         self._unsubs.append(async_track_state_change_event(self.hass, tracked, self._state_changed))
         self._unsubs.append(async_track_time_interval(self.hass, self._tick, CHECK_EVERY))
         if o.get(CONF_TG_TOKEN) and o.get(CONF_TG_CHAT):
@@ -297,32 +313,48 @@ class Vehicle:
         level = self._read_float(entity)
         if level is None:
             return
-        result = self.detector.on_level(level, time.time(), self._pos, self._read_float(self.o.get(CONF_ODOMETER)))
+        det = self.detector_el if (self.detector_el and entity == self.o.get(CONF_LEVEL_EL)) else self.detector   # Akku (Laden) oder Tank
+        result = det.on_level(level, time.time(), self._pos, self._read_float(self.o.get(CONF_ODOMETER)))
         if result in ("started", "valid", "cancelled"):
             self._save()
         if result == "valid":
-            self.hass.async_create_task(self._fetch_price())
+            self.hass.async_create_task(self._fetch_price(None, det))
         self._notify_entities()
 
     @callback
     def _tick(self, _now) -> None:
         self._pos = self._read_pos() or self._pos
-        done = self.detector.check(time.time(), self._pos)
-        if done:
-            self.hass.async_create_task(self._finish(done))
-        else:
+        finished = False
+        for det in self._detectors():
+            done = det.check(time.time(), self._pos)
+            if done:
+                finished = True
+                self.hass.async_create_task(self._finish(done, det is self.detector_el))
+        if not finished:
             self._notify_entities()
+
+    def _detectors(self) -> list[FuelDetector]:
+        return [self.detector] + ([self.detector_el] if self.detector_el else [])
+
+    def _pending_for(self, energy: str | None):
+        """Laufender Vorgang zur Energieart (Plug-in-Hybrid: Laden oder Tanken), sonst der des Fahrzeugs."""
+        return self.detector_el.pending if (energy == "electric" and self.detector_el) else self.detector.pending
+
+    def _valid_pending(self):
+        """Der gerade laufende (gültige) Tank- oder Ladevorgang oder None."""
+        return next((d.pending for d in self._detectors() if d.pending and d.pending.valid), None)
 
     def _ai_entity(self) -> str | None:
         """Gewählte KI-Aufgabe, sonst automatisch Gemini, sonst die erste vorhandene ai_task-Entität."""
         return get_settings(self.hass).get(CONF_AI_TASK) or default_ai_entity(self.hass)
 
     # ---------------------------------------------------------------- Preis
-    async def _fetch_price(self, pending: dict | None = None) -> dict[str, Any]:
+    async def _fetch_price(self, pending: dict | None = None, det: FuelDetector | None = None) -> dict[str, Any]:
         """Preis/Station für den laufenden Vorgang holen (am Beginn gültiger Zuwachs, nicht erst beim Wegfahren)."""
-        p = self.detector.pending
+        det = det or self.detector
+        p = det.pending
         target = p.extras if p else (pending or {})
-        if self.electric:
+        if self.electric or (self.detector_el is not None and det is self.detector_el):
             price = self._electric_price()
             if price:
                 target.update(unit_price=price, price_source="eingestellt")
@@ -348,12 +380,13 @@ class Vehicle:
             return self._read_float(str(raw))
 
     # ---------------------------------------------------------------- Tankende
-    async def _finish(self, done: dict) -> None:
+    async def _finish(self, done: dict, el: bool = False) -> None:
         ex = dict(done.get("extras") or {})
         if "unit_price" not in ex:
-            ex = await self._fetch_price({**done, "pos": (done["lat"], done["lon"]), **ex}) or ex
+            ex = await self._fetch_price({**done, "pos": (done["lat"], done["lon"]), **ex}, self.detector_el if el else None) or ex
         pct = done["level"] - done["start_level"]
-        qty = round(pct / 100 * self.capacity, 2) if self.capacity else None
+        cap = self.capacity_el if el else self.capacity   # Plug-in-Hybrid: Akku (kWh) oder Tank (l)
+        qty = round(pct / 100 * cap, 2) if cap else None
         entry = {
             "id": uuid.uuid4().hex[:12],
             "ts": done["last_increase_ts"],
@@ -376,6 +409,8 @@ class Vehicle:
             "receipt": False,
             "note": "",
         }
+        if el:
+            entry["energy"] = "electric"
         entry["total"] = round(qty * entry["unit_price"], 2) if qty and entry["unit_price"] else None
         entry["photos"].extend(ex.get("extra_photos", []))
         r = ex.get("receipt")
@@ -388,7 +423,7 @@ class Vehicle:
             if od.get("photo"):
                 entry["photos"].append(od["photo"])
         self.data["entries"].append(entry)
-        self.data["pending"] = None
+        self.data["pending_el" if el else "pending"] = None
         self._save()
         self._notify_entities()
         self.hass.bus.async_fire(f"{DOMAIN}_refuel", {"vehicle": self.name, "entry": entry})
@@ -429,7 +464,7 @@ class Vehicle:
             chk = stats.check_consumption(self.data["entries"], e, e["odometer"]) if e.get("odometer") is not None else None
             if chk and not chk["ok"]:
                 when = dt_util.as_local(dt_util.utc_from_timestamp(e["ts"])).strftime("%d.%m.%Y")
-                out.append(f"{when}: " + self.tr("⚠️ Verbrauch ungewöhnlich: {0} bei {1} km seit dem letzten Tanken (Durchschnitt {2}), bitte Kilometerstand prüfen.", self._cons_txt(chk["cons"]), self._fmt_km(chk["driven"]), self._cons_txt(chk["avg"])))
+                out.append(f"{when}: " + self.tr("⚠️ Verbrauch ungewöhnlich: {0} bei {1} km seit dem letzten Tanken (Durchschnitt {2}), bitte Kilometerstand prüfen.", self._cons_txt(chk["cons"], chk.get("energy")), self._fmt_km(chk["driven"]), self._cons_txt(chk["avg"], chk.get("energy"))))
         up = self.data.get("unread_photo")
         if up and time.time() - up["ts"] < AWAIT_TTL:   # im Stapel unlesbar gebliebenes Foto: am Ende melden statt mittendrin zu fragen
             out.append(self.tr("Auf dem Foto konnte ich weder Beleg noch Kilometerstand lesen. Schick den Kilometerstand als Text (z. B. „km 61240“) oder lege das Foto nur zur Dokumentation ab, oder lösche es."))
@@ -521,7 +556,7 @@ class Vehicle:
     def _summary(self, e: dict, head: str) -> str:
         when = dt_util.as_local(dt_util.utc_from_timestamp(e["ts"])).strftime("%d.%m.%Y %H:%M")
         extra = e.get("kind") == "extra"
-        unit = (e.get("unit") or "") if extra else self.unit
+        unit = (e.get("unit") or "") if extra else self.unit_of(e)
         lines = [f"{'🧰' if extra else '⛽'} {self.name}{f' ({self.plate})' if self.plate else ''}: {head} ({when})"]
         if e.get("station") or e.get("address"):
             lines.append(" ".join(x for x in (e.get("station"), e.get("address")) if x))
@@ -772,7 +807,7 @@ class Vehicle:
         if extra or not values:
             d = receipt.parse_date_hint(caption)
             target = self._entry_on(d, True) if d else (self._newest_within(48 * 3600) or (self.data["entries"][-1] if self.data["entries"] else None))
-            pend = self.detector.pending
+            pend = self.detector.pending or (self.detector_el.pending if self.detector_el else None)
             if target is None and pend:
                 pend.extras.setdefault("extra_photos", []).append(name)
                 self._save()
@@ -797,8 +832,8 @@ class Vehicle:
     async def _odometer(self, km: float, photo: str | None, sent_ts: float | None = None) -> None:
         """Kilometerstand dem Tankvorgang zuordnen, der zur Sendezeit passt (Foto oder Text)."""
         sent = sent_ts or time.time()
-        pend = self.detector.pending
-        if pend and pend.valid:  # es wird gerade getankt: beim Abschluss übernehmen
+        pend = self._valid_pending()
+        if pend and pend.valid:  # es wird gerade getankt oder geladen: beim Abschluss übernehmen
             pend.extras["odometer"] = {"km": km, "photo": photo}
             self._save()
             await self._say(self.tr("Kilometerstand {0} km vorgemerkt, er wird beim Abschluss des laufenden Tankvorgangs übernommen.", self._fmt_km(km)))
@@ -843,7 +878,7 @@ class Vehicle:
         if chk and not chk["ok"]:   # getippter Stand, Verbrauch passt nicht zu Tankmenge und Durchschnitt: nachfragen
             self.data["awaiting_odo"] = {"id": e["id"], "km": km, "photo": photo, "ts": time.time(), "confirm": True}
             self._save()
-            why = self.tr("würde bei {0} km seit dem letzten Tanken {1} ergeben (Durchschnitt {2})", self._fmt_km(chk["driven"]), self._cons_txt(chk["cons"]), self._cons_txt(chk["avg"]))
+            why = self.tr("würde bei {0} km seit dem letzten Tanken {1} ergeben (Durchschnitt {2})", self._fmt_km(chk["driven"]), self._cons_txt(chk["cons"], chk.get("energy")), self._cons_txt(chk["avg"], chk.get("energy")))
             await self._say(self.tr("Der Kilometerstand {0} km {1}. Tankvorgang: {2}. Antworte „ja“, um ihn trotzdem zu übernehmen, oder „nein“.", self._fmt_km(km), why, when))
             return
         await self._apply_odometer(e, km, photo, m["dt"])
@@ -857,8 +892,12 @@ class Vehicle:
         self._notify_entities()
         await self._say(self.tr("Zusatzfoto gespeichert."))
 
-    def _cons_txt(self, value: float) -> str:
-        return self._dec(f"{value:.1f}") + f" {self.unit}/100 km"
+    def unit_of(self, e: dict | None) -> str:
+        """Einheit der Menge eines Eintrags: kWh bei Strom (auch im Plug-in-Hybrid), sonst die des Fahrzeugs."""
+        return "kWh" if e and e.get("energy") == "electric" else self.unit
+
+    def _cons_txt(self, value: float, energy: str | None = None) -> str:
+        return self._dec(f"{value:.1f}") + f" {'kWh' if energy == 'electric' else self.unit}/100 km"
 
     async def _apply_odometer(self, entry: dict, km: float, photo: str | None, dt: float) -> None:
         if self._batch is not None:
@@ -881,13 +920,24 @@ class Vehicle:
         await self._say(self.tr("Kilometerstand {0} km für den Tankvorgang vom {1} übernommen{2}.", self._fmt_km(km), when, late))
 
     # ---------------------------------------------------------------- Zuordnung
-    def _entry_on(self, d, any_kind: bool = False) -> dict | None:
-        hits = [e for e in self.data["entries"] if dt_util.as_local(dt_util.utc_from_timestamp(e["ts"])).date() == d and (any_kind or e.get("kind") != "extra")]
+    def _energy_of(self, values: dict | None) -> str | None:
+        """Plug-in-Hybrid: ``electric`` bei einem Ladebeleg, sonst ``fuel``. Andere Fahrzeuge: None (keine Unterscheidung)."""
+        if not self.phev:
+            return None
+        return "electric" if (values or {}).get("category") == "charging" else "fuel"
+
+    @staticmethod
+    def _fits_energy(e: dict, energy: str | None) -> bool:
+        """Gehört der Eintrag zur gesuchten Energieart? Noch leere Einträge (Tacho-Foto, nichts gelesen) passen zu beiden."""
+        return energy is None or stats.energy_of(e) == energy or (e.get("quantity") is None and not e.get("receipt"))
+
+    def _entry_on(self, d, any_kind: bool = False, energy: str | None = None) -> dict | None:
+        hits = [e for e in self.data["entries"] if dt_util.as_local(dt_util.utc_from_timestamp(e["ts"])).date() == d and (any_kind or e.get("kind") != "extra") and (e.get("kind") == "extra" or self._fits_energy(e, energy))]
         return hits[-1] if hits else None
 
-    def _newest_within(self, seconds: float) -> dict | None:
+    def _newest_within(self, seconds: float, energy: str | None = None) -> dict | None:
         for e in reversed(self.data["entries"]):
-            if time.time() - e["ts"] <= seconds and not e.get("receipt") and e.get("kind") != "extra":
+            if time.time() - e["ts"] <= seconds and not e.get("receipt") and e.get("kind") != "extra" and self._fits_energy(e, energy):
                 return e
         return None
 
@@ -916,10 +966,10 @@ class Vehicle:
         c = [e for e in self.data["entries"] if e.get("kind") != "extra" and not e.get("receipt") and e.get("quantity") is None and e.get("odometer") is not None and abs(e["odometer"] - km) <= tolerance]
         return min(c, key=lambda e: abs(e["odometer"] - km)) if c else None
 
-    def _open_entry(self, need: str) -> dict | None:
+    def _open_entry(self, need: str, energy: str | None = None) -> dict | None:
         """Zuletzt angelegter Eintrag (der letzten Stunden), dem noch der Beleg ("receipt") bzw. der Kilometerstand ("odometer") fehlt.
         Damit gehören Tacho-Foto und Beleg zusammen, egal in welcher Reihenfolge sie kommen und welches Datum auf dem Beleg steht."""
-        es = [e for e in self.data["entries"] if e.get("kind") != "extra" and e.get("created")]
+        es = [e for e in self.data["entries"] if e.get("kind") != "extra" and e.get("created") and self._fits_energy(e, energy)]
         if not es:
             return None
         e = max(es, key=lambda x: x["created"])
@@ -952,8 +1002,9 @@ class Vehicle:
             if not self._km_sane(values["odometer"], ts=when):
                 _LOGGER.info("Kilometerstand %s vom Beleg unplausibel, ignoriert (%s)", values["odometer"], self.name)
                 values = {**values, "odometer": None}
-        photo_only = not self.o.get(CONF_LEVEL)  # ohne Füllstandssensor: jeder Beleg ohne passenden Eintrag legt einen neuen an
-        open_e = ((self._entry_by_km(values["odometer"]) if values.get("odometer") else None) or self._open_entry("receipt")) if photo_only else None
+        en = self._energy_of(values)   # Plug-in-Hybrid: Tanken und Laden sind getrennte Einträge
+        photo_only = not (self.detector_el if en == "electric" else self.o.get(CONF_LEVEL))  # ohne Füllstandssensor (Tank bzw. Akku): jeder Beleg ohne passenden Eintrag legt einen neuen an
+        open_e = ((self._entry_by_km(values["odometer"]) if values.get("odometer") else None) or self._open_entry("receipt", en)) if photo_only else None
         if open_e:   # das Tacho-Foto kam zuerst und hat schon eine neue Zeile angelegt: der Beleg gehört dazu (Datum und Uhrzeit vom Beleg gelten)
             if d:
                 hm = values.get("time")
@@ -962,7 +1013,7 @@ class Vehicle:
             await self._apply_and_report(open_e, values, photo)
             return
         if d:
-            target = self._entry_on(d)
+            target = self._entry_on(d, False, en)
             if not target and photo_only:
                 target = self._new_manual_entry()
                 hm = values.get("time")
@@ -973,13 +1024,13 @@ class Vehicle:
                 self.data["awaiting"] = {"values": {**values, "date": None}, "photo": photo, "ts": time.time()}
                 await self._say(self.tr("Zu {0} gibt es keinen Tankvorgang. Antworte mit einem anderen Datum oder „neu“.", f"{d:%d.%m.%Y}"))
                 return
-        elif self.detector.pending and self.detector.pending.valid:
-            self.detector.pending.extras["receipt"] = {"values": {k: v for k, v in values.items() if k != "date"}, "photo": photo}
+        elif (self._pending_for(en) or None) and self._pending_for(en).valid:
+            self._pending_for(en).extras["receipt"] = {"values": {k: v for k, v in values.items() if k != "date"}, "photo": photo}
             self._save()
             await self._say(self.tr("Beleg vorgemerkt, er wird beim Abschluss des laufenden Tankvorgangs übernommen."))
             return
         else:
-            target = self._newest_within(48 * 3600)
+            target = self._newest_within(48 * 3600, en)
         if target is None and photo_only:
             target = self._new_manual_entry()
             self.data["entries"].append(target)
@@ -991,7 +1042,7 @@ class Vehicle:
         if target.get("receipt") and (values.get("quantity") or values.get("total")):
             same = abs((target.get("quantity") or 0) - (values.get("quantity") or 0)) < 0.011 and abs((target.get("total") or 0) - (values.get("total") or 0)) < 0.011
             when = dt_util.as_local(dt_util.utc_from_timestamp(target["ts"])).strftime("%d.%m.%Y %H:%M")
-            have = ", ".join(x for x in (self._dec(f"{target['quantity']:.2f}") + f" {self.unit}" if target.get("quantity") else "", self._dec(f"{target['total']:.2f}") + " €" if target.get("total") else "") if x)
+            have = ", ".join(x for x in (self._dec(f"{target['quantity']:.2f}") + f" {self.unit_of(target)}" if target.get("quantity") else "", self._dec(f"{target['total']:.2f}") + " €" if target.get("total") else "") if x)
             self.data["awaiting_overwrite"] = {"id": target["id"], "values": {k: (v if k != "date" else None) for k, v in values.items()}, "photo": photo, "ts": time.time()}
             self._save()
             key = "Dieser Beleg ist schon eingetragen (Eintrag vom {0}: {1}). Antworte „ja“, um ihn trotzdem zu überschreiben, oder „nein“." if same else "Es gibt schon einen Beleg-Eintrag vom {0} ({1}). Antworte „ja“, um ihn mit dem neuen Beleg zu überschreiben, oder „nein“."
@@ -1022,7 +1073,7 @@ class Vehicle:
         warn = "" if receipt.plausible(entry) else "\n" + self.tr("⚠️ Menge × Preis passt nicht zum Betrag, bitte prüfen.")
         chk = stats.check_consumption(self.data["entries"], entry, entry["odometer"]) if entry.get("odometer") is not None and not batch else None
         if chk and not chk["ok"]:
-            warn += "\n" + self.tr("⚠️ Verbrauch ungewöhnlich: {0} bei {1} km seit dem letzten Tanken (Durchschnitt {2}), bitte Kilometerstand prüfen.", self._cons_txt(chk["cons"]), self._fmt_km(chk["driven"]), self._cons_txt(chk["avg"]))
+            warn += "\n" + self.tr("⚠️ Verbrauch ungewöhnlich: {0} bei {1} km seit dem letzten Tanken (Durchschnitt {2}), bitte Kilometerstand prüfen.", self._cons_txt(chk["cons"], chk.get("energy")), self._fmt_km(chk["driven"]), self._cons_txt(chk["avg"], chk.get("energy")))
         await self._say(self._summary(entry, self.tr("Beleg übernommen")) + warn)
 
     def _apply_values(self, entry: dict, values: dict, photo: str | None) -> None:
@@ -1045,6 +1096,11 @@ class Vehicle:
             entry["odometer"], entry["odometer_source"] = float(values["odometer"]), "beleg"   # nur wenn kein besserer Stand da ist
         if q or p or t:
             entry["receipt"] = True
+        if self.phev and values.get("category") in ("fuel", "charging") and entry.get("kind") != "extra":
+            if values["category"] == "charging":
+                entry["energy"] = "electric"
+            else:
+                entry.pop("energy", None)
         note = self.currency_note(values.get("orig"))
         if note:
             entry["note"] = f"{entry['note']} · {note}" if entry.get("note") else note
@@ -1085,6 +1141,11 @@ class Vehicle:
                 e[k] = float(fields[k]) if fields[k] not in (None, "") else None
         if "odometer" in fields:
             e["odometer_source"] = "manuell" if e.get("odometer") is not None else None
+        if self.phev and "energy" in fields and fields.get("kind") != "extra":   # Plug-in-Hybrid: Kraftstoff (l) oder Strom (kWh)
+            if fields["energy"] == "electric":
+                e["energy"] = "electric"
+            else:
+                e.pop("energy", None)
         if "kind" in fields:   # Art umstellen: Kraftstoff/Strom oder Zubehör (Verbrauchsmaterial)
             if fields["kind"] == "extra":
                 e["kind"] = "extra"
@@ -1197,16 +1258,18 @@ class Vehicle:
 
     def summary(self) -> dict[str, Any]:
         es = self.entries_with_stats()
-        cons = [e["consumption"] for e in es if e["consumption"]][-5:]
+        cons = [e["consumption"] for e in es if e["consumption"] and stats.energy_of(e) != "electric"][-5:]
+        cons_el = [e["consumption"] for e in es if e["consumption"] and stats.energy_of(e) == "electric"][-5:]   # nur Plug-in-Hybrid
         year_ago = time.time() - 365 * 86400
         fuel = [e for e in es if e.get("kind") != "extra"]
         return {
             "last": fuel[-1] if fuel else None,
             "extras_12m": round(sum(e.get("total") or 0 for e in es if e.get("kind") == "extra" and e["ts"] >= year_ago), 2),
             "avg_consumption": round(sum(cons) / len(cons), 2) if cons else None,
+            "avg_consumption_electric": round(sum(cons_el) / len(cons_el), 2) if cons_el else None,
             "cost_12m": round(sum(e.get("total") or 0 for e in es if e["ts"] >= year_ago), 2),
             "count": len(es),
-            "status": "idle" if not self.detector.pending else ("refuelling" if self.detector.pending.valid else "candidate"),
+            "status": "idle" if not any(d.pending for d in self._detectors()) else ("refuelling" if self._valid_pending() else "candidate"),
         }
 
     def numbers(self) -> dict[str, int]:
@@ -1225,12 +1288,13 @@ class Vehicle:
 
         for e in self.entries_with_stats():
             t = dt_util.as_local(dt_util.utc_from_timestamp(e["ts"]))
-            w.writerow([numbers.get(e["id"], ""), self.name, self.plate, self.tr("Zubehör") if e.get("kind") == "extra" else (self.tr("Strom") if self.electric else self.tr("Kraftstoff")), e.get("item") or "", t.strftime("%d.%m.%Y"), t.strftime("%H:%M"), n(e.get("odometer"), 0), e.get("station") or "", e.get("address") or "", n(e.get("lat"), 6), n(e.get("lon"), 6), n(e.get("level_from"), 0), n(e.get("level_to"), 0), n(e.get("quantity")), (e.get("unit") or "") if e.get("kind") == "extra" else self.unit, n(e.get("unit_price"), 3), n(e.get("total")), e.get("quantity_source") or "", e.get("price_source") or "", "ja" if e.get("receipt") else "nein", n(e.get("consumption")), e.get("note") or ""])
+            w.writerow([numbers.get(e["id"], ""), self.name, self.plate, self.tr("Zubehör") if e.get("kind") == "extra" else (self.tr("Strom") if (self.electric or e.get("energy") == "electric") else self.tr("Kraftstoff")), e.get("item") or "", t.strftime("%d.%m.%Y"), t.strftime("%H:%M"), n(e.get("odometer"), 0), e.get("station") or "", e.get("address") or "", n(e.get("lat"), 6), n(e.get("lon"), 6), n(e.get("level_from"), 0), n(e.get("level_to"), 0), n(e.get("quantity")), (e.get("unit") or "") if e.get("kind") == "extra" else self.unit, n(e.get("unit_price"), 3), n(e.get("total")), e.get("quantity_source") or "", e.get("price_source") or "", "ja" if e.get("receipt") else "nein", n(e.get("consumption")), e.get("note") or ""])
         return buf.getvalue()
 
     # ---------------------------------------------------------------- Speichern
     def _save(self) -> None:
         self.data["pending"] = self.detector.dump()
+        self.data["pending_el"] = self.detector_el.dump() if self.detector_el else None
         self.store.async_delay_save(lambda: self.data, 2)
 
     def _notify_entities(self) -> None:

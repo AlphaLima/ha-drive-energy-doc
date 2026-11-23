@@ -36,7 +36,10 @@
         "data": {
           "name": "Name",
           "energy": "Kraftstoff / Antrieb",
+          "phev": "Plug-in-Hybrid (Kraftstoff und Strom in einer Liste)",
           "level_entity": "Tankinhalt / Ladestand (%, optional)",
+          "level_entity_electric": "Akku-Ladestand (%, nur Plug-in-Hybrid, optional)",
+          "capacity_electric": "Akkugröße (kWh, nur Plug-in-Hybrid)",
           "odometer_entity": "Kilometerstand (optional)",
           "tracker_entity": "GPS-Position (device_tracker, optional)",
           "capacity": "Tankgröße / Akkukapazität (l / kWh)",
@@ -153,7 +156,10 @@
         "data": {
           "name": "Name",
           "energy": "Kraftstoff / Antrieb",
+          "phev": "Plug-in-Hybrid (Kraftstoff und Strom in einer Liste)",
           "level_entity": "Tankinhalt / Ladestand (%, optional)",
+          "level_entity_electric": "Akku-Ladestand (%, nur Plug-in-Hybrid, optional)",
+          "capacity_electric": "Akkugröße (kWh, nur Plug-in-Hybrid)",
           "odometer_entity": "Kilometerstand (optional)",
           "tracker_entity": "GPS-Position (device_tracker, optional)",
           "capacity": "Tankgröße / Akkukapazität (l / kWh)",
@@ -287,6 +293,9 @@
       },
       "consumption": {
         "name": "Verbrauch (Ø letzte 5)"
+      },
+      "consumption_electric": {
+        "name": "Stromverbrauch (Ø letzte 5)"
       },
       "cost_12m": {
         "name": "Kosten 12 Monate"

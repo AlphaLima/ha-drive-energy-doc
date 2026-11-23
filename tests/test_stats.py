@@ -94,6 +94,23 @@ def test_km_rank():
     assert not st.km_better(hand, "sensor") and not st.km_better(alt, "foto")                         # alter Eintrag ohne Quelle zählt wie Sensor
 
 
+def test_phev_chains_are_separate():
+    """Plug-in-Hybrid: Kraftstoff (l) und Strom (kWh) haben je eine eigene Verbrauchskette, die Kilometer sind gemeinsam."""
+    es = [e(1, 1000, 40, id="a"), e(2, 1100, 10, id="b", energy="electric"), e(3, 1500, 25, id="c"), e(4, 1400, 30, id="d", energy="electric"), e(5, 1900, 20, id="f"), e(6, 1700, 28, id="g", energy="electric")]
+    out = {x["id"]: x["consumption"] for x in st.add_consumption(es)}
+    assert out["a"] is None and out["b"] is None          # jeweils die erste Betankung der Kette
+    assert abs(out["c"] - 25 / 500 * 100) < 0.01          # 25 l auf 500 km (Kraftstoffkette)
+    assert abs(out["g"] - 28 / 300 * 100) < 0.01          # 28 kWh auf 300 km seit dem vorigen Laden (Stromkette)
+    assert st.energy_of({"energy": "electric"}) == "electric" and st.energy_of({}) == "fuel"
+
+
+def test_phev_check_consumption_uses_own_chain():
+    d = e(5, 2500, 25, id="d")
+    es = [e(1, 1000, 40, id="a"), e(2, 1500, 25, id="b"), e(3, 2000, 25, id="c"), e(4, 1200, 15, id="x", energy="electric"), d]
+    chk = st.check_consumption(es, d, 2500)
+    assert chk and chk["energy"] == "fuel" and abs(chk["cons"] - 5.0) < 0.01 and chk["ok"]
+
+
 for n, fn in list(globals().items()):
     if n.startswith("test_"):
         fn(); print("ok", n)

@@ -90,8 +90,11 @@ def s_basic(d: dict, hass_country: str | None = None) -> vol.Schema:
             # ohne sie wird nichts automatisch erkannt, Einträge kommen dann nur per Foto/Text/Panel.
             vol.Required(CONF_NAME, default=d.get(CONF_NAME, "")): str,
             vol.Required(CONF_ENERGY, default=d.get(CONF_ENERGY, "diesel")): sel.SelectSelector(sel.SelectSelectorConfig(options=["diesel", "e5", "e10", "electric"], translation_key="energy")),
+            vol.Optional(CONF_PHEV, default=d.get(CONF_PHEV, False)): bool,
             vol.Required(CONF_CAPACITY, default=d.get(CONF_CAPACITY, 50)): _num("l / kWh", 1, 500),
             _text(CONF_LEVEL, d): _ent(["sensor", "number"]),
+            _text(CONF_LEVEL_EL, d): _ent(["sensor", "number"]),   # nur Plug-in-Hybrid: Ladestand des Akkus
+            vol.Optional(CONF_CAPACITY_EL, default=d.get(CONF_CAPACITY_EL, 10)): _num("kWh", 1, 200),
             _text(CONF_ODOMETER, d): _ent(["sensor", "number"]),
             _text(CONF_TRACKER, d): _ent(["device_tracker"]),
             # Optional (nur Aussehen): Kennzeichen, Land, Typ, Bild

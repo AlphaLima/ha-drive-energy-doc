@@ -16,6 +16,8 @@ from math import asin, cos, radians, sin, sqrt
 from typing import Any
 
 EPS = 0.05
+MOVE_TOLERANCE_M = 200.0   # Elektro: bewegt sich das Fahrzeug weiter vom Beginn weg, steigt der Akku durch Rekuperation und nicht durch Laden
+MOVE_TOLERANCE_KM = 1.0    # dasselbe über den Kilometerstand, wenn es keinen GPS-Tracker gibt
 CANDIDATE_TIMEOUT_S = 600
 
 
@@ -49,7 +51,9 @@ class FuelDetector:
         min_distance: float = 250,
         require_distance: bool = True,
         pending: dict | None = None,
+        reject_moving: bool = False,
     ) -> None:
+        self.reject_moving = reject_moving   # nur für Akkus: Anstieg während der Fahrt ist Rekuperation, kein Laden
         self.min_increase = min_increase
         self.settle_seconds = settle_seconds
         self.min_distance = min_distance
@@ -67,6 +71,11 @@ class FuelDetector:
             return None
         if level > prev + EPS:
             p = self.pending
+            if p is not None and self.reject_moving and self._moved(p, pos, odometer):
+                if not p.valid:
+                    self.pending = None   # Kandidat entsteht beim Fahren (Rekuperation): verwerfen, der nächste Anstieg beginnt neu
+                    return "cancelled"
+                return None   # nach dem Laden schon weggefahren: weitere Anstiege (Rekuperation) zählen nicht mehr mit
             if p is None:
                 p = self.pending = Pending(
                     start_level=prev, level=level, start_ts=ts, last_increase_ts=ts,
@@ -89,6 +98,13 @@ class FuelDetector:
             self.pending = None  # Stand fällt wieder: Rauschen / Fahrt, kein Tanken
             return "cancelled"
         return None
+
+    @staticmethod
+    def _moved(p: "Pending", pos: tuple[float, float] | None, odometer: float | None) -> bool:
+        """Hat sich das Fahrzeug seit dem Beginn des Vorgangs bewegt (GPS weiter als 200 m oder Kilometerstand um mindestens 1 km)?"""
+        if pos is not None and p.lat is not None and haversine_m(p.lat, p.lon, pos[0], pos[1]) > MOVE_TOLERANCE_M:
+            return True
+        return odometer is not None and p.odometer is not None and abs(odometer - p.odometer) >= MOVE_TOLERANCE_KM
 
     def check(self, ts: float, pos: tuple[float, float] | None) -> dict | None:
         """Periodisch aufrufen. Liefert den fertigen Tankvorgang oder None."""

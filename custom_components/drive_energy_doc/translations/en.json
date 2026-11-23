@@ -36,7 +36,10 @@
         "data": {
           "name": "Name",
           "energy": "Fuel / drive",
+          "phev": "Plug-in hybrid (fuel and electricity in one list)",
           "level_entity": "Fuel / charge level (%, optional)",
+          "level_entity_electric": "Battery charge level (%, plug-in hybrid only, optional)",
+          "capacity_electric": "Battery capacity (kWh, plug-in hybrid only)",
           "odometer_entity": "Odometer (optional)",
           "tracker_entity": "GPS position (device_tracker, optional)",
           "capacity": "Tank / battery capacity (l / kWh)",
@@ -153,7 +156,10 @@
         "data": {
           "name": "Name",
           "energy": "Fuel / drive",
+          "phev": "Plug-in hybrid (fuel and electricity in one list)",
           "level_entity": "Fuel / charge level (%, optional)",
+          "level_entity_electric": "Battery charge level (%, plug-in hybrid only, optional)",
+          "capacity_electric": "Battery capacity (kWh, plug-in hybrid only)",
           "odometer_entity": "Odometer (optional)",
           "tracker_entity": "GPS position (device_tracker, optional)",
           "capacity": "Tank / battery capacity (l / kWh)",
@@ -287,6 +293,9 @@
       },
       "consumption": {
         "name": "Consumption (avg last 5)"
+      },
+      "consumption_electric": {
+        "name": "Electricity consumption (avg last 5)"
       },
       "cost_12m": {
         "name": "Cost 12 months"

@@ -13,7 +13,7 @@ from .vehicle import Vehicle, signal
 
 async def async_setup_entry(hass, entry, async_add_entities) -> None:
     v: Vehicle = hass.data[DOMAIN]["vehicles"][entry.entry_id]
-    async_add_entities([TankStatus(v), TankLast(v), TankPrice(v), TankConsumption(v), TankCost(v)])
+    async_add_entities([TankStatus(v), TankLast(v), TankPrice(v), TankConsumption(v), TankCost(v)] + ([TankConsumptionElectric(v)] if v.phev else []))
 
 
 class _Base(SensorEntity):
@@ -81,6 +81,18 @@ class TankConsumption(_Base):
     @property
     def native_value(self):
         return self.v.summary()["avg_consumption"]
+
+
+class TankConsumptionElectric(_Base):
+    """Plug-in-Hybrid: Stromverbrauch (kWh/100 km) neben dem Kraftstoffverbrauch."""
+
+    key = "consumption_electric"
+    _attr_state_class = SensorStateClass.MEASUREMENT
+    _attr_native_unit_of_measurement = "kWh/100 km"
+
+    @property
+    def native_value(self):
+        return self.v.summary()["avg_consumption_electric"]
 
 
 class TankCost(_Base):

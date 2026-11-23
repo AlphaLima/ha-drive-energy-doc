@@ -2,7 +2,7 @@
 const DEFW = { nr: 46 };   // Standardbreite einzelner Spalten in px (sonst 120 bei fester Breite)
 const COLS = ["nr", "date", "km", "station", "qty", "price", "total", "cons", "receipt", "note", "act"];
 
-const VERSION = "0.1.81b32";
+const VERSION = "0.1.81b36";
 
 class DriveEnergyDocPanel extends HTMLElement {
   set hass(h) {
@@ -481,10 +481,10 @@ class DriveEnergyDocPanel extends HTMLElement {
         date: `<td data-nr="${nums[e.id] ? "#" + nums[e.id] : ""}"><span>${this._d(e.ts)}</span><span class="tm">${this._tm(e.ts)}</span></td>`,
         km: `<td class="n">${e.odometer != null ? this._fmt(e.odometer, 0) : "–"}</td>`,
         station: `<td><div>${this._esc(e.station || "")}</div><div class="src">${this._esc(e.address || "")}</div><div class="src gps">${this._gps(e)}</div></td>`,
-        qty: `<td class="n">${e.quantity != null ? this._fmt(e.quantity) + " " + (e.kind === "extra" ? (e.unit || "") : u) : "–"}<div class="src">${e.level_from != null && e.level_to != null ? Math.round(e.level_from) + "→" + Math.round(e.level_to) + " %" : (e.increase != null ? "+" + Math.round(e.increase) + " %" : "")} ${this._esc(this.T(e.quantity_source || ""))}</div></td>`,
+        qty: `<td class="n">${e.quantity != null ? this._fmt(e.quantity) + " " + (e.kind === "extra" ? (e.unit || "") : (v.phev && e.energy === "electric" ? "kWh" : u)) : "–"}<div class="src">${e.level_from != null && e.level_to != null ? Math.round(e.level_from) + "→" + Math.round(e.level_to) + " %" : (e.increase != null ? "+" + Math.round(e.increase) + " %" : "")} ${this._esc(this.T(e.quantity_source || ""))}</div></td>`,
         price: `<td class="n">${this._fmt(e.unit_price, 3)}<div class="src">${this._esc(this.T(e.price_source || ""))}</div></td>`,
         total: `<td class="n">${this._fmt(e.total)} €</td>`,
-        cons: `<td class="n">${e.consumption != null ? this._fmt(e.consumption) : "–"}</td>`,
+        cons: `<td class="n">${e.consumption != null ? this._fmt(e.consumption) + (v.phev ? `<div class="src">${e.energy === "electric" ? "kWh" : u}/100 ${this.T("km")}</div>` : "") : "–"}</td>`,
         receipt: (() => { const ph = e.photo_urls || [], im = (p, k) => `<img class="${k}" src="${p}" data-p="${p}" data-entry="${e.id}" data-name="${this._esc((e.photos || [])[ph.indexOf(p)] || "")}"${ph.length > 1 && k === "thumb" ? ` data-multi="${e.id}"` : ""} alt="${ph.indexOf(p) === 0 && e.receipt ? this.T("Beleg") : this.T("Zusatzfoto")}">`; return `<td>${ph.length ? im(ph[0], "thumb") : ""}${e.receipt ? "" : `<span class="no" title="${this.T("Beleg fehlt")}">${this._ico("warn")}</span>`}</td>`; })(),
         note: (() => { const full = [e.kind === "extra" ? (e.item || this.T("Zubehör")) : "", e.note || ""].filter(Boolean).join("\n"); return `<td>${full ? `<span class="notec" data-note="${this._esc(full)}">` : ""}${e.kind === "extra" ? `<span class="tag">${this._esc(e.item || this.T("Zubehör"))}</span> ` : ""}${e.note ? `<span class="notei" tabindex="0" role="button" aria-label="${this.T("Notiz anzeigen")}">${this._ico("note")}</span>` : ""}${full ? "</span>" : ""}</td>`; })(),
         act: `<td><button data-act="edit" title="${this.T("Bearbeiten")}" aria-label="${this.T("Bearbeiten")}">${this._ico("edit")}</button> <button data-act="del" title="${this.T("Eintrag löschen")}" aria-label="${this.T("Eintrag löschen")}">${this._ico("trash")}</button></td>`,
@@ -495,6 +495,7 @@ class DriveEnergyDocPanel extends HTMLElement {
       <div class="head${d.length > 1 ? " pick" : ""}"${d.length > 1 ? ` role="button" tabindex="0"` : ""}><div class="ttl"><img class="logo" src="/drive_energy_doc_static/icon.png?v=${VERSION}" alt=""><div><div class="app">Drive Energy Doc</div><h1>${this._esc(this._title(v))}${d.length > 1 ? ` <span class="chev">▾</span>` : ""}</h1></div>${v.plate ? this._plate(v) : ""}</div>${pic ? `<img class="car" src="${pic}" alt="${this._esc(v.name)}">` : ""}</div>
       <div class="sum">
         <div><b>${this._fmt(s.avg_consumption)}</b><span>${u}/100 ${this.T("km")} (${this.T("Ø letzte 5")})</span></div>
+        ${v.phev ? `<div><b>${this._fmt(s.avg_consumption_electric)}</b><span>kWh/100 ${this.T("km")} (${this.T("Ø letzte 5")})</span></div>` : ""}
         <div><b>${this._fmt(s.cost_12m)} €</b><span>${this.T("Kosten 12 Monate")}</span></div>
         <button class="shoot" data-act="shoot" title="${this.T("Beleg fotografieren oder hochladen")}" aria-label="${this.T("Beleg fotografieren")}">${this._ico("camera")}<span>${this.T("Beleg / km Stand fotografieren")}</span></button>
       </div>
@@ -847,7 +848,7 @@ class DriveEnergyDocPanel extends HTMLElement {
     // A4 quer oder hoch; im Druckdialog "Als PDF speichern" wählen. Alle Einträge, darunter die Belegfotos je Eintrag (max. 4).
     const u = this.T(v.unit), e = this._esc.bind(this);
     const pn = {}; [...v.entries].filter(x => x.kind !== "extra").sort((p, q) => p.ts - q.ts).forEach((x, i) => { pn[x.id] = i + 1; });
-    const rows = [...v.entries].reverse().map(x => `<tr><td class="n">${pn[x.id] || ""}</td><td>${this._date(x.ts)}</td><td class="n">${x.odometer != null ? this._fmt(x.odometer, 0) : ""}</td><td>${x.kind === "extra" ? "[" + e(x.item || this.T("Zubehör")) + "] " : ""}${e(x.station || "")}<br><small>${e(x.address || "")}</small><br><small>${this._gps(x, false)}</small></td><td class="n">${x.quantity != null ? this._fmt(x.quantity) + " " + (x.kind === "extra" ? e(x.unit || "") : u) : ""}</td><td class="n">${this._fmt(x.unit_price, 3)}</td><td class="n">${this._fmt(x.total)} €</td><td class="n">${x.consumption != null ? this._fmt(x.consumption) : ""}</td><td>${e(x.note || "")}</td></tr>`).join("");
+    const rows = [...v.entries].reverse().map(x => `<tr><td class="n">${pn[x.id] || ""}</td><td>${this._date(x.ts)}</td><td class="n">${x.odometer != null ? this._fmt(x.odometer, 0) : ""}</td><td>${x.kind === "extra" ? "[" + e(x.item || this.T("Zubehör")) + "] " : ""}${e(x.station || "")}<br><small>${e(x.address || "")}</small><br><small>${this._gps(x, false)}</small></td><td class="n">${x.quantity != null ? this._fmt(x.quantity) + " " + (x.kind === "extra" ? e(x.unit || "") : (v.phev && x.energy === "electric" ? "kWh" : u)) : ""}</td><td class="n">${this._fmt(x.unit_price, 3)}</td><td class="n">${this._fmt(x.total)} €</td><td class="n">${x.consumption != null ? this._fmt(x.consumption) : ""}</td><td>${e(x.note || "")}</td></tr>`).join("");
     const photos = v.entries.filter(x => (x.photo_urls || []).length).map(x => `<div class="g"><div class="c">${this._date(x.ts)} · ${e(x.station || "")} · ${this._fmt(x.total)} €</div>${x.photo_urls.slice(0, 4).map(p => `<img src="${new URL(p, location.origin).href}">`).join("")}</div>`).join("");
     const total = v.entries.reduce((a, x) => a + (x.total || 0), 0), qty = v.entries.reduce((a, x) => a + (x.quantity || 0), 0);
     const html = `<!doctype html><meta charset="utf-8"><title>Drive Energy Doc ${e(v.name)}${v.plate ? " " + e(v.plate) : ""}</title><style>
@@ -890,7 +891,7 @@ class DriveEnergyDocPanel extends HTMLElement {
     dlg.innerHTML = `<div class="card"><div class="bd">
       <div class="dh">${this.T(e ? "Bearbeiten" : "Eintrag von Hand")}${e ? " · " + esc(this._date(e.ts)) : ""}</div>
             <label class="fl"><span>${this.T("Datum")}</span><input id="f_when" type="datetime-local" value="${whenOrig}"></label>
-      <label class="fl"><span>${this.T("Art")}</span><select id="f_kind"><option value="fuel">${esc(v.energy === "electric" ? this.T("Strom") : this.T("Kraftstoff"))}</option>${PRESETS.map(x => `<option value="${x.k}"${isExtra && subSel === x.k ? " selected" : ""}>${esc(this.T(x.k))}</option>`).join("")}<option value="other"${isExtra && subSel === "other" ? " selected" : ""}>${esc(this.T("Sonstiges"))}</option></select></label>
+      <label class="fl"><span>${this.T("Art")}</span><select id="f_kind"><option value="fuel">${esc(v.energy === "electric" ? this.T("Strom") : this.T("Kraftstoff"))}</option>${v.phev ? `<option value="electric"${e && e.kind !== "extra" && e.energy === "electric" ? " selected" : ""}>${esc(this.T("Strom"))}</option>` : ""}${PRESETS.map(x => `<option value="${x.k}"${isExtra && subSel === x.k ? " selected" : ""}>${esc(this.T(x.k))}</option>`).join("")}<option value="other"${isExtra && subSel === "other" ? " selected" : ""}>${esc(this.T("Sonstiges"))}</option></select></label>
       ${fld("f_item", this.T("Bezeichnung"), e ? e.item || "" : "", ` id="w_item"${isExtra ? "" : ' style="display:none"'}`)}
       <div class="g2">
         ${fld("f_q", this.T("Menge"), e ? e.quantity : "")}
@@ -951,7 +952,7 @@ class DriveEnergyDocPanel extends HTMLElement {
       if (cat || r.category === "other") {
         $("f_kind").value = cat || "other"; $("f_kind").onchange();
         if (!cat && r.item) $("f_item").value = r.item;
-      } else if (r.receipt || r.quantity || r.total) { $("f_kind").value = "fuel"; $("f_kind").onchange(); }
+      } else if (r.receipt || r.quantity || r.total) { $("f_kind").value = v.phev && r.category === "charging" ? "electric" : "fuel"; $("f_kind").onchange(); }
       set("f_q", r.quantity); set("f_p", r.unit_price); set("f_t", r.total); set("f_km", r.odometer ? Math.round(r.odometer) : null);
       if (r.note) $("f_note").value = $("f_note").value.trim() ? $("f_note").value.trim() + " · " + r.note : r.note;   // Fremdwährung: Originalpreis und Kurs
       if (r.ts) { const d = new Date(r.ts * 1000); if (!isNaN(d)) $("f_when").value = local(d); }
@@ -961,14 +962,15 @@ class DriveEnergyDocPanel extends HTMLElement {
     const num = s => (s == null || String(s).trim() === "" ? null : parseFloat(String(s).replace(",", ".")));
     const preset = k => { const m = PRESETS.find(x => x.k === k); if (m) { $("f_item").value = this.T(m.k); $("f_unit").value = m.unit; } };
     $("f_kind").onchange = () => {   // alles außer Kraftstoff/Strom ist Zubehör: Bezeichnung und Einheit, bei den Vorgaben automatisch gefüllt
-      const k = $("f_kind").value, x = k !== "fuel";
+      const k = $("f_kind").value, x = k !== "fuel" && k !== "electric";
       ["w_item", "w_unit"].forEach(id => { dlg.querySelector("#" + id).style.display = x ? "" : "none"; });
       if (PRESETS.some(m => m.k === k)) preset(k);
     };
     const save = async () => {
       const f = { quantity: num($("f_q").value), unit_price: num($("f_p").value), total: num($("f_t").value), odometer: num(/^\d{1,3}(\.\d{3})+$/.test($("f_km").value.trim()) ? $("f_km").value.trim().replace(/\./g, "") : $("f_km").value), note: $("f_note").value };
-      const extra = $("f_kind").value !== "fuel";
-      f.kind = extra ? "extra" : "fuel";   // auch nachträglich umstellbar (z. B. ein Ölbon, der als Tanken gelesen wurde)
+      const extra = $("f_kind").value !== "fuel" && $("f_kind").value !== "electric";
+      f.kind = extra ? "extra" : "fuel";
+      if (v.phev && !extra) f.energy = $("f_kind").value === "electric" ? "electric" : "fuel";   // auch nachträglich umstellbar (z. B. ein Ölbon, der als Tanken gelesen wurde)
       if (extra) { f.item = ($("f_item").value || "").trim() || this.T("Zubehör"); f.unit = ($("f_unit").value || "").trim(); }
       if (e && $("f_when").value && $("f_when").value !== whenOrig) { const w = new Date($("f_when").value); if (!isNaN(w)) f.ts = w.getTime() / 1000; }
       try {

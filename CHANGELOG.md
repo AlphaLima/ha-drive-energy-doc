@@ -1,6 +1,7 @@
 # Changelog
 
 ## 0.1.81 (in Arbeit)
+- Neuer Fahrzeugtyp **Plug-in-Hybrid** (Häkchen beim Fahrzeug): Kraftstoff (l) und Strom (kWh) in einer Liste, Ladebelege werden von der KI erkannt, Verbrauch getrennt je Energieart (l/100 km und kWh/100 km), zweiter Sensor „Stromverbrauch“, Auswahl „Strom“ im Bearbeiten-Dialog. Automatische Ladeerkennung über einen zweiten Sensor (Akku-Ladestand in %, Akkugröße in kWh) neben der Tank-Erkennung; Rekuperation wird nicht als Laden gezählt (Bewegung über 200 m per GPS oder 1 km per Kilometerstand), auch beim reinen Elektroauto.
 - Liste: Notiz und Art (Zubehör) erscheinen beim Darüberfahren mit der Maus als Blase mit dem vollständigen Text (am Handy per Tippen); der Browser-Tooltip am Symbol entfällt.
 - Fotos: sprechende Dateinamen wie `2026-10-15_1240_Oel_Cerpaci-stanice-Zlaty-Lan.jpg` (Datum, Art, Händler) statt zufälliger Namen, auch in `originals/`. Vorhandene Fotos werden beim ersten Start einmalig umbenannt und die Einträge angepasst.
 - Fotos: stärker komprimiert (Zuschnitt max. 1400 px / Qualität 80, Original max. 1800 px / Qualität 82, progressives JPEG). Vorhandene größere Dateien werden einmalig verkleinert, wenn das mindestens 20 % spart.

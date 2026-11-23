@@ -13,6 +13,11 @@ from typing import Any
 FULL_INCREASE = 30.0  # Prozent Zuwachs, ab dem eine Betankung als „voll“ gilt
 
 
+def energy_of(e: dict[str, Any]) -> str:
+    """Energieart eines Eintrags: ``electric`` (Strom, kWh) oder ``fuel`` (Kraftstoff, l). Nur beim Plug-in-Hybrid kommen beide vor."""
+    return "electric" if e.get("energy") == "electric" else "fuel"
+
+
 def increase_of(e: dict[str, Any]) -> float | None:
     """Zuwachs in Prozent: gespeichert (Import) oder aus Füllstand vorher/nachher."""
     if e.get("increase") is not None:
@@ -30,19 +35,20 @@ def is_full(e: dict[str, Any], full_increase: float = FULL_INCREASE) -> bool:
 def add_consumption(entries: list[dict[str, Any]], full_increase: float = FULL_INCREASE) -> list[dict[str, Any]]:
     """Kopien der Einträge (nach Zeit sortiert) mit Feld ``consumption`` (Einheit je 100 km oder None)."""
     out: list[dict[str, Any]] = []
-    acc, last_full = 0.0, None
+    chains: dict[str, list] = {}   # Plug-in-Hybrid: Kraftstoff und Strom haben je eine eigene Kette (Menge in l bzw. kWh), sonst nur eine
     for src in sorted(entries, key=lambda x: x["ts"]):
         e = dict(src)
         e["consumption"] = None
         out.append(e)
         if e.get("kind") == "extra":
             continue
-        acc += e.get("quantity") or 0
+        ch = chains.setdefault(energy_of(e), [0.0, None])
+        ch[0] += e.get("quantity") or 0
         if e.get("odometer") is None or not is_full(e, full_increase):
             continue
-        if last_full is not None and e["odometer"] > last_full and acc > 0:
-            e["consumption"] = round(acc / (e["odometer"] - last_full) * 100, 2)
-        last_full, acc = e["odometer"], 0.0
+        if ch[1] is not None and e["odometer"] > ch[1] and ch[0] > 0:
+            e["consumption"] = round(ch[0] / (e["odometer"] - ch[1]) * 100, 2)
+        ch[0], ch[1] = 0.0, e["odometer"]
     return out
 
 
@@ -83,7 +89,8 @@ def check_consumption(entries: list[dict[str, Any]], entry: dict[str, Any], km: 
     ``tolerance`` (40 %) vom Durchschnitt der letzten fünf Voll-zu-Voll-Werte ab, ist ``ok`` falsch. None = nicht prüfbar (Teilbetankung, keine
     Menge, keine frühere Betankung mit Kilometerstand oder weniger als zwei Vergleichswerte).
     """
-    fuel = sorted((e for e in entries if e.get("kind") != "extra"), key=lambda x: x["ts"])
+    mine = energy_of(entry)
+    fuel = sorted((e for e in entries if e.get("kind") != "extra" and energy_of(e) == mine), key=lambda x: x["ts"])
     idx = next((i for i, e in enumerate(fuel) if e["id"] == entry["id"]), None)
     q = entry.get("quantity")
     if idx is None or not q or not is_full(entry, full_increase):
@@ -96,13 +103,13 @@ def check_consumption(entries: list[dict[str, Any]], entry: dict[str, Any], km: 
     if driven <= 0:
         return None
     litres = sum((x.get("quantity") or 0) for x in fuel[j + 1: idx + 1])
-    others = [e["consumption"] for e in add_consumption([x for x in entries if x["id"] != entry["id"]], full_increase) if e.get("consumption")][-5:]
+    others = [e["consumption"] for e in add_consumption([x for x in entries if x["id"] != entry["id"]], full_increase) if e.get("consumption") and energy_of(e) == mine][-5:]
     if len(others) < 2 or litres <= 0:
         return None
     avg = sum(others) / len(others)
     cons = litres / driven * 100
     dev = abs(cons - avg) / avg
-    return {"prev_odo": prev_odo, "driven": driven, "litres": litres, "cons": cons, "avg": avg, "dev": dev, "ok": dev <= tolerance}
+    return {"prev_odo": prev_odo, "driven": driven, "litres": litres, "cons": cons, "avg": avg, "dev": dev, "ok": dev <= tolerance, "energy": mine}
 
 
 def km_plausible(entries: list[dict[str, Any]], km: float | None, ts: float | None = None, exclude: str | None = None, max_jump: float = 5000.0, back_tol: float = 50.0) -> bool:
