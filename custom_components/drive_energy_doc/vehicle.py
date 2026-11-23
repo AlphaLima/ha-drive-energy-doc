@@ -129,7 +129,11 @@ class Vehicle:
                 _LOGGER.warning("Foto-Migration übersprungen: %r", err)
         self._save()
         if self._rescan_marker().is_file():   # Datei config/drive_energy_doc/rescan/<Fahrzeugname>: alle Fotos mit der KI neu einlesen und neu ablegen (einmalig, kurz nach dem Start)
-            self._unsubs.append(async_call_later(self.hass, 90, lambda _now: self.hass.async_create_task(self.rescan_photos())))
+            @callback
+            def _start_rescan(_now) -> None:   # als callback markiert: läuft im Event-Loop (ein Lambda würde im Thread-Pool laufen)
+                self.hass.async_create_task(self.rescan_photos())
+
+            self._unsubs.append(async_call_later(self.hass, 90, _start_rescan))
         self._pos = self._read_pos()
         lvl = self._read_float(o.get(CONF_LEVEL))
         if lvl is not None:

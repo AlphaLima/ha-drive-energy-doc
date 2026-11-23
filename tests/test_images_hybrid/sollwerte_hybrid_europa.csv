@@ -1,0 +1,11 @@
+﻿Datei;Land;Art;Datum;Uhrzeit;Station;Menge;Einheit;Preis je Einheit;Währung;Summe;Bildinhalt
+eu_lcd_01_FR_tank.jpg;FR;Kraftstoff;10.11.2026;09:12;Relais du Vignoble;41,20;l;1,729;EUR;71,23;Anzeige (LCD)
+eu_lcd_02_IT_tank.jpg;IT;Kraftstoff;12.11.2026;16:48;Area di Servizio Colle Verde;33,80;l;1,839;EUR;62,16;Anzeige (LCD)
+eu_lcd_03_PL_tank.jpg;PL;Kraftstoff;14.11.2026;13:05;Stacja Zielony Szlak;29,60;l;6,39;PLN;189,14;Anzeige (LCD)
+eu_lcd_04_CH_lade.jpg;CH;Strom;16.11.2026;19:20;Alpenstrom Ladepark;18,4;kWh;0,48;CHF;8,83;Anzeige (LCD)
+eu_lcd_05_SE_lade.jpg;SE;Strom;18.11.2026;08:40;Nordstrom Laddstation;20,1;kWh;3,90;SEK;78,39;Anzeige (LCD)
+eu_beleg_01_ES_tank.jpg;ES;Kraftstoff;11.11.2026;10:25;Estacion Sol de Levante;36,80;l;1,559;EUR;57,37;Beleg
+eu_beleg_02_CZ_tank.jpg;CZ;Kraftstoff;13.11.2026;15:31;Cerpaci stanice Zlaty Lan;30,50;l;36,90;CZK;1125,45;Beleg
+eu_beleg_03_GB_tank.jpg;GB;Kraftstoff;15.11.2026;12:02;Hillcrest Service Station;28,40;l;1,469;GBP;41,72;Beleg
+eu_beleg_04_NL_lade.jpg;NL;Strom;17.11.2026;18:55;Laadpunt Westerhaven;17,3;kWh;0,39;EUR;6,75;Beleg
+eu_beleg_05_DK_lade.jpg;DK;Strom;19.11.2026;07:48;Stroem og Lyn Opladning;15,2;kWh;3,25;DKK;49,40;Beleg

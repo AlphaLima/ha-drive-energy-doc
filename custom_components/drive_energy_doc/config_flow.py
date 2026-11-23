@@ -93,8 +93,6 @@ def s_basic(d: dict, hass_country: str | None = None) -> vol.Schema:
             vol.Optional(CONF_PHEV, default=d.get(CONF_PHEV, False)): bool,
             vol.Required(CONF_CAPACITY, default=d.get(CONF_CAPACITY, 50)): _num("l / kWh", 1, 500),
             _text(CONF_LEVEL, d): _ent(["sensor", "number"]),
-            _text(CONF_LEVEL_EL, d): _ent(["sensor", "number"]),   # nur Plug-in-Hybrid: Ladestand des Akkus
-            vol.Optional(CONF_CAPACITY_EL, default=d.get(CONF_CAPACITY_EL, 10)): _num("kWh", 1, 200),
             _text(CONF_ODOMETER, d): _ent(["sensor", "number"]),
             _text(CONF_TRACKER, d): _ent(["device_tracker"]),
             # Optional (nur Aussehen): Kennzeichen, Land, Typ, Bild
@@ -107,6 +105,25 @@ def s_basic(d: dict, hass_country: str | None = None) -> vol.Schema:
             **({vol.Optional("image_remove", default=False): bool} if d.get(CONF_IMAGE_FILE) else {}),
         }
     )
+
+
+def s_phev(d: dict) -> vol.Schema:
+    """Eigener Schritt, nur wenn „Plug-in-Hybrid“ angekreuzt ist (ein Formular kann Felder nicht nachträglich ausgrauen)."""
+    return vol.Schema(
+        {
+            _text(CONF_LEVEL_EL, d): _ent(["sensor", "number"]),
+            vol.Optional(CONF_CAPACITY_EL, default=d.get(CONF_CAPACITY_EL, 10)): _num("kWh", 1, 200),
+        }
+    )
+
+
+def _phev_fix(out: dict, ui: dict) -> dict:
+    """Akku-Einstellungen nur behalten, wenn Plug-in-Hybrid gewählt ist; ein geleertes Feld wird entfernt."""
+    for k in (CONF_LEVEL_EL, CONF_CAPACITY_EL):
+        out.pop(k, None)
+        if ui.get(CONF_PHEV) and ui.get(k) not in ("", None):
+            out[k] = ui[k]
+    return out
 
 
 SECTION_FIELDS = {"whatsapp": [CONF_WA_PHONE], "telegram": [CONF_TG_TOKEN, CONF_TG_CHAT], "companion": [CONF_NOTIFY]}
@@ -442,12 +459,22 @@ class DriveEnergyDocConfigFlow(_MessagingMixin, ConfigFlow, domain=DOMAIN):  # n
         if user_input is not None:
             self._async_abort_entries_match({CONF_NAME: user_input[CONF_NAME]})
             self._vehicle_ui = user_input
+            if user_input.get(CONF_PHEV):
+                return await self.async_step_phev()
             return await self.async_step_plate_preview()
         prefill = getattr(self, "_vehicle_ui", None) or {}
         schema = s_basic({}, self.hass.config.country)
         if prefill:  # zurück aus der Vorschau: Eingaben bleiben stehen
             schema = self.add_suggested_values_to_schema(schema, prefill)
         return self.async_show_form(step_id="vehicle", data_schema=schema, description_placeholders={"plate_preview": plate_md(prefill, self.hass.config.country), "image_preview": await image_md(self.hass, await preview_image(self.hass, self, prefill))})
+
+    async def async_step_phev(self, user_input=None) -> ConfigFlowResult:
+        """Nur beim Plug-in-Hybrid: Akku-Ladestand und Akkugröße."""
+        if user_input is not None:
+            self._vehicle_ui = _phev_fix({**self._vehicle_ui}, {**self._vehicle_ui, **user_input})
+            return await self.async_step_plate_preview()
+        schema = self.add_suggested_values_to_schema(s_phev(self._vehicle_ui), self._vehicle_ui)
+        return self.async_show_form(step_id="phev", data_schema=schema)
 
     async def async_step_plate_preview(self, user_input=None) -> ConfigFlowResult:
         """Das gezeichnete Kennzeichen mit dem gewählten Land zeigen, bevor das Fahrzeug angelegt wird."""
@@ -457,7 +484,7 @@ class DriveEnergyDocConfigFlow(_MessagingMixin, ConfigFlow, domain=DOMAIN):  # n
                 return await self.async_step_vehicle()
             pv = getattr(self, "_pv", None)
             ui, _ = await process_image(self.hass, ui, None, pv[1] if pv and pv[0] == ui.get("image_upload") else None)
-            self._data = {CONF_KIND: KIND_VEHICLE, **_clean(ui)}
+            self._data = {CONF_KIND: KIND_VEHICLE, **_clean(_phev_fix(dict(ui), ui))}
             if get_settings(self.hass).get(CONF_CHANNELS):
                 return await self.async_step_messaging()
             return self.async_create_entry(title=self._data[CONF_NAME], data=self._data)
@@ -494,6 +521,8 @@ class DriveEnergyDocOptionsFlow(_MessagingMixin, OptionsFlow):
             drop_image = False
             if step == "basic":
                 self._basic_ui = user_input          # erst die Vorschau des Schilds, gespeichert wird danach
+                if user_input.get(CONF_PHEV):
+                    return await self.async_step_phev()
                 return await self.async_step_plate_preview()
             ok, detail = await check(user_input) if check else (True, "")
             if ok:
@@ -525,6 +554,14 @@ class DriveEnergyDocOptionsFlow(_MessagingMixin, OptionsFlow):
             schema = self.add_suggested_values_to_schema(schema, self._basic_ui)
         return await self._form("basic", schema, user_input)
 
+    async def async_step_phev(self, user_input=None) -> ConfigFlowResult:
+        """Nur beim Plug-in-Hybrid: Akku-Ladestand und Akkugröße."""
+        cur = {**self._cur(), **self._basic_ui}
+        if user_input is not None:
+            self._basic_ui = {**self._basic_ui, **user_input}
+            return await self.async_step_plate_preview()
+        return self.async_show_form(step_id="phev", data_schema=self.add_suggested_values_to_schema(s_phev(cur), cur))
+
     async def async_step_plate_preview(self, user_input=None) -> ConfigFlowResult:
         """Das gezeichnete Kennzeichen mit dem gewählten Land zeigen, bevor die Fahrzeugdaten gespeichert werden."""
         ui = self._basic_ui
@@ -533,7 +570,7 @@ class DriveEnergyDocOptionsFlow(_MessagingMixin, OptionsFlow):
                 return await self.async_step_basic()
             pv = getattr(self, "_pv", None)
             ui, drop_image = await process_image(self.hass, ui, self._cur().get(CONF_IMAGE_FILE), pv[1] if pv and pv[0] == ui.get("image_upload") else None)
-            out = _merge(dict(self.config_entry.options), ui, s_basic(self._cur(), self.hass.config.country))
+            out = _phev_fix(_merge(dict(self.config_entry.options), ui, s_basic(self._cur(), self.hass.config.country)), ui)
             if drop_image:
                 out.pop(CONF_IMAGE_FILE, None)
             return self.async_create_entry(data=out)

@@ -36,10 +36,8 @@
         "data": {
           "name": "Name",
           "energy": "Fuel / drive",
-          "phev": "Plug-in hybrid (fuel and electricity in one list)",
+          "phev": "Plug-in hybrid (fuel and electricity in one list; next step: battery sensor)",
           "level_entity": "Fuel / charge level (%, optional)",
-          "level_entity_electric": "Battery charge level (%, plug-in hybrid only, optional)",
-          "capacity_electric": "Battery capacity (kWh, plug-in hybrid only)",
           "odometer_entity": "Odometer (optional)",
           "tracker_entity": "GPS position (device_tracker, optional)",
           "capacity": "Tank / battery capacity (l / kWh)",
@@ -50,6 +48,14 @@
           "image_upload": "Upload a vehicle picture (alternative to the image entity, takes precedence)",
           "image_remove": "Remove uploaded picture",
           "plate_country": "Country of the plate"
+        }
+      },
+      "phev": {
+        "title": "Plug-in hybrid",
+        "description": "Optional: battery charge level (%) so that charging is detected automatically, and the battery capacity in kWh. Without a sensor, charging is captured by receipt, photo or by hand.",
+        "data": {
+          "level_entity_electric": "Battery charge level (%, optional)",
+          "capacity_electric": "Battery capacity (kWh)"
         }
       },
       "messaging": {
@@ -156,10 +162,8 @@
         "data": {
           "name": "Name",
           "energy": "Fuel / drive",
-          "phev": "Plug-in hybrid (fuel and electricity in one list)",
+          "phev": "Plug-in hybrid (fuel and electricity in one list; next step: battery sensor)",
           "level_entity": "Fuel / charge level (%, optional)",
-          "level_entity_electric": "Battery charge level (%, plug-in hybrid only, optional)",
-          "capacity_electric": "Battery capacity (kWh, plug-in hybrid only)",
           "odometer_entity": "Odometer (optional)",
           "tracker_entity": "GPS position (device_tracker, optional)",
           "capacity": "Tank / battery capacity (l / kWh)",
@@ -170,6 +174,14 @@
           "image_upload": "Upload a vehicle picture (alternative to the image entity, takes precedence)",
           "image_remove": "Remove uploaded picture",
           "plate_country": "Country of the plate"
+        }
+      },
+      "phev": {
+        "title": "Plug-in hybrid",
+        "description": "Optional: battery charge level (%) so that charging is detected automatically, and the battery capacity in kWh. Without a sensor, charging is captured by receipt, photo or by hand.",
+        "data": {
+          "level_entity_electric": "Battery charge level (%, optional)",
+          "capacity_electric": "Battery capacity (kWh)"
         }
       },
       "messaging": {

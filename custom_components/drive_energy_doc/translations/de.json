@@ -36,10 +36,8 @@
         "data": {
           "name": "Name",
           "energy": "Kraftstoff / Antrieb",
-          "phev": "Plug-in-Hybrid (Kraftstoff und Strom in einer Liste)",
+          "phev": "Plug-in-Hybrid (Kraftstoff und Strom in einer Liste; nächster Schritt: Akku-Sensor)",
           "level_entity": "Tankinhalt / Ladestand (%, optional)",
-          "level_entity_electric": "Akku-Ladestand (%, nur Plug-in-Hybrid, optional)",
-          "capacity_electric": "Akkugröße (kWh, nur Plug-in-Hybrid)",
           "odometer_entity": "Kilometerstand (optional)",
           "tracker_entity": "GPS-Position (device_tracker, optional)",
           "capacity": "Tankgröße / Akkukapazität (l / kWh)",
@@ -50,6 +48,14 @@
           "image_upload": "Fahrzeugbild hochladen (alternativ zur Bild-Entität, hat Vorrang)",
           "image_remove": "Hochgeladenes Bild entfernen",
           "plate_country": "Land des Kennzeichens"
+        }
+      },
+      "phev": {
+        "title": "Plug-in-Hybrid",
+        "description": "Optional: Ladestand des Akkus (%), damit das Laden automatisch erkannt wird, und die Akkugröße in kWh. Ohne Sensor wird das Laden per Beleg, Foto oder von Hand erfasst.",
+        "data": {
+          "level_entity_electric": "Akku-Ladestand (%, optional)",
+          "capacity_electric": "Akkugröße (kWh)"
         }
       },
       "messaging": {
@@ -156,10 +162,8 @@
         "data": {
           "name": "Name",
           "energy": "Kraftstoff / Antrieb",
-          "phev": "Plug-in-Hybrid (Kraftstoff und Strom in einer Liste)",
+          "phev": "Plug-in-Hybrid (Kraftstoff und Strom in einer Liste; nächster Schritt: Akku-Sensor)",
           "level_entity": "Tankinhalt / Ladestand (%, optional)",
-          "level_entity_electric": "Akku-Ladestand (%, nur Plug-in-Hybrid, optional)",
-          "capacity_electric": "Akkugröße (kWh, nur Plug-in-Hybrid)",
           "odometer_entity": "Kilometerstand (optional)",
           "tracker_entity": "GPS-Position (device_tracker, optional)",
           "capacity": "Tankgröße / Akkukapazität (l / kWh)",
@@ -170,6 +174,14 @@
           "image_upload": "Fahrzeugbild hochladen (alternativ zur Bild-Entität, hat Vorrang)",
           "image_remove": "Hochgeladenes Bild entfernen",
           "plate_country": "Land des Kennzeichens"
+        }
+      },
+      "phev": {
+        "title": "Plug-in-Hybrid",
+        "description": "Optional: Ladestand des Akkus (%), damit das Laden automatisch erkannt wird, und die Akkugröße in kWh. Ohne Sensor wird das Laden per Beleg, Foto oder von Hand erfasst.",
+        "data": {
+          "level_entity_electric": "Akku-Ladestand (%, optional)",
+          "capacity_electric": "Akkugröße (kWh)"
         }
       },
       "messaging": {

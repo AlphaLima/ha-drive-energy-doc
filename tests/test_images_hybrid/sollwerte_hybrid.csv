@@ -1,0 +1,31 @@
+﻿Datei;Art;Datum;Uhrzeit;Station;Menge;Einheit;Preis je Einheit;Summe EUR;Kilometerstand;Bildinhalt
+01_tank_zapfsaeule.jpg;Kraftstoff E10;02.10.2026;08:14;Nordlicht Energie;38,42;l;1,759;67,58;12040;Anzeige der Säule
+01_tank_beleg.jpg;Kraftstoff E10;02.10.2026;08:14;Nordlicht Energie;38,42;l;1,759;67,58;12040;Beleg
+01_tank_tacho.jpg;;02.10.2026;08:14;;;;;;12040;Tacho (Gesamtkilometer)
+02_lade_ladesaeule.jpg;Strom;05.10.2026;18:47;StromPunkt Sued;14,2;kWh;0,49;6,96;12118;Anzeige der Säule
+02_lade_beleg.jpg;Strom;05.10.2026;18:47;StromPunkt Sued;14,2;kWh;0,49;6,96;12118;Beleg
+02_lade_tacho.jpg;;05.10.2026;18:47;;;;;;12118;Tacho (Gesamtkilometer)
+03_lade_ladesaeule.jpg;Strom;09.10.2026;12:20;LadeRiese Nord;11,8;kWh;0,52;6,14;12205;Anzeige der Säule
+03_lade_beleg.jpg;Strom;09.10.2026;12:20;LadeRiese Nord;11,8;kWh;0,52;6,14;12205;Beleg
+03_lade_tacho.jpg;;09.10.2026;12:20;;;;;;12205;Tacho (Gesamtkilometer)
+04_tank_zapfsaeule.jpg;Kraftstoff E10;14.10.2026;17:05;Tank Express Mitte;21,60;l;1,789;38,64;12390;Anzeige der Säule
+04_tank_beleg.jpg;Kraftstoff E10;14.10.2026;17:05;Tank Express Mitte;21,60;l;1,789;38,64;12390;Beleg
+04_tank_tacho.jpg;;14.10.2026;17:05;;;;;;12390;Tacho (Gesamtkilometer)
+05_lade_ladesaeule.jpg;Strom;16.10.2026;19:30;VoltHof Ladepark;13,5;kWh;0,49;6,62;12470;Anzeige der Säule
+05_lade_beleg.jpg;Strom;16.10.2026;19:30;VoltHof Ladepark;13,5;kWh;0,49;6,62;12470;Beleg
+05_lade_tacho.jpg;;16.10.2026;19:30;;;;;;12470;Tacho (Gesamtkilometer)
+06_lade_ladesaeule.jpg;Strom;20.10.2026;10:55;StromPunkt Sued;12,9;kWh;0,55;7,10;12551;Anzeige der Säule
+06_lade_beleg.jpg;Strom;20.10.2026;10:55;StromPunkt Sued;12,9;kWh;0,55;7,10;12551;Beleg
+06_lade_tacho.jpg;;20.10.2026;10:55;;;;;;12551;Tacho (Gesamtkilometer)
+07_tank_zapfsaeule.jpg;Kraftstoff E10;25.10.2026;14:40;Landstrom Tankstelle;17,90;l;1,769;31,67;12760;Anzeige der Säule
+07_tank_beleg.jpg;Kraftstoff E10;25.10.2026;14:40;Landstrom Tankstelle;17,90;l;1,769;31,67;12760;Beleg
+07_tank_tacho.jpg;;25.10.2026;14:40;;;;;;12760;Tacho (Gesamtkilometer)
+08_lade_ladesaeule.jpg;Strom;28.10.2026;20:10;LadeRiese Nord;14,8;kWh;0,52;7,70;12843;Anzeige der Säule
+08_lade_beleg.jpg;Strom;28.10.2026;20:10;LadeRiese Nord;14,8;kWh;0,52;7,70;12843;Beleg
+08_lade_tacho.jpg;;28.10.2026;20:10;;;;;;12843;Tacho (Gesamtkilometer)
+09_lade_ladesaeule.jpg;Strom;03.11.2026;18:22;VoltHof Ladepark;12,4;kWh;0,49;6,08;12931;Anzeige der Säule
+09_lade_beleg.jpg;Strom;03.11.2026;18:22;VoltHof Ladepark;12,4;kWh;0,49;6,08;12931;Beleg
+09_lade_tacho.jpg;;03.11.2026;18:22;;;;;;12931;Tacho (Gesamtkilometer)
+10_tank_zapfsaeule.jpg;Kraftstoff E10;08.11.2026;11:35;Nordlicht Energie;28,35;l;1,779;50,43;13118;Anzeige der Säule
+10_tank_beleg.jpg;Kraftstoff E10;08.11.2026;11:35;Nordlicht Energie;28,35;l;1,779;50,43;13118;Beleg
+10_tank_tacho.jpg;;08.11.2026;11:35;;;;;;13118;Tacho (Gesamtkilometer)
