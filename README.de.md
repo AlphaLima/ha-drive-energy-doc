@@ -360,12 +360,13 @@ Telegram ist der einfachste Kanal: kostenlos, ohne Firmenkonto und ohne öffentl
 4. **Beim Fahrzeug eintragen.** *Drive Energy Doc → Fahrzeug → Konfigurieren → Kommunikation → Telegram*: **Bot-Token** und **Chat-ID** eintragen. Mit dem Schalter **„Testnachricht senden“** prüfst du sofort, ob alles stimmt: die Nachricht kommt im Chat an und als Benachrichtigung in Home Assistant.
 5. **Benutzen.** Dem Bot Beleg-Fotos, Tacho-Fotos oder Text schicken (siehe [Beleg, Zubehör und Tacho per Nachricht](#beleg-zubehör-und-tacho-per-nachricht)). Mit `?` listet er alle Kommandos.
 
-**Mehrere Fahrzeuge oder Fahrer (Flotte):** Du kannst **einen** Bot für alle Fahrzeuge nutzen. Jedes Fahrzeug bekommt dann eine **eigene Chat-ID**: jeder Fahrer schreibt dem Bot in seinem eigenen Chat, oder du legst je Fahrzeug eine Gruppe an und fügst den Bot hinzu. Die Zuordnung zum Fahrzeug läuft allein über die Chat-ID. Alternativ legst du je Fahrzeug einen eigenen Bot an.
+**Mehrere Fahrzeuge oder Fahrer (Flotte):** Du kannst **einen** Bot für alle Fahrzeuge nutzen. Jedes Fahrzeug bekommt dann eine **eigene Chat-ID**: jeder Fahrer schreibt dem Bot in seinem eigenen Chat, oder du legst je Fahrzeug eine Gruppe an und fügst den Bot hinzu. **Mache den Bot in der Gruppe zum Administrator** (siehe unten). Die Zuordnung zum Fahrzeug läuft allein über die Chat-ID. Alternativ legst du je Fahrzeug einen eigenen Bot an.
 
 **Wenn nichts ankommt:**
 - Antwortet der Bot gar nicht: Token prüfen, und ob ein **zweites Programm** denselben Token abfragt (Node-RED, `telegram_bot` mit Polling, ein zweites Home Assistant). Ein Token darf nur von **einem** Programm abgefragt werden.
 - Schreibt der Bot, dass die Chat-ID „keinem Fahrzeug zugeordnet“ ist: Zahl beim richtigen Fahrzeug eintragen.
-- In **Gruppen** kommen Fotos beim Bot nur an, wenn sein Datenschutzmodus aus ist: bei @BotFather `/setprivacy` → Bot wählen → **Disable**, danach den Bot aus der Gruppe entfernen und neu hinzufügen.
+- **In einer Gruppe passiert beim Senden eines Fotos nichts? Mache den Bot zum Administrator der Gruppe.** Telegram gibt einem Bot in Gruppen standardmäßig nur Befehle (z. B. `/help`) weiter, aber keine normalen Nachrichten und keine Fotos. Admins sehen alles. In Telegram: Gruppe öffnen → **⋮ (drei Punkte) → Gruppe verwalten → Administratoren → Administrator hinzufügen** → den Bot wählen → Speichern (besondere Rechte sind nicht nötig). Mit einem Foto oder `/help` testen. Taucht im Home-Assistant-Log eine Nachricht aus der Gruppe mit „keinem Fahrzeug zugeordnet“ auf, empfängt der Bot sie bereits, und nur die Chat-ID beim Fahrzeug fehlt.
+- Alternative zum Admin-Status: bei @BotFather `/setprivacy` → Bot wählen → **Disable**, danach den Bot aus der Gruppe entfernen und neu hinzufügen.
 - Fremde Chats werden nie verarbeitet; es werden nur Nachrichten der eingetragenen Chat-ID angenommen.
 
 ## WhatsApp einrichten (offizielle Cloud API von Meta)

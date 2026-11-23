@@ -318,12 +318,13 @@ Telegram is the easiest channel: free, no business account, and Home Assistant d
 4. **Enter it at the vehicle.** *Drive Energy Doc → vehicle → Configure → Messaging → Telegram*: enter the **bot token** and the **chat ID**. The switch **"Send test message"** checks immediately whether everything works: the message arrives in the chat and as a notification in Home Assistant.
 5. **Use it.** Send the bot receipt photos, odometer photos or text (see [Receipt, accessories and odometer by message](#receipt-accessories-and-odometer-by-message)). `?` lists all commands.
 
-**Several vehicles or drivers (fleet):** You can use **one** bot for all vehicles. Each vehicle then gets its **own chat ID**: every driver writes to the bot in their own chat, or you create one group per vehicle and add the bot. The assignment to the vehicle is done by the chat ID alone. Alternatively create one bot per vehicle.
+**Several vehicles or drivers (fleet):** You can use **one** bot for all vehicles. Each vehicle then gets its **own chat ID**: every driver writes to the bot in their own chat, or you create one group per vehicle, add the bot and **make it an administrator of the group** (see below). The assignment to the vehicle is done by the chat ID alone. Alternatively create one bot per vehicle.
 
 **If nothing arrives:**
 - The bot does not answer at all: check the token, and whether a **second program** polls the same token (Node-RED, `telegram_bot` with polling, a second Home Assistant). A token may be polled by **one** program only.
 - The bot says the chat ID is "not assigned to a vehicle": enter the number at the right vehicle.
-- In **groups** photos only reach the bot if its privacy mode is off: at @BotFather `/setprivacy` → choose the bot → **Disable**, then remove the bot from the group and add it again.
+- **In a group nothing happens when you send a photo? Make the bot an administrator of the group.** By default Telegram only passes commands (like `/help`) to a bot in a group, but no normal messages or photos. Admins see everything. In Telegram: open the group → **⋮ (three dots) → Manage group → Administrators → Add administrator** → choose your bot → Save (no special rights needed). Test with a photo or `/help`. If a message from the group shows up in the Home Assistant log as "not assigned to a vehicle", the bot already receives it and only the chat ID is missing at the vehicle.
+- Alternative to the admin status: at @BotFather `/setprivacy` → choose the bot → **Disable**, then remove the bot from the group and add it again.
 - Foreign chats are never processed; only messages from the entered chat ID are accepted.
 
 ## Setting up WhatsApp (Meta's official Cloud API)
