@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.1.81 (in Arbeit)
+## 0.1.81 (24.11.2026)
 - Kraftstoffsorte je Tankeintrag: Im Bearbeiten-Dialog neben **Art** das Feld **Kraftstoffart** (Benziner: Super E10, E5, 95, 98, LPG; Diesel: Diesel, Diesel Premium). Die KI liest die Sorte vom Beleg oder der Säule, die Liste zeigt sie unter der Menge.
 - Kraftstoffart Autogas (LPG) wählbar; Preise kommen dort vom Beleg (die Preisdienste kennen LPG nicht). Der Bearbeiten-Dialog ist kompakter; die Währungsauswahl steht neben dem Preis und nur, wenn die Währung nicht erkannt wurde.
 - Währung ohne Erkennung, weitere Stufen: Fehlt die Position des Fahrzeugs (oder ist der Beleg nicht von heute), wird der Aufnahmeort aus den Foto-Metadaten (EXIF-GPS) genommen; Messenger entfernen ihn meist, ein als Datei gesendetes oder im Panel hochgeladenes Foto behält ihn. Gelingt auch das nicht, steht in der Notiz eine Warnung („Land nicht ermittelbar: Werte als Euro angenommen“). Im Bearbeiten-Dialog gibt es bei Belegen mit Umrechnung oder Warnung ein Feld **Währung des Belegs** mit **Umrechnen**: Betrag und Preis werden aus den Originalwerten zum Tageskurs neu berechnet, die Notiz wird ersetzt.

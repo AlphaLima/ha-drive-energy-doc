@@ -4,7 +4,7 @@ const CURRENCIES = ["ALL", "AED", "AUD", "BAM", "BRL", "BYN", "CAD", "CHF", "CNY
 const FUEL_GRADES = { diesel: "Diesel", diesel_premium: "Diesel Premium", e10: "Super E10", e5: "Super E5", ron95: "Super 95", ron98: "Super 98", lpg: "LPG" };
 const COLS = ["nr", "date", "km", "station", "qty", "price", "total", "cons", "receipt", "note", "act"];
 
-const VERSION = "0.1.81b65";
+const VERSION = "0.1.81";
 
 class DriveEnergyDocPanel extends HTMLElement {
   set hass(h) {
