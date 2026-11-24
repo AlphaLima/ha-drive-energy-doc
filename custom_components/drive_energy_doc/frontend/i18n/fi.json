@@ -204,5 +204,6 @@
  "Währung des Belegs": "Kuitin valuutta",
  "Umrechnen": "Muunna",
  "Keine Währung erkannt, Land nicht ermittelbar: Werte als Euro angenommen. Bitte Währung prüfen.": "Valuuttaa ei tunnistettu, maa tuntematon: arvot oletettu euroiksi. Tarkista valuutta.",
- "Währung manuell gesetzt: {0}.": "Valuutta asetettu käsin: {0}."
+ "Währung manuell gesetzt: {0}.": "Valuutta asetettu käsin: {0}.",
+ "Kraftstoffart": "Polttoainetyyppi"
 }

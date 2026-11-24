@@ -204,5 +204,6 @@
  "Währung des Belegs": "Moneda bonului",
  "Umrechnen": "Convertește",
  "Keine Währung erkannt, Land nicht ermittelbar: Werte als Euro angenommen. Bitte Währung prüfen.": "Moneda nu a fost recunoscută, țara este necunoscută: valorile sunt presupuse în euro. Verificați moneda.",
- "Währung manuell gesetzt: {0}.": "Moneda setată manual: {0}."
+ "Währung manuell gesetzt: {0}.": "Moneda setată manual: {0}.",
+ "Kraftstoffart": "Tipul de combustibil"
 }

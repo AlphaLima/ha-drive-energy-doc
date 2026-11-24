@@ -204,5 +204,6 @@
  "Währung des Belegs": "Waluta paragonu",
  "Umrechnen": "Przelicz",
  "Keine Währung erkannt, Land nicht ermittelbar: Werte als Euro angenommen. Bitte Währung prüfen.": "Nie rozpoznano waluty, kraj nieznany: przyjęto euro. Sprawdź walutę.",
- "Währung manuell gesetzt: {0}.": "Waluta ustawiona ręcznie: {0}."
+ "Währung manuell gesetzt: {0}.": "Waluta ustawiona ręcznie: {0}.",
+ "Kraftstoffart": "Rodzaj paliwa"
 }

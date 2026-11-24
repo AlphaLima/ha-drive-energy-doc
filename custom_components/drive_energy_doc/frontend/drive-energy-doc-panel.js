@@ -1,9 +1,10 @@
 /* Drive-Energy-Doc-Panel: Fahrzeug-Reiter, Tankliste mit Belegfotos, Bearbeiten, CSV-Export */
 const DEFW = { nr: 46 };   // Standardbreite einzelner Spalten in px (sonst 120 bei fester Breite)
 const CURRENCIES = ["ALL", "AED", "AUD", "BAM", "BRL", "BYN", "CAD", "CHF", "CNY", "CZK", "DKK", "EGP", "GBP", "GEL", "HUF", "INR", "ISK", "JPY", "MAD", "MDL", "MKD", "MXN", "NOK", "NZD", "PLN", "RON", "RSD", "SEK", "THB", "TND", "TRY", "UAH", "USD", "ZAR"];
+const FUEL_GRADES = { diesel: "Diesel", diesel_premium: "Diesel Premium", e10: "Super E10", e5: "Super E5", ron95: "Super 95", ron98: "Super 98", lpg: "LPG" };
 const COLS = ["nr", "date", "km", "station", "qty", "price", "total", "cons", "receipt", "note", "act"];
 
-const VERSION = "0.1.81b62";
+const VERSION = "0.1.81b65";
 
 class DriveEnergyDocPanel extends HTMLElement {
   set hass(h) {
@@ -603,7 +604,7 @@ class DriveEnergyDocPanel extends HTMLElement {
         date: `<td data-nr="${nums[e.id] ? "#" + nums[e.id] : ""}"><span>${this._d(e.ts)}</span><span class="tm">${this._tm(e.ts)}</span></td>`,
         km: `<td class="n${e.odometer_source === "bekannt" ? " est" : ""}"${e.odometer_source === "bekannt" ? ` title="${this._esc(this.T("Kilometerstand"))} (≈)"` : ""}>${e.odometer != null ? this._fmt(e.odometer, 0) : "–"}${this._warn(e, "km", v)}</td>`,
         station: `<td><div>${this._esc(e.station || "")}</div><div class="src">${this._esc(e.address || "")}</div><div class="src gps">${this._gps(e)}</div></td>`,
-        qty: `<td class="n">${e.quantity != null ? this._fmt(e.quantity) + " " + (e.kind === "extra" ? (e.unit || "") : (v.phev && e.energy === "electric" ? "kWh" : u)) : "–"}<div class="src">${e.level_from != null && e.level_to != null ? Math.round(e.level_from) + "→" + Math.round(e.level_to) + " %" : (e.increase != null ? "+" + Math.round(e.increase) + " %" : "")} ${this._esc(this.T(e.quantity_source || ""))}</div></td>`,
+        qty: `<td class="n">${e.quantity != null ? this._fmt(e.quantity) + " " + (e.kind === "extra" ? (e.unit || "") : (v.phev && e.energy === "electric" ? "kWh" : u)) : "–"}<div class="src">${e.fuel && e.kind !== "extra" ? this._esc(FUEL_GRADES[e.fuel] || "") + " " : ""}${e.level_from != null && e.level_to != null ? Math.round(e.level_from) + "→" + Math.round(e.level_to) + " %" : (e.increase != null ? "+" + Math.round(e.increase) + " %" : "")} ${this._esc(this.T(e.quantity_source || ""))}</div></td>`,
         price: `<td class="n">${this._fmt(e.unit_price, 3)}${this._warn(e, "price", v)}<div class="src">${this._esc(this.T(e.price_source || ""))}</div></td>`,
         total: `<td class="n">${this._fmt(e.total)} €${this._warn(e, "total", v)}</td>`,
         cons: `<td class="n">${e.consumption != null ? this._fmt(e.consumption) + (v.phev ? `<div class="src">${e.energy === "electric" ? "kWh" : u}/100 ${this.T("km")}</div>` : "") : "–"}${this._warn(e, "cons", v)}</td>`,
@@ -1011,12 +1012,15 @@ class DriveEnergyDocPanel extends HTMLElement {
     const subSel = isExtra ? (PRESETS.find(x => [this.T(x.k).toLowerCase(), x.k.toLowerCase(), ...x.m].some(w => itemLow === w || itemLow.endsWith(w) || (w.length >= 5 && itemLow.includes(w)))) || {}).k || "other" : "other";
     const fld = (id, label, val, extra = "") => `<label class="fl"${extra}><span>${label}</span><input id="${id}" type="text" inputmode="${id === "f_date" || id === "f_item" || id === "f_unit" ? "text" : "decimal"}" value="${esc(val)}" autocomplete="off"></label>`;
     const curSel = !!(e && e.orig && (e.orig.unknown || e.orig.assumed || e.orig.manual));   // nur wenn die Währung nicht erkannt wurde (unbekannt, aus dem Land angenommen oder schon von Hand gesetzt)
+    const gradeOpts = v.energy === "diesel" ? ["diesel", "diesel_premium"] : v.energy === "lpg" ? ["lpg", "e10", "e5", "ron95", "ron98"] : ["e10", "e5", "ron95", "ron98", "lpg"];   // Sorten, die zum Fahrzeug passen
+    const gradeCur = e && e.fuel && gradeOpts.includes(e.fuel) ? e.fuel : (gradeOpts.includes(v.energy) ? v.energy : gradeOpts[0]);
     const dlg = document.createElement("div");
     dlg.className = "dlg form";
     dlg.innerHTML = `<div class="card"><div class="bd">
       <div class="dh">${this.T(e ? "Bearbeiten" : "Eintrag von Hand")}${e ? " · " + esc(this._date(e.ts)) : ""}</div>
             <label class="fl"><span>${this.T("Datum")}</span><input id="f_when" type="datetime-local" value="${whenOrig}"></label>
-      <label class="fl"><span>${this.T("Art")}</span><select id="f_kind"><option value="fuel">${esc(v.energy === "electric" ? this.T("Strom") : ({ diesel: "Diesel", e5: "Super E5", e10: "Super E10", lpg: "LPG" })[v.energy] || this.T("Kraftstoff"))   /* konkrete Kraftstoffart des Fahrzeugs */}</option>${v.phev ? `<option value="electric"${e && e.kind !== "extra" && e.energy === "electric" ? " selected" : ""}>${esc(this.T("Strom"))}</option>` : ""}${PRESETS.map(x => `<option value="${x.k}"${isExtra && subSel === x.k ? " selected" : ""}>${esc(this.T(x.k))}</option>`).join("")}<option value="other"${isExtra && subSel === "other" ? " selected" : ""}>${esc(this.T("Sonstiges"))}</option></select></label>
+      <div class="g2"><label class="fl"><span>${this.T("Art")}</span><select id="f_kind"><option value="fuel">${esc(v.energy === "electric" ? this.T("Strom") : this.T("Kraftstoff"))}</option>${v.phev ? `<option value="electric"${e && e.kind !== "extra" && e.energy === "electric" ? " selected" : ""}>${esc(this.T("Strom"))}</option>` : ""}${PRESETS.map(x => `<option value="${x.k}"${isExtra && subSel === x.k ? " selected" : ""}>${esc(this.T(x.k))}</option>`).join("")}<option value="other"${isExtra && subSel === "other" ? " selected" : ""}>${esc(this.T("Sonstiges"))}</option></select></label>
+      <label class="fl" id="w_grade"${isExtra || v.energy === "electric" || (e && e.energy === "electric") ? ' style="display:none"' : ""}><span>${this.T("Kraftstoffart")}</span><select id="f_grade">${gradeOpts.map(k => `<option value="${k}"${k === gradeCur ? " selected" : ""}>${esc(FUEL_GRADES[k])}</option>`).join("")}</select></label></div>
       <div class="g2">${fld("f_item", this.T("Bezeichnung"), e ? e.item || "" : "", ` id="w_item"${isExtra ? "" : ' style="display:none"'}`)}
       ${fld("f_unit", this.T("Einheit (z. B. l, Stk), leer = keine"), e ? e.unit : "", ` id="w_unit"${isExtra ? "" : ' style="display:none"'}`)}</div>
       <div class="g2">
@@ -1078,6 +1082,7 @@ class DriveEnergyDocPanel extends HTMLElement {
         $("f_kind").value = cat || "other"; $("f_kind").onchange();
         if (!cat && r.item) $("f_item").value = r.item;
       } else if (r.receipt || r.quantity || r.total) { $("f_kind").value = v.phev && r.category === "charging" ? "electric" : "fuel"; $("f_kind").onchange(); }
+      if (r.fuel_grade && gradeOpts.includes(r.fuel_grade)) $("f_grade").value = r.fuel_grade;
       set("f_q", r.quantity); set("f_p", r.unit_price); set("f_t", r.total); set("f_km", r.odometer ? Math.round(r.odometer) : null);
       if (r.note) $("f_note").value = $("f_note").value.trim() ? $("f_note").value.trim() + " · " + r.note : r.note;   // Fremdwährung: Originalpreis und Kurs
       if (r.ts && !e) { const d = new Date(r.ts * 1000); if (!isNaN(d)) $("f_when").value = local(d); }
@@ -1089,12 +1094,14 @@ class DriveEnergyDocPanel extends HTMLElement {
     $("f_kind").onchange = () => {   // alles außer Kraftstoff/Strom ist Zubehör: Bezeichnung und Einheit, bei den Vorgaben automatisch gefüllt
       const k = $("f_kind").value, x = k !== "fuel" && k !== "electric";
       ["w_item", "w_unit"].forEach(id => { dlg.querySelector("#" + id).style.display = x ? "" : "none"; });
+      dlg.querySelector("#w_grade").style.display = x || k === "electric" ? "none" : "";
       if (PRESETS.some(m => m.k === k)) preset(k);
     };
     const save = async () => {
       const f = { quantity: num($("f_q").value), unit_price: num($("f_p").value), total: num($("f_t").value), odometer: num(/^\d{1,3}(\.\d{3})+$/.test($("f_km").value.trim()) ? $("f_km").value.trim().replace(/\./g, "") : $("f_km").value), note: $("f_note").value };
       const extra = $("f_kind").value !== "fuel" && $("f_kind").value !== "electric";
       f.kind = extra ? "extra" : "fuel";
+      f.fuel = !extra && $("f_kind").value !== "electric" && v.energy !== "electric" ? $("f_grade").value : "";
       if (v.phev && !extra) f.energy = $("f_kind").value === "electric" ? "electric" : "fuel";   // auch nachträglich umstellbar (z. B. ein Ölbon, der als Tanken gelesen wurde)
       if (extra) { f.item = ($("f_item").value || "").trim() || this.T("Zubehör"); f.unit = ($("f_unit").value || "").trim(); }
       if (e && $("f_when").value && $("f_when").value !== whenOrig) { const w = new Date($("f_when").value); if (!isNaN(w)) f.ts = w.getTime() / 1000; }

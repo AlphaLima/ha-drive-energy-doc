@@ -206,5 +206,6 @@
  "Währung des Belegs": "Валута на бележката",
  "Umrechnen": "Преобразувай",
  "Keine Währung erkannt, Land nicht ermittelbar: Werte als Euro angenommen. Bitte Währung prüfen.": "Валутата не е разпозната, държавата е неизвестна: стойностите са приети в евро. Проверете валутата.",
- "Währung manuell gesetzt: {0}.": "Валутата е зададена ръчно: {0}."
+ "Währung manuell gesetzt: {0}.": "Валутата е зададена ръчно: {0}.",
+ "Kraftstoffart": "Вид гориво"
 }

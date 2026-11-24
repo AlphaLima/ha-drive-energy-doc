@@ -204,5 +204,6 @@
  "Währung des Belegs": "Валута на сметката",
  "Umrechnen": "Претвори",
  "Keine Währung erkannt, Land nicht ermittelbar: Werte als Euro angenommen. Bitte Währung prüfen.": "Валутата не е препознаена, државата е непозната: вредностите се претпоставени во евра. Проверете ја валутата.",
- "Währung manuell gesetzt: {0}.": "Валутата е поставена рачно: {0}."
+ "Währung manuell gesetzt: {0}.": "Валутата е поставена рачно: {0}.",
+ "Kraftstoffart": "Вид гориво"
 }

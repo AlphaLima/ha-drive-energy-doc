@@ -204,5 +204,6 @@
  "Währung des Belegs": "Valuta računa",
  "Umrechnen": "Pretvori",
  "Keine Währung erkannt, Land nicht ermittelbar: Werte als Euro angenommen. Bitte Währung prüfen.": "Valuta ni prepoznana, država neznana: vrednosti so privzete v evrih. Preverite valuto.",
- "Währung manuell gesetzt: {0}.": "Valuta nastavljena ročno: {0}."
+ "Währung manuell gesetzt: {0}.": "Valuta nastavljena ročno: {0}.",
+ "Kraftstoffart": "Vrsta goriva"
 }

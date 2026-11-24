@@ -204,5 +204,6 @@
  "Währung des Belegs": "Νόμισμα απόδειξης",
  "Umrechnen": "Μετατροπή",
  "Keine Währung erkannt, Land nicht ermittelbar: Werte als Euro angenommen. Bitte Währung prüfen.": "Δεν αναγνωρίστηκε νόμισμα, άγνωστη χώρα: οι τιμές θεωρήθηκαν σε ευρώ. Ελέγξτε το νόμισμα.",
- "Währung manuell gesetzt: {0}.": "Το νόμισμα ορίστηκε χειροκίνητα: {0}."
+ "Währung manuell gesetzt: {0}.": "Το νόμισμα ορίστηκε χειροκίνητα: {0}.",
+ "Kraftstoffart": "Τύπος καυσίμου"
 }

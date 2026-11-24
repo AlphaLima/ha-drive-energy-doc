@@ -204,5 +204,6 @@
  "Währung des Belegs": "Valuta van de bon",
  "Umrechnen": "Omrekenen",
  "Keine Währung erkannt, Land nicht ermittelbar: Werte als Euro angenommen. Bitte Währung prüfen.": "Geen valuta herkend, land onbekend: waarden als euro aangenomen. Controleer de valuta.",
- "Währung manuell gesetzt: {0}.": "Valuta handmatig ingesteld: {0}."
+ "Währung manuell gesetzt: {0}.": "Valuta handmatig ingesteld: {0}.",
+ "Kraftstoffart": "Brandstofsoort"
 }

@@ -206,5 +206,6 @@
  "Währung des Belegs": "Валюта чека",
  "Umrechnen": "Пересчитать",
  "Keine Währung erkannt, Land nicht ermittelbar: Werte als Euro angenommen. Bitte Währung prüfen.": "Валюта не распознана, страна неизвестна: значения приняты в евро. Проверьте валюту.",
- "Währung manuell gesetzt: {0}.": "Валюта задана вручную: {0}."
+ "Währung manuell gesetzt: {0}.": "Валюта задана вручную: {0}.",
+ "Kraftstoffart": "Вид топлива"
 }

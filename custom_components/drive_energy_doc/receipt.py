@@ -298,7 +298,10 @@ async def convert_to_eur(hass, out: dict[str, Any], pos: tuple[float, float] | N
             out[k] = out[k] / rate
 
 
+FUEL_GRADES = ("diesel", "diesel_premium", "e10", "e5", "ron95", "ron98", "lpg")   # Kraftstoffsorten eines Tankeintrags
+
 STRUCTURE = {
+    "fuel_grade": {"description": "Fuel grade if printed on the receipt or shown on the pump, one of: diesel, diesel_premium (premium / V-Power / Ultimate diesel), e10 (Super E10, E10), e5 (Super E5, E5), ron95 (95 or plain Super 95 without E5/E10), ron98 (98, Super Plus, V-Power, Ultimate petrol), lpg (autogas). Empty if not readable.", "required": False, "selector": {"text": {}}},
     "currency": {"description": "ISO 4217 code of the currency printed on the receipt, for example EUR, CHF, GBP, PLN, CZK, HUF, SEK, DKK, NOK, RON. Use the country, the language and the symbols (EUR, zl, Kc, kr, £) to decide; empty if not readable.", "required": False, "selector": {"text": {}}},
     "category": {"description": "What was bought. One of: fuel (petrol, diesel, LPG, CNG, hydrogen), charging (EV electricity), adblue (AdBlue / DEF / urea), oil (engine oil), washer (windscreen washer fluid), carwash (car wash), other (anything else for the car, e.g. wiper blades, bulbs, cleaner). Use fuel if the receipt shows fuel, even with a shop item on it.", "required": False, "selector": {"text": {}}},
     "item": {"description": "For category other only: short name of the main article as printed, empty otherwise", "required": False, "selector": {"text": {}}},
@@ -384,7 +387,7 @@ async def ai_read(hass, entity_id: str, image: bytes, media_dir: Path, pos: tupl
         except (TypeError, ValueError):
             return None
 
-    out = {"quantity": num("quantity"), "unit_price": num("unit_price"), "total": num("total"), "odometer": num("odometer"), "date": parse_date_hint(str(data.get("date") or "")), "time": parse_time(str(data.get("time") or "")), "currency": (re.sub(r"[^A-Z]", "", str(data.get("currency") or "").upper())[:3] or None), "category": (lambda c: c if c in ("fuel", "charging", "adblue", "oil", "washer", "carwash", "other") else None)(re.sub(r"[^a-z]", "", str(data.get("category") or "").lower())), "item": clean_text(data.get("item"), 60), "station": clean_text(data.get("station"), 60), "address": clean_text(data.get("address"), 120), "crop": None}
+    out = {"quantity": num("quantity"), "unit_price": num("unit_price"), "total": num("total"), "odometer": num("odometer"), "date": parse_date_hint(str(data.get("date") or "")), "time": parse_time(str(data.get("time") or "")), "currency": (re.sub(r"[^A-Z]", "", str(data.get("currency") or "").upper())[:3] or None), "category": (lambda c: c if c in ("fuel", "charging", "adblue", "oil", "washer", "carwash", "other") else None)(re.sub(r"[^a-z]", "", str(data.get("category") or "").lower())), "fuel_grade": (lambda c: c if c in FUEL_GRADES else None)(re.sub(r"[^a-z0-9_]", "", str(data.get("fuel_grade") or "").lower())), "item": clean_text(data.get("item"), 60), "station": clean_text(data.get("station"), 60), "address": clean_text(data.get("address"), 120), "crop": None}
     box = [int(float(x)) for x in re.findall(r"\d+(?:\.\d+)?", str(data.get("crop") or ""))]
     if len(box) == 4 and box[2] > box[0] and box[3] > box[1] and all(0 <= b <= 1000 for b in box):
         out["crop"] = box

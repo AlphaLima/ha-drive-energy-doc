@@ -204,5 +204,6 @@
  "Währung des Belegs": "Kvitteringens valuta",
  "Umrechnen": "Omregn",
  "Keine Währung erkannt, Land nicht ermittelbar: Werte als Euro angenommen. Bitte Währung prüfen.": "Ingen valuta genkendt, land ukendt: værdier antaget i euro. Kontrollér valutaen.",
- "Währung manuell gesetzt: {0}.": "Valuta indstillet manuelt: {0}."
+ "Währung manuell gesetzt: {0}.": "Valuta indstillet manuelt: {0}.",
+ "Kraftstoffart": "Brændstoftype"
 }

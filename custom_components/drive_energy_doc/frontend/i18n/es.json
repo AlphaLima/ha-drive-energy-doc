@@ -204,5 +204,6 @@
  "Währung des Belegs": "Moneda del recibo",
  "Umrechnen": "Convertir",
  "Keine Währung erkannt, Land nicht ermittelbar: Werte als Euro angenommen. Bitte Währung prüfen.": "Moneda no reconocida, país desconocido: se suponen euros. Compruebe la moneda.",
- "Währung manuell gesetzt: {0}.": "Moneda definida manualmente: {0}."
+ "Währung manuell gesetzt: {0}.": "Moneda definida manualmente: {0}.",
+ "Kraftstoffart": "Tipo de combustible"
 }

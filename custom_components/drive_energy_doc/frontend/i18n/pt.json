@@ -204,5 +204,6 @@
  "Währung des Belegs": "Moeda do talão",
  "Umrechnen": "Converter",
  "Keine Währung erkannt, Land nicht ermittelbar: Werte als Euro angenommen. Bitte Währung prüfen.": "Moeda não reconhecida, país desconhecido: valores assumidos em euros. Verifique a moeda.",
- "Währung manuell gesetzt: {0}.": "Moeda definida manualmente: {0}."
+ "Währung manuell gesetzt: {0}.": "Moeda definida manualmente: {0}.",
+ "Kraftstoffart": "Tipo de combustível"
 }

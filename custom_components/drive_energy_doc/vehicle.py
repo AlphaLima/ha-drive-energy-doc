@@ -1278,6 +1278,8 @@ class Vehicle:
             entry["odometer"], entry["odometer_source"] = float(values["odometer"]), "beleg"   # nur wenn kein besserer Stand da ist
         if q or p or t:
             entry["receipt"] = True
+        if values.get("fuel_grade") in receipt.FUEL_GRADES and entry.get("kind") != "extra" and entry.get("energy") != "electric" and values.get("category") in (None, "fuel"):
+            entry["fuel"] = values["fuel_grade"]   # Sorte vom Beleg (z. B. Super E10 oder Super Plus)
         if self.phev and values.get("category") in ("fuel", "charging") and entry.get("kind") != "extra":
             if values["category"] == "charging":
                 entry["energy"] = "electric"
@@ -1379,6 +1381,11 @@ class Vehicle:
             e["quantity_source"] = "manuell"
         if "unit_price" in fields and fields["unit_price"] not in (None, ""):
             e["price_source"] = "manuell"
+        if "fuel" in fields:   # Kraftstoffsorte (nur bei Tank-Einträgen)
+            if fields["fuel"] in receipt.FUEL_GRADES and e.get("kind") != "extra" and e.get("energy") != "electric":
+                e["fuel"] = fields["fuel"]
+            else:
+                e.pop("fuel", None)
         for n in fields.get("photos") or []:   # im Bearbeiten-Dialog aufgenommene, schon abgelegte Fotos
             if isinstance(n, str) and n not in e["photos"] and (self.photo_dir / n).is_file():
                 e["photos"].append(n)
@@ -1417,7 +1424,7 @@ class Vehicle:
             if receipt.plausible(ai) or km is not None:
                 box = ai.get("crop")
                 out = {"note": self.currency_note(ai.get("orig")), "found": True, "quantity": ai.get("quantity"), "unit_price": ai.get("unit_price"), "total": ai.get("total"), "odometer": km,
-                       "station": ai.get("station"), "address": ai.get("address"), "ts": when, "receipt": bool(receipt.plausible(ai)), "category": ai.get("category"), "item": ai.get("item")}
+                       "station": ai.get("station"), "address": ai.get("address"), "ts": when, "receipt": bool(receipt.plausible(ai)), "category": ai.get("category"), "item": ai.get("item"), "fuel_grade": ai.get("fuel_grade")}
         name = receipt.new_photo_name(ai if isinstance(ai, dict) else None, sent, None, self.photo_dir)
         await self.hass.async_add_executor_job(receipt.crop_and_save, image, box, self.photo_dir, name, self.orig_dir)
         out["photo"] = name

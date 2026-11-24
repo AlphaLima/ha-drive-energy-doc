@@ -204,5 +204,6 @@
  "Währung des Belegs": "Gjaldmiðill kvittunar",
  "Umrechnen": "Umreikna",
  "Keine Währung erkannt, Land nicht ermittelbar: Werte als Euro angenommen. Bitte Währung prüfen.": "Gjaldmiðill þekktist ekki, land óþekkt: gert ráð fyrir evrum. Athugaðu gjaldmiðilinn.",
- "Währung manuell gesetzt: {0}.": "Gjaldmiðill stilltur handvirkt: {0}."
+ "Währung manuell gesetzt: {0}.": "Gjaldmiðill stilltur handvirkt: {0}.",
+ "Kraftstoffart": "Eldsneytistegund"
 }

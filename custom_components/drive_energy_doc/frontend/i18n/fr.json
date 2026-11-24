@@ -204,5 +204,6 @@
  "Währung des Belegs": "Devise du ticket",
  "Umrechnen": "Convertir",
  "Keine Währung erkannt, Land nicht ermittelbar: Werte als Euro angenommen. Bitte Währung prüfen.": "Aucune devise reconnue, pays inconnu : valeurs supposées en euros. Vérifiez la devise.",
- "Währung manuell gesetzt: {0}.": "Devise définie manuellement : {0}."
+ "Währung manuell gesetzt: {0}.": "Devise définie manuellement : {0}.",
+ "Kraftstoffart": "Type de carburant"
 }

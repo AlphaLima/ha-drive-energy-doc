@@ -204,5 +204,6 @@
  "Währung des Belegs": "Moneda del tiquet",
  "Umrechnen": "Converteix",
  "Keine Währung erkannt, Land nicht ermittelbar: Werte als Euro angenommen. Bitte Währung prüfen.": "No s'ha reconegut cap moneda, país desconegut: s'assumeixen euros. Comproveu la moneda.",
- "Währung manuell gesetzt: {0}.": "Moneda definida manualment: {0}."
+ "Währung manuell gesetzt: {0}.": "Moneda definida manualment: {0}.",
+ "Kraftstoffart": "Tipus de combustible"
 }

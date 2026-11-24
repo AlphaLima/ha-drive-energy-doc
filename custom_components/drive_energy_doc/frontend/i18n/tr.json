@@ -204,5 +204,6 @@
  "Währung des Belegs": "Fiş para birimi",
  "Umrechnen": "Dönüştür",
  "Keine Währung erkannt, Land nicht ermittelbar: Werte als Euro angenommen. Bitte Währung prüfen.": "Para birimi tanınmadı, ülke bilinmiyor: değerler euro varsayıldı. Lütfen para birimini kontrol edin.",
- "Währung manuell gesetzt: {0}.": "Para birimi elle ayarlandı: {0}."
+ "Währung manuell gesetzt: {0}.": "Para birimi elle ayarlandı: {0}.",
+ "Kraftstoffart": "Yakıt türü"
 }

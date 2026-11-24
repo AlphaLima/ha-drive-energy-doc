@@ -204,5 +204,6 @@
  "Währung des Belegs": "Čeka valūta",
  "Umrechnen": "Pārrēķināt",
  "Keine Währung erkannt, Land nicht ermittelbar: Werte als Euro angenommen. Bitte Währung prüfen.": "Valūta nav atpazīta, valsts nav zināma: vērtības pieņemtas eiro. Pārbaudiet valūtu.",
- "Währung manuell gesetzt: {0}.": "Valūta iestatīta manuāli: {0}."
+ "Währung manuell gesetzt: {0}.": "Valūta iestatīta manuāli: {0}.",
+ "Kraftstoffart": "Degvielas veids"
 }

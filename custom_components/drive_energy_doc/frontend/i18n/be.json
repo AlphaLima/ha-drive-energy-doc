@@ -204,5 +204,6 @@
  "Währung des Belegs": "Валюта чэка",
  "Umrechnen": "Пералічыць",
  "Keine Währung erkannt, Land nicht ermittelbar: Werte als Euro angenommen. Bitte Währung prüfen.": "Валюта не распазнана, краіна невядомая: значэнні прынятыя ў еўра. Праверце валюту.",
- "Währung manuell gesetzt: {0}.": "Валюта зададзена ўручную: {0}."
+ "Währung manuell gesetzt: {0}.": "Валюта зададзена ўручную: {0}.",
+ "Kraftstoffart": "Від паліва"
 }

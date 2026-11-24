@@ -204,5 +204,6 @@
  "Währung des Belegs": "Airgeadra na admhála",
  "Umrechnen": "Tiontaigh",
  "Keine Währung erkannt, Land nicht ermittelbar: Werte als Euro angenommen. Bitte Währung prüfen.": "Níor aithníodh airgeadra, tír anaithnid: glacadh leis gur euro iad na luachanna. Seiceáil an t-airgeadra.",
- "Währung manuell gesetzt: {0}.": "Airgeadra socraithe de láimh: {0}."
+ "Währung manuell gesetzt: {0}.": "Airgeadra socraithe de láimh: {0}.",
+ "Kraftstoffart": "Cineál breosla"
 }

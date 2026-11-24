@@ -204,5 +204,6 @@
  "Währung des Belegs": "Valuta dello scontrino",
  "Umrechnen": "Converti",
  "Keine Währung erkannt, Land nicht ermittelbar: Werte als Euro angenommen. Bitte Währung prüfen.": "Valuta non riconosciuta, paese sconosciuto: valori ipotizzati in euro. Controlla la valuta.",
- "Währung manuell gesetzt: {0}.": "Valuta impostata manualmente: {0}."
+ "Währung manuell gesetzt: {0}.": "Valuta impostata manualmente: {0}.",
+ "Kraftstoffart": "Tipo di carburante"
 }

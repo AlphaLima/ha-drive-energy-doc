@@ -204,5 +204,6 @@
  "Währung des Belegs": "Währung vun der Quittung",
  "Umrechnen": "Ëmrechnen",
  "Keine Währung erkannt, Land nicht ermittelbar: Werte als Euro angenommen. Bitte Währung prüfen.": "Keng Währung erkannt, Land net ermëttelbar: Wäerter als Euro ugeholl. Kuckt w.e.g. d'Währung no.",
- "Währung manuell gesetzt: {0}.": "Währung manuell gesat: {0}."
+ "Währung manuell gesetzt: {0}.": "Währung manuell gesat: {0}.",
+ "Kraftstoffart": "Zorte vu Brennstoff"
 }

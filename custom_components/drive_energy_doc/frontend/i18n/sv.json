@@ -204,5 +204,6 @@
  "Währung des Belegs": "Kvittots valuta",
  "Umrechnen": "Räkna om",
  "Keine Währung erkannt, Land nicht ermittelbar: Werte als Euro angenommen. Bitte Währung prüfen.": "Ingen valuta identifierad, landet okänt: värden antas vara i euro. Kontrollera valutan.",
- "Währung manuell gesetzt: {0}.": "Valuta inställd manuellt: {0}."
+ "Währung manuell gesetzt: {0}.": "Valuta inställd manuellt: {0}.",
+ "Kraftstoffart": "Bränsletyp"
 }

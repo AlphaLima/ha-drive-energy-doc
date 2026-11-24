@@ -204,5 +204,6 @@
  "Währung des Belegs": "Tšeki valuuta",
  "Umrechnen": "Arvuta ümber",
  "Keine Währung erkannt, Land nicht ermittelbar: Werte als Euro angenommen. Bitte Währung prüfen.": "Valuutat ei tuvastatud, riik teadmata: väärtused eeldatud eurodes. Kontrollige valuutat.",
- "Währung manuell gesetzt: {0}.": "Valuuta määratud käsitsi: {0}."
+ "Währung manuell gesetzt: {0}.": "Valuuta määratud käsitsi: {0}.",
+ "Kraftstoffart": "Kütuse liik"
 }

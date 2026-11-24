@@ -204,5 +204,6 @@
  "Währung des Belegs": "Valuta tar-riċevuta",
  "Umrechnen": "Ikkonverti",
  "Keine Währung erkannt, Land nicht ermittelbar: Werte als Euro angenommen. Bitte Währung prüfen.": "Ma ġiex rikonoxxuta valuta, pajjiż mhux magħruf: il-valuri huma assunti bl-euro. Iċċekkja l-valuta.",
- "Währung manuell gesetzt: {0}.": "Valuta stabbilita manwalment: {0}."
+ "Währung manuell gesetzt: {0}.": "Valuta stabbilita manwalment: {0}.",
+ "Kraftstoffart": "Tip ta' fuel"
 }
