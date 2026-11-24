@@ -1,6 +1,7 @@
 # Changelog
 
-## 0.1.82 (in Arbeit)
+## 0.1.82 (24.11.2026)
+- Sicherheit (Review-Hinweis): Fahrzeugbild-Adresse (`entity_picture` einer Bild- oder Kamera-Entität) und Einheit eines Zubehör-Eintrags werden vor dem Einsetzen ins Panel maskiert (kein Einschleusen von HTML mehr). Installationsabschnitt: zuerst die Suche im Marketplace/HACS, das benutzerdefinierte Repository als Ausweichweg.
 - Farbige Zeilen in der Liste: Laden grün, Tanken orange, alles andere (Zubehör) blau; ein Knopf in der Leiste schaltet die Farben ein und aus (wird im Browser gemerkt).
 - Filter für die Liste: Auswahlfeld neben den Knöpfen mit Alle, Tanken, Laden, Tanken & Laden, Zubehör, Öl, AdBlue (nur beim Diesel), Scheibenreiniger, Waschen und Sonstiges, jeweils mit der Anzahl der Einträge. Es erscheinen nur Gruppen, zu denen es Einträge gibt (Tanken & Laden nur, wenn es beides gibt). Der Ausdruck übernimmt den gesetzten Filter (Zeilen, Belege und Summen, im Kopf steht „Filter: …“).
 - Der Zeitpunkt der Meldung (automatisch, am Anfang, am Ende, keine) ist je Kanal einstellbar, auch bei Telegram und WhatsApp. So kann z. B. die Companion-App am Beginn des Tankens melden und Telegram erst am Ende.

@@ -317,7 +317,7 @@ Nachricht einspeisen) und `drive_energy_doc.test_message`.
 
 ## Installation und Einrichtung
 
-**Marketplace / HACS:** Im Marketplace von Home Assistant (ab 2026.11; vorher in HACS) das Repository `AlphaLima/ha-drive-energy-doc` als benutzerdefiniertes Repository hinzufügen (Typ *Integration*; dafür wird ein GitHub-Konto verbunden), installieren, HA neu starten. Updates erscheinen dort, sobald ein neues Release veröffentlicht ist; Beta-Versionen sieht nur, wer Vorabversionen anzeigen lässt. **Manuell:** den Ordner `custom_components/drive_energy_doc` nach `config/custom_components/` kopieren,
+**Marketplace / HACS:** Im Marketplace von Home Assistant (ab 2026.11; vorher in HACS) nach *Drive Energy Doc* suchen, installieren, HA neu starten. *Ausweichweg, solange die Integration noch nicht im Standardkatalog steht (oder die Suche sie nicht findet):* das Repository `AlphaLima/ha-drive-energy-doc` als benutzerdefiniertes Repository hinzufügen (Typ *Integration*; dafür wird ein GitHub-Konto verbunden). Updates erscheinen dort, sobald ein neues Release veröffentlicht ist; Beta-Versionen sieht nur, wer Vorabversionen anzeigen lässt. **Manuell:** den Ordner `custom_components/drive_energy_doc` nach `config/custom_components/` kopieren,
 HA neu starten.
 
 Dann *Einstellungen → Geräte & Dienste → Integration hinzufügen → Drive Energy Doc*:

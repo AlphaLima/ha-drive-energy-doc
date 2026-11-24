@@ -279,7 +279,7 @@ Per vehicle: **status**, **last refuelling**, **last price**, **consumption** (a
 
 ## Installation and setup
 
-**Marketplace / HACS:** In the Home Assistant Marketplace (from 2026.11; before that in HACS) add the repository `AlphaLima/ha-drive-energy-doc` as a custom repository (type *Integration*; this connects a GitHub account), install, restart HA. Updates appear there as soon as a new release is published; beta versions are only shown to those who enable pre-releases. **Manually:** copy the folder `custom_components/drive_energy_doc` to `config/custom_components/` and restart HA.
+**Marketplace / HACS:** Search for *Drive Energy Doc* in the Home Assistant Marketplace (from 2026.11; before that in HACS), install, restart HA. *Fallback until the integration appears in the default catalog (or if the search does not find it):* add the repository `AlphaLima/ha-drive-energy-doc` as a custom repository (type *Integration*; this connects a GitHub account). Updates appear there as soon as a new release is published; beta versions are only shown to those who enable pre-releases. **Manually:** copy the folder `custom_components/drive_energy_doc` to `config/custom_components/` and restart HA.
 
 Then *Settings → Devices & services → Add integration → Drive Energy Doc*:
 
