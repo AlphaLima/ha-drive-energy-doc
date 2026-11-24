@@ -27,7 +27,7 @@ from . import messages, plate
 from .vehicle import PANEL_SIGNAL, Vehicle
 
 _LOGGER = logging.getLogger(__name__)
-PLATFORMS = ["sensor"]
+PLATFORMS = ["sensor", "button"]
 
 
 def _vehicles(hass: HomeAssistant) -> dict[str, Vehicle]:
@@ -126,6 +126,11 @@ async def _register_once(hass: HomeAssistant) -> None:
                 raise HomeAssistantError(f"{ch}: {detail}")
 
     hass.services.async_register(DOMAIN, "test_message", test_message, vol.Schema({vol.Required("config_entry"): str, vol.Optional("channel"): vol.In(["whatsapp", "telegram", "companion"])}))
+    async def simulate_refuel(call: ServiceCall) -> None:
+        v = _vehicle(hass, call.data["config_entry"])
+        await v.simulate_refuel(call.data.get("phase", "both"), int(call.data.get("delay", 30)), call.data.get("energy"))
+
+    hass.services.async_register(DOMAIN, "simulate_refuel", simulate_refuel, vol.Schema({vol.Required("config_entry"): str, vol.Optional("phase", default="both"): vol.In(["start", "end", "both"]), vol.Optional("delay", default=30): vol.All(int, vol.Range(min=0, max=600)), vol.Optional("energy"): vol.In(["fuel", "electric"])}))
     hass.services.async_register(DOMAIN, "export_csv", export_csv, vol.Schema({vol.Required("config_entry"): str}))
     hass.services.async_register(DOMAIN, "submit_text", submit_text, vol.Schema({vol.Required("config_entry"): str, vol.Required("text"): str}))
 

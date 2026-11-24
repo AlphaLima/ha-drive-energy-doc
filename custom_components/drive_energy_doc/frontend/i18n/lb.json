@@ -205,5 +205,16 @@
  "Umrechnen": "Ëmrechnen",
  "Keine Währung erkannt, Land nicht ermittelbar: Werte als Euro angenommen. Bitte Währung prüfen.": "Keng Währung erkannt, Land net ermëttelbar: Wäerter als Euro ugeholl. Kuckt w.e.g. d'Währung no.",
  "Währung manuell gesetzt: {0}.": "Währung manuell gesat: {0}.",
- "Kraftstoffart": "Zorte vu Brennstoff"
+ "Kraftstoffart": "Zorte vu Brennstoff",
+ "{0}: Tanken bzw. Laden läuft. Fotografiere jetzt die Anzeige an der Säule (Menge und Preis), solange du noch dort bist. Den Beleg kannst du danach schicken.": "{0}: Tanken oder Lueden leeft. Maach elo e Foto vum Display (Quantitéit a Präis), während Dir nach do sidd. D'Quittung kënnt Dir duerno schécken.",
+ "Teststation": "Teststatioun",
+ "Einheit": "Eenheet",
+ "Alle": "Alles",
+ "Filter": "Filter",
+ "Tanken": "Tanken",
+ "Laden": "Luede",
+ "Tanken & Laden": "Tanken & Luede",
+ "Zeilenfarben": "Zeilefaarwen",
+ "an": "un",
+ "aus": "aus"
 }

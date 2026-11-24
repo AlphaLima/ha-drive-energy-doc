@@ -29,7 +29,7 @@ from . import channels as chan
 from . import plate, receipt, whatsapp
 from .vehicle import default_ai_entity, get_settings
 
-CHANNELS = ["whatsapp", "telegram", "companion"]
+CHANNELS = ["companion", "telegram", "whatsapp"]   # Reihenfolge der Empfehlung: Companion-App, Telegram, WhatsApp
 WA_FIELDS = ["wa_token", "wa_phone_id", "wa_verify", "wa_secret", "wa_template", "wa_lang"]
 
 
@@ -81,7 +81,35 @@ def s_whatsapp(d: dict) -> vol.Schema:
     return vol.Schema({_text(k, d, default="de" if k == "wa_lang" else None): str for k in WA_FIELDS})
 
 
+BASIC_SECTIONS = {
+    "vehicle": [CONF_NAME, CONF_ENERGY, CONF_PHEV, CONF_CAPACITY],
+    "sensors": [CONF_LEVEL, CONF_ODOMETER, CONF_TRACKER],
+    "look": [CONF_PLATE, CONF_PLATE_COUNTRY, CONF_VEHICLE_TYPE, CONF_LANGUAGE, CONF_IMAGE, "image_upload", "image_remove"],
+}
+
+
 def s_basic(d: dict, hass_country: str | None = None) -> vol.Schema:
+    """Fahrzeugdaten in drei Gruppen (Fahrzeug, Sensoren, Aussehen); „Aussehen“ ist eingeklappt, damit die Seite kurz bleibt."""
+    flat = {str(k): (k, v) for k, v in s_basic_fields(d, hass_country).schema.items()}
+    f = {}
+    for name, keys in BASIC_SECTIONS.items():
+        inner = {flat[k][0]: flat[k][1] for k in keys if k in flat}
+        f[vol.Required(name)] = section(vol.Schema(inner), {"collapsed": name == "look" and bool(d.get(CONF_NAME))})
+    return vol.Schema(f)
+
+
+def flat_basic(user_input: dict) -> dict:
+    """Gruppen des Fahrzeugformulars wieder zu einer flachen Liste von Werten machen."""
+    out = {}
+    for k, v in user_input.items():
+        if k in BASIC_SECTIONS and isinstance(v, dict):
+            out.update(v)
+        else:
+            out[k] = v
+    return out
+
+
+def s_basic_fields(d: dict, hass_country: str | None = None) -> vol.Schema:
     default_cc = (hass_country or "DE").upper()
     default_cc = default_cc if default_cc in PLATE_COUNTRIES else "DE"
     return vol.Schema(
@@ -126,36 +154,29 @@ def _phev_fix(out: dict, ui: dict) -> dict:
     return out
 
 
-SECTION_FIELDS = {"whatsapp": [CONF_WA_PHONE], "telegram": [CONF_TG_TOKEN, CONF_TG_CHAT], "companion": [CONF_NOTIFY]}
+SECTION_FIELDS = {
+    "companion": [CONF_CH_ON["companion"], CONF_NOTIFY, CONF_PUSH_DETECT, CONF_PUSH_TIMING, CONF_QUICK_LINK],
+    "telegram": [CONF_CH_ON["telegram"], CONF_TG_TOKEN, CONF_TG_CHAT, CONF_DETECT_ON["telegram"], CONF_TIMING_ON["telegram"]],
+    "whatsapp": [CONF_CH_ON["whatsapp"], CONF_WA_PHONE, CONF_DETECT_ON["whatsapp"], CONF_TIMING_ON["whatsapp"]],
+}
 
 
-def s_messaging(d: dict, channels: list[str], hass: HomeAssistant) -> vol.Schema:
-    """Je Kanal eine Gruppe mit eigenen Feldern und einem Schalter „Testnachricht senden“. WhatsApp steht oben."""
-    test = lambda: vol.Optional("test", default=False)  # noqa: E731
+def _timing(d: dict, channel: str):
+    return vol.Optional(CONF_TIMING_ON[channel], default=d.get(CONF_TIMING_ON[channel], "auto"))
+
+
+def s_channel(d: dict, channel: str, hass: HomeAssistant) -> vol.Schema:
+    """Ein Kanal = ein eigenes Untermenü mit eigenen Feldern und dem Schalter „Testnachricht senden“."""
+    on = vol.Optional(CONF_CH_ON[channel], default=d.get(CONF_CH_ON[channel], True))
+    test = vol.Optional("test", default=False)
     toggle = sel.BooleanSelector()
-    f: dict = {}
-    if "whatsapp" in channels:
-        f[vol.Required("whatsapp")] = section(vol.Schema({_text(CONF_WA_PHONE, d): str, test(): toggle}), {"collapsed": False})
-    if "telegram" in channels:
-        f[vol.Required("telegram")] = section(vol.Schema({_text(CONF_TG_TOKEN, d): str, _text(CONF_TG_CHAT, d): str, test(): toggle}), {"collapsed": False})
-    if "companion" in channels:
+    timing = sel.SelectSelector(sel.SelectSelectorConfig(options=["auto", "start", "end", "none"], translation_key="push_timing", mode=sel.SelectSelectorMode.DROPDOWN))
+    if channel == "companion":
         notify = sel.SelectSelector(sel.SelectSelectorConfig(options=notify_options(hass), custom_value=True, mode=sel.SelectSelectorMode.DROPDOWN))
-        f[vol.Required("companion")] = section(vol.Schema({_text(CONF_NOTIFY, d): notify, test(): toggle}), {"collapsed": False})
-    return vol.Schema(f)
-
-
-def flatten_messaging(user_input: dict) -> tuple[dict, list[str]]:
-    """Gruppen auflösen: Werte der Felder und die Kanäle, deren Test angehakt ist (Reihenfolge WhatsApp, Telegram, Companion)."""
-    flat, tests = {}, []
-    for name, fields in SECTION_FIELDS.items():
-        part = user_input.get(name)
-        if part is None:
-            continue
-        for key in fields:
-            flat[key] = part.get(key)
-        if part.get("test"):
-            tests.append(name)
-    return flat, tests
+        return vol.Schema({on: toggle, _text(CONF_NOTIFY, d): notify, vol.Optional(CONF_PUSH_DETECT, default=d.get(CONF_PUSH_DETECT, True)): toggle, _timing(d, "companion"): timing, vol.Optional(CONF_QUICK_LINK, default=d.get(CONF_QUICK_LINK, True)): toggle, test: toggle})
+    if channel == "telegram":
+        return vol.Schema({on: toggle, _text(CONF_TG_TOKEN, d): str, _text(CONF_TG_CHAT, d): str, vol.Optional(CONF_DETECT_ON["telegram"], default=d.get(CONF_DETECT_ON["telegram"], True)): toggle, _timing(d, "telegram"): timing, test: toggle})
+    return vol.Schema({on: toggle, _text(CONF_WA_PHONE, d): str, vol.Optional(CONF_DETECT_ON["whatsapp"], default=d.get(CONF_DETECT_ON["whatsapp"], True)): toggle, _timing(d, "whatsapp"): timing, test: toggle})
 
 
 def _notify_result(hass: HomeAssistant, name: str, text: str) -> None:
@@ -181,11 +202,11 @@ async def run_tests(hass: HomeAssistant, name: str, o: dict, tests: list[str]) -
 
 
 class _MessagingMixin:
-    """Gemeinsamer Ablauf für Einrichtung und Optionen: Formular mit Gruppen, optional Test, Ergebnis, Speichern."""
+    """Gemeinsamer Ablauf für Einrichtung und Optionen: je Kanal ein eigenes Formular, optional Test, Ergebnis, Speichern."""
 
     _draft: dict | None = None
     _result: str = ""
-    _tests: list[str] = []
+    _channel: str = "companion"
 
     def _msg_base(self) -> dict:
         raise NotImplementedError
@@ -193,40 +214,48 @@ class _MessagingMixin:
     def _msg_name(self) -> str:
         raise NotImplementedError
 
-    async def _msg_finish(self, flat: dict):
+    async def _msg_done(self, channel: str, flat: dict):
         raise NotImplementedError
 
-    async def _msg_step(self, user_input):
-        channels = get_settings(self.hass).get(CONF_CHANNELS) or CHANNELS
+    async def _msg_step(self, user_input, channel: str):
+        self._channel = channel
         d = {**self._msg_base(), **(self._draft or {})}
         errors, detail = {}, ""
         if user_input is not None:
-            flat, tests = flatten_messaging(user_input)
-            ok, detail = await check_telegram(self.hass, flat.get(CONF_TG_TOKEN))
+            flat = {k: v for k, v in user_input.items() if k != "test"}
+            ok, detail = await check_telegram(self.hass, flat.get(CONF_TG_TOKEN)) if channel == "telegram" else (True, "")
             if ok:
                 self._draft = flat
-                if tests:
-                    self._tests = tests
-                    self._result = await run_tests(self.hass, self._msg_name(), {**self._msg_base(), **flat}, tests)
+                if user_input.get("test"):
+                    self._result = await run_tests(self.hass, self._msg_name(), {**self._msg_base(), **flat}, [channel])
                     return await self.async_step_messaging_result()
-                return await self._msg_finish(flat)
+                return await self._msg_done(channel, flat)
             errors = {"base": "tg_invalid"}
             d = {**d, **flat}
-        return self.async_show_form(step_id="messaging", data_schema=s_messaging(d, channels, self.hass), errors=errors, description_placeholders={"detail": detail})
+        return self.async_show_form(step_id=f"messaging_{channel}", data_schema=s_channel(d, channel, self.hass), errors=errors, description_placeholders={"detail": detail})
+
+    async def async_step_messaging_companion(self, user_input=None):
+        return await self._msg_step(user_input, "companion")
+
+    async def async_step_messaging_telegram(self, user_input=None):
+        return await self._msg_step(user_input, "telegram")
+
+    async def async_step_messaging_whatsapp(self, user_input=None):
+        return await self._msg_step(user_input, "whatsapp")
 
     async def async_step_messaging_result(self, user_input=None):
-        """Ergebnis der Testnachrichten mit Buttons: Speichern, nochmal senden, zurück zum Formular."""
+        """Ergebnis der Testnachricht mit Buttons: Speichern, nochmal senden, zurück zum Formular."""
         return self.async_show_menu(step_id="messaging_result", menu_options=["msg_save", "msg_again", "msg_back"], description_placeholders={"result": self._result})
 
     async def async_step_msg_save(self, user_input=None):
-        return await self._msg_finish(self._draft or {})
+        return await self._msg_done(self._channel, self._draft or {})
 
     async def async_step_msg_again(self, user_input=None):
-        self._result = await run_tests(self.hass, self._msg_name(), {**self._msg_base(), **(self._draft or {})}, self._tests)
+        self._result = await run_tests(self.hass, self._msg_name(), {**self._msg_base(), **(self._draft or {})}, [self._channel])
         return await self.async_step_messaging_result()
 
     async def async_step_msg_back(self, user_input=None):
-        return await self._msg_step(None)  # Eingaben bleiben stehen
+        return await self._msg_step(None, self._channel)  # Eingaben bleiben stehen
 
 
 def s_thresholds(d: dict) -> vol.Schema:
@@ -457,15 +486,14 @@ class DriveEnergyDocConfigFlow(_MessagingMixin, ConfigFlow, domain=DOMAIN):  # n
     # --- Fahrzeug
     async def async_step_vehicle(self, user_input=None) -> ConfigFlowResult:
         if user_input is not None:
+            user_input = flat_basic(user_input)
             self._async_abort_entries_match({CONF_NAME: user_input[CONF_NAME]})
             self._vehicle_ui = user_input
             if user_input.get(CONF_PHEV):
                 return await self.async_step_phev()
             return await self.async_step_plate_preview()
         prefill = getattr(self, "_vehicle_ui", None) or {}
-        schema = s_basic({}, self.hass.config.country)
-        if prefill:  # zurück aus der Vorschau: Eingaben bleiben stehen
-            schema = self.add_suggested_values_to_schema(schema, prefill)
+        schema = s_basic(prefill, self.hass.config.country)   # zurück aus der Vorschau: Eingaben bleiben stehen
         return self.async_show_form(step_id="vehicle", data_schema=schema, description_placeholders={"plate_preview": plate_md(prefill, self.hass.config.country), "image_preview": await image_md(self.hass, await preview_image(self.hass, self, prefill))})
 
     async def async_step_phev(self, user_input=None) -> ConfigFlowResult:
@@ -497,12 +525,22 @@ class DriveEnergyDocConfigFlow(_MessagingMixin, ConfigFlow, domain=DOMAIN):  # n
     def _msg_name(self) -> str:
         return self._data.get(CONF_NAME, "")
 
-    async def _msg_finish(self, flat: dict) -> ConfigFlowResult:
+    async def _msg_done(self, channel: str, flat: dict) -> ConfigFlowResult:
         self._data.update(_clean(flat))
+        self._draft = None
+        self._chs = [c for c in self._chs if c != channel]
+        return await self._msg_next()
+
+    async def _msg_next(self) -> ConfigFlowResult:
+        """Nächster gewählter Kanal, danach Fahrzeug anlegen."""
+        if self._chs:
+            return await self._msg_step(None, self._chs[0])
         return self.async_create_entry(title=self._data[CONF_NAME], data=self._data)
 
     async def async_step_messaging(self, user_input=None) -> ConfigFlowResult:
-        return await self._msg_step(user_input)
+        enabled = get_settings(self.hass).get(CONF_CHANNELS) or CHANNELS
+        self._chs = [c for c in CHANNELS if c in enabled]
+        return await self._msg_next()
 
 
 # ---------------------------------------------------------------- Optionen
@@ -513,13 +551,15 @@ class DriveEnergyDocOptionsFlow(_MessagingMixin, OptionsFlow):
     async def async_step_init(self, user_input=None) -> ConfigFlowResult:
         if self._cur().get(CONF_KIND) == KIND_SETTINGS:
             return self.async_show_menu(step_id="init", menu_options=["whatsapp", "general", "price_key"])
-        return self.async_show_menu(step_id="init", menu_options=["basic", "messaging", "thresholds"])
+        enabled = get_settings(self.hass).get(CONF_CHANNELS) or CHANNELS
+        return self.async_show_menu(step_id="init", menu_options=["basic", *[f"messaging_{c}" for c in CHANNELS if c in enabled], "thresholds"])
 
     async def _form(self, step: str, schema: vol.Schema, user_input, check=None) -> ConfigFlowResult:
         errors, detail = {}, ""
         if user_input is not None:
             drop_image = False
             if step == "basic":
+                user_input = flat_basic(user_input)
                 self._basic_ui = user_input          # erst die Vorschau des Schilds, gespeichert wird danach
                 if user_input.get(CONF_PHEV):
                     return await self.async_step_phev()
@@ -549,9 +589,7 @@ class DriveEnergyDocOptionsFlow(_MessagingMixin, OptionsFlow):
         return await self._form("whatsapp", s_whatsapp(self._cur()), user_input, lambda d: whatsapp.check(self.hass, d))
 
     async def async_step_basic(self, user_input=None) -> ConfigFlowResult:
-        schema = s_basic(self._cur(), self.hass.config.country)
-        if user_input is None and getattr(self, "_basic_ui", None):  # zurück aus der Vorschau: Eingaben bleiben stehen
-            schema = self.add_suggested_values_to_schema(schema, self._basic_ui)
+        schema = s_basic({**self._cur(), **(getattr(self, "_basic_ui", None) or {})}, self.hass.config.country)   # zurück aus der Vorschau: Eingaben bleiben stehen
         return await self._form("basic", schema, user_input)
 
     async def async_step_phev(self, user_input=None) -> ConfigFlowResult:
@@ -570,7 +608,7 @@ class DriveEnergyDocOptionsFlow(_MessagingMixin, OptionsFlow):
                 return await self.async_step_basic()
             pv = getattr(self, "_pv", None)
             ui, drop_image = await process_image(self.hass, ui, self._cur().get(CONF_IMAGE_FILE), pv[1] if pv and pv[0] == ui.get("image_upload") else None)
-            out = _phev_fix(_merge(dict(self.config_entry.options), ui, s_basic(self._cur(), self.hass.config.country)), ui)
+            out = _phev_fix(_merge(dict(self.config_entry.options), ui, s_basic_fields(self._cur(), self.hass.config.country)), ui)
             if drop_image:
                 out.pop(CONF_IMAGE_FILE, None)
             return self.async_create_entry(data=out)
@@ -583,14 +621,11 @@ class DriveEnergyDocOptionsFlow(_MessagingMixin, OptionsFlow):
     def _msg_name(self) -> str:
         return self._cur().get(CONF_NAME, "")
 
-    async def _msg_finish(self, flat: dict) -> ConfigFlowResult:
-        keys = {k for fields in SECTION_FIELDS.values() for k in fields}
+    async def _msg_done(self, channel: str, flat: dict) -> ConfigFlowResult:
+        keys = set(SECTION_FIELDS[channel])
         out = {k: v for k, v in dict(self.config_entry.options).items() if k not in keys}
         out.update(_clean(flat))
         return self.async_create_entry(data=out)
-
-    async def async_step_messaging(self, user_input=None) -> ConfigFlowResult:
-        return await self._msg_step(user_input)
 
     async def async_step_thresholds(self, user_input=None) -> ConfigFlowResult:
         return await self._form("thresholds", s_thresholds(self._cur()), user_input)

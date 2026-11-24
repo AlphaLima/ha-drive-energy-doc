@@ -205,5 +205,16 @@
  "Umrechnen": "Converteix",
  "Keine Währung erkannt, Land nicht ermittelbar: Werte als Euro angenommen. Bitte Währung prüfen.": "No s'ha reconegut cap moneda, país desconegut: s'assumeixen euros. Comproveu la moneda.",
  "Währung manuell gesetzt: {0}.": "Moneda definida manualment: {0}.",
- "Kraftstoffart": "Tipus de combustible"
+ "Kraftstoffart": "Tipus de combustible",
+ "{0}: Tanken bzw. Laden läuft. Fotografiere jetzt die Anzeige an der Säule (Menge und Preis), solange du noch dort bist. Den Beleg kannst du danach schicken.": "{0}: Repostatge o càrrega en curs. Fes ara una foto de la pantalla del sortidor o carregador (quantitat i preu) mentre encara hi ets. El tiquet el pots enviar després.",
+ "Teststation": "Estació de prova",
+ "Einheit": "Unitat",
+ "Alle": "Tots",
+ "Filter": "Filtre",
+ "Tanken": "Repostatge",
+ "Laden": "Càrrega",
+ "Tanken & Laden": "Repostatge i càrrega",
+ "Zeilenfarben": "Colors de les files",
+ "an": "activat",
+ "aus": "desactivat"
 }

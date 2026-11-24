@@ -31,7 +31,18 @@ def test_europe_ring_only_for_eu():
 
 
 def test_empty_text_uses_example():
-    assert "B-AB 1234" in m.svg("D", "DE", "")
+    out = m.svg("D", "DE", "")   # Deutschland: Ortskennung und Rest sind durch die Plaketten getrennt
+    assert ">B</text>" in out and ">AB 1234</text>" in out
+    assert "AB 12 345" not in m.svg("DK", "DK", "") and "AF 54554" in m.svg("DK", "DK", "")
+
+
+def test_country_formats():
+    assert m.format_text("CH", "SG197052") == "SG·197 052" and m.format_text("CH", "ZH 123456") == "ZH·123 456" and m.format_text("CH", "VD 1234") == "VD·1 234"
+    assert m.format_text("GB", "AB12EHJ") == "AB12 EHJ" and m.format_text("BE", "1ABC003") == "1-ABC-003" and m.format_text("FR", "AB123CD") == "AB-123-CD"
+    assert "&#183;" in m.svg("CH", "CH", "SG197052") and "#b01c2e" in m.svg("B", "BE", "1ABC003") and "#c8102e" in m.svg("DK", "DK", "AF 54554")
+    assert m.format_text("SE", "ABC123") == "ABC 123" and m.format_text("NO", "AB12345") == "AB 12345" and m.format_text("SK", "BA123AB") == "BA-123AB"
+    assert m.format_text("HR", "ZG1234AB") == "ZG 1234-AB" and m.format_text("RU", "A123BC77") == "A123BC 77" and m.format_text("PT", "12AB34") == "12-AB-34"
+    assert "#da291c" in m.svg("CH", "CH", "SG197052") and "#012169" in m.svg("GB", "GB", "AB12EHJ")
 
 
 for n, fn in list(globals().items()):

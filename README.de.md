@@ -80,7 +80,7 @@ Der Aufwand soll dabei so klein wie möglich sein: Das Auto meldet das Tanken vo
 | Weg | Was du tust | Was automatisch passiert |
 |---|---|---|
 | **1. Automatisch (Sensoren)** | nichts | Füllstand steigt → Tanken erkannt, Menge, Ort, Kilometerstand und (wenn verfügbar) Preis werden eingetragen |
-| **2. Beleg-Foto per Telegram / WhatsApp / Companion** | Bon oder Zapfsäule fotografieren und dem Bot schicken | KI liest Menge/Preis/Summe/Datum, Foto wird zugeschnitten und am Eintrag gespeichert, Werte vom Beleg ersetzen die geschätzten |
+| **2. Beleg-Foto per Companion / Telegram / WhatsApp** | Bon oder Zapfsäule fotografieren und dem Bot schicken | KI liest Menge/Preis/Summe/Datum, Foto wird zugeschnitten und am Eintrag gespeichert, Werte vom Beleg ersetzen die geschätzten |
 | **3. Beleg als Text** | `45,93 105,13` oder `27.10. 45,93 105,13` schreiben | Werte werden dem passenden Tanken zugeordnet (ohne KI) |
 | **4. Zubehör** | `+ 24,90`, `extra Öl 1 9,50`, Kurzwort `adblue` oder Foto mit Bildtext | eigener Eintrag, zählt zu den Kosten, nicht zum Verbrauch |
 | **5. Tacho-Foto / `km 54210`** | Tacho fotografieren oder Text senden | Kilometerstand wird dem zeitlich passenden Tanken zugeordnet; bei Zweifeln fragt der Bot nach |
@@ -116,7 +116,7 @@ Auto-Sensoren (Füllstand %, Kilometerstand, GPS)
         │
         ├─► Preis nachschlagen (Tankstellen-Dienst, optional)
         ├─► Eintrag im Buch anlegen (Zeit, Menge, Preis, Kosten, Kilometerstand, Ort)
-        └─► Nachricht per Telegram/WhatsApp/Companion-App: "Tanken erkannt – Beleg bei Bedarf nachreichen"
+        └─► Nachricht per Companion-App/Telegram/WhatsApp: "Tanken erkannt – Beleg bei Bedarf nachreichen"
                    │
                    ▼
         Foto vom Bon / Zapfsäule / Text  ─►  KI liest Menge, Preis, Summe, Datum
@@ -212,8 +212,9 @@ als „Beleg geprüft“ markiert, wenn mindestens Menge, Preis oder Summe vom B
 
 ## Beleg, Zubehör und Tacho per Nachricht
 
-Die Nachrichten laufen über **Telegram** (eigener Bot, empfohlen), **WhatsApp** (Cloud-API von Meta) oder die **Companion-App**
-(Push-Nachricht; Foto-Upload dann im Panel). Pro Fahrzeug wählst du, welche Kanäle genutzt werden. Mit `?`, `h`, `help` oder `hilfe`
+Die Nachrichten laufen über die **Companion-App mit dem Panel** (**der einfachste Weg und unsere Empfehlung zum Einstieg**: kein Konto, Token oder
+Chat-ID nötig; das Foto machst du mit der Kamera im Panel, die Push-Nachricht kommt aufs Handy; nichts verlässt dein Heimnetz), über **Telegram**
+(eigener Bot; zum Senden direkt aus dem Messenger und zum Beantworten von Rückfragen im Chat) oder über **WhatsApp** (Cloud-API von Meta). Pro Fahrzeug wählst du, welche Kanäle genutzt werden. Mit `?`, `h`, `help` oder `hilfe`
 (auch `/help`, `/start`, oder das Wort für „Hilfe“ in der eigenen Sprache) zeigt der Bot alle Kommandos.
 
 ### Beleg zum Tanken
@@ -301,11 +302,11 @@ Der Druck (Knopf „Drucken“ im Panel) erzeugt eine Liste aller Einträge und,
 <table>
 <tr>
 <td align="center"><img src="docs/beispiel-ausdruck-liste.png" alt="Beispiel-Ausdruck: Liste" width="360"><br><sub>Seite 1: die Liste</sub></td>
-<td align="center"><img src="docs/beispiel-ausdruck-belege.png" alt="Beispiel-Ausdruck: Belege" width="360"><br><sub>Seite 2: Beleg- und Tacho-Fotos je Eintrag</sub></td>
+<td align="center"><img src="docs/beispiel-ausdruck-belege.png" alt="Beispiel-Ausdruck: Belege" width="360"><br><sub>Seite 3: Beleg- und Tacho-Fotos je Eintrag</sub></td>
 </tr>
 </table>
 
-Das ganze Beispiel (7 Seiten) als PDF: [docs/beispiel-ausdruck.pdf](docs/beispiel-ausdruck.pdf).
+Das ganze Beispiel (15 Seiten) als PDF: [docs/beispiel-ausdruck.pdf](docs/beispiel-ausdruck.pdf).
 
 ## Sensoren, Ereignis und Dienste
 

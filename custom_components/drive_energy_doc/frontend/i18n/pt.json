@@ -205,5 +205,16 @@
  "Umrechnen": "Converter",
  "Keine Währung erkannt, Land nicht ermittelbar: Werte als Euro angenommen. Bitte Währung prüfen.": "Moeda não reconhecida, país desconhecido: valores assumidos em euros. Verifique a moeda.",
  "Währung manuell gesetzt: {0}.": "Moeda definida manualmente: {0}.",
- "Kraftstoffart": "Tipo de combustível"
+ "Kraftstoffart": "Tipo de combustível",
+ "{0}: Tanken bzw. Laden läuft. Fotografiere jetzt die Anzeige an der Säule (Menge und Preis), solange du noch dort bist. Den Beleg kannst du danach schicken.": "{0}: Abastecimento ou carregamento em curso. Fotografe agora o visor da bomba ou carregador (quantidade e preço) enquanto ainda está lá. O talão pode enviar depois.",
+ "Teststation": "Posto de teste",
+ "Einheit": "Unidade",
+ "Alle": "Todos",
+ "Filter": "Filtro",
+ "Tanken": "Abastecimento",
+ "Laden": "Carregamento",
+ "Tanken & Laden": "Abastecimento e carregamento",
+ "Zeilenfarben": "Cores das linhas",
+ "an": "ligado",
+ "aus": "desligado"
 }

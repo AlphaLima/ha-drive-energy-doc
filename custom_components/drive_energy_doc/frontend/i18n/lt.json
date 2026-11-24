@@ -205,5 +205,16 @@
  "Umrechnen": "Konvertuoti",
  "Keine Währung erkannt, Land nicht ermittelbar: Werte als Euro angenommen. Bitte Währung prüfen.": "Valiuta neatpažinta, šalis nežinoma: reikšmės laikomos eurais. Patikrinkite valiutą.",
  "Währung manuell gesetzt: {0}.": "Valiuta nustatyta rankiniu būdu: {0}.",
- "Kraftstoffart": "Kuro rūšis"
+ "Kraftstoffart": "Kuro rūšis",
+ "{0}: Tanken bzw. Laden läuft. Fotografiere jetzt die Anzeige an der Säule (Menge und Preis), solange du noch dort bist. Den Beleg kannst du danach schicken.": "{0}: Vyksta pylimas arba įkrovimas. Nufotografuokite dabar kolonėlės ar įkroviklio ekraną (kiekis ir kaina), kol dar esate vietoje. Čekį galite atsiųsti vėliau.",
+ "Teststation": "Bandomoji stotelė",
+ "Einheit": "Vienetas",
+ "Alle": "Visi",
+ "Filter": "Filtras",
+ "Tanken": "Pylimas",
+ "Laden": "Įkrovimas",
+ "Tanken & Laden": "Pylimas ir įkrovimas",
+ "Zeilenfarben": "Eilučių spalvos",
+ "an": "įjungta",
+ "aus": "išjungta"
 }

@@ -150,9 +150,9 @@ class Vehicle:
         tracked = [e for e in (o.get(CONF_LEVEL), o.get(CONF_LEVEL_EL) if self.detector_el else None, o.get(CONF_TRACKER)) if e]
         self._unsubs.append(async_track_state_change_event(self.hass, tracked, self._state_changed))
         self._unsubs.append(async_track_time_interval(self.hass, self._tick, CHECK_EVERY))
-        if o.get(CONF_TG_TOKEN) and o.get(CONF_TG_CHAT):
+        if o.get(CONF_TG_TOKEN) and o.get(CONF_TG_CHAT) and o.get(CONF_CH_ON["telegram"], True):
             get_bot(self.hass, o[CONF_TG_TOKEN]).add(o[CONF_TG_CHAT], self.handle_message)
-        if o.get(CONF_WA_PHONE):
+        if o.get(CONF_WA_PHONE) and o.get(CONF_CH_ON["whatsapp"], True):
             whatsapp.hub(self.hass)["routes"][whatsapp.norm_phone(o[CONF_WA_PHONE])] = self
 
     def _migrate_photos(self) -> None:
@@ -328,7 +328,58 @@ class Vehicle:
             self._save()
         if result == "valid":
             self.hass.async_create_task(self._fetch_price(None, det))
+            if self._push_at_start(det):
+                self.hass.async_create_task(self._push_started(det))
         self._notify_entities()
+
+    def _detected_text(self, entry: dict) -> str:
+        """Meldung nach dem Abschluss eines erkannten Tank- oder Ladevorgangs: Zusammenfassung und die Bitte um den Beleg."""
+        return self._summary(entry, self.tr("Tankvorgang erkannt")) + "\n\n" + self.tr("Bitte schick mir den Beleg (Foto vom Bon oder der Zapfsäule) oder tippe: Menge Betrag, z. B. 45,93 105,13") + "\n" + self.tr("Zubehör gekauft (AdBlue, Öl, Scheibenwischer …)? Schreib: extra 24,90 oder x Öl 1 9,50 (auch als Bildtext zum Foto). Alle Kommandos: ? oder hilfe.")
+
+    async def simulate_refuel(self, phase: str = "both", delay: int = 30, energy: str | None = None) -> list[str]:
+        """Test für die Meldungen am Handy: schickt dieselben Nachrichten wie bei einem echten Vorgang (Beginn und/oder Abschluss) mit Beispielwerten. Es wird nichts gespeichert und keine Liste verändert;
+        Kanäle, Push-Schalter, Zeitpunkt und Link gelten wie im Betrieb. Rückgabe: was gesendet wurde."""
+        el = (energy == "electric") if energy else self.electric
+        det = self.detector_el if (el and self.detector_el) else self.detector
+        sent: list[str] = []
+        if phase in ("start", "both"):
+            if self._push_at_start(det):
+                await self._say("🧪 " + self.tr("{0}: Tanken bzw. Laden läuft. Fotografiere jetzt die Anzeige an der Säule (Menge und Preis), solange du noch dort bist. Den Beleg kannst du danach schicken.", self.name), quick=True, phase="start", el=el)
+                sent.append("start")
+            else:
+                _LOGGER.info("Simulation (%s): Push am Beginn ist laut Einstellung „Zeitpunkt“ ausgeschaltet", self.name)
+            if phase == "both" and delay > 0:
+                await asyncio.sleep(delay)
+        if phase in ("end", "both"):
+            km = next((x.get("odometer") for x in reversed(self.data["entries"]) if x.get("odometer") is not None), None)
+            sample = {"ts": time.time(), "kind": None, "energy": "electric" if el else None, "station": self.tr("Teststation"), "address": None, "odometer": km, "quantity": 12.5 if el else 40.0,
+                      "quantity_source": "sensor", "unit_price": 0.45 if el else 1.859, "price_source": "sensor", "total": 5.63 if el else 74.36, "note": "", "level_from": 20.0, "level_to": 70.0}
+            await self._say("🧪 " + self._detected_text(sample), quick=True, phase="end", el=el)
+            sent.append("end")
+        return sent
+
+    def _phase_for(self, ch: str, el: bool) -> str | None:
+        """Wann bekommt dieser Kanal die Meldung zum Vorgang? „start“, „end“ oder None (keine). Einstellung je Kanal: auto = Kraftstoff am Beginn, Strom (Laden) am Ende."""
+        mode = self.o.get(CONF_TIMING_ON[ch]) or "auto"
+        if mode == "none":
+            return None
+        if mode == "auto":
+            return "end" if el else "start"
+        return mode
+
+    def _push_at_start(self, det: FuelDetector) -> bool:
+        """Meldung schon beim Beginn des Vorgangs? Ja, wenn mindestens ein Kanal sie am Beginn bekommen soll."""
+        el = self.electric or det is self.detector_el
+        return any(self._phase_for(ch, el) == "start" for ch in self.channels() if self.o.get(CONF_DETECT_ON[ch], True))
+
+    async def _push_started(self, det: FuelDetector) -> None:
+        """Sobald das Tanken oder Laden läuft (Füllstand steigt deutlich): gleich Bescheid geben, solange man noch an der Säule steht. Das Foto der Anzeige, das jetzt kommt, wird beim Abschluss dem Vorgang zugeordnet."""
+        p = det.pending
+        if not p or p.extras.get("started_push") or p.extras.get("receipt"):
+            return
+        p.extras["started_push"] = True
+        self._save()
+        await self._say(self.tr("{0}: Tanken bzw. Laden läuft. Fotografiere jetzt die Anzeige an der Säule (Menge und Preis), solange du noch dort bist. Den Beleg kannst du danach schicken.", self.name), quick=True, phase="start", el=self.electric or det is self.detector_el)
 
     @callback
     def _tick(self, _now) -> None:
@@ -444,7 +495,7 @@ class Vehicle:
         self._notify_entities()
         self.hass.bus.async_fire(f"{DOMAIN}_refuel", {"vehicle": self.name, "entry": entry})
         if not r:
-            await self._say(self._summary(entry, self.tr("Tankvorgang erkannt")) + "\n\n" + self.tr("Bitte schick mir den Beleg (Foto vom Bon oder der Zapfsäule) oder tippe: Menge Betrag, z. B. 45,93 105,13") + "\n" + self.tr("Zubehör gekauft (AdBlue, Öl, Scheibenwischer …)? Schreib: extra 24,90 oder x Öl 1 9,50 (auch als Bildtext zum Foto). Alle Kommandos: ? oder hilfe."))
+            await self._say(self._detected_text(entry), quick=True, phase="end", el=el)   # Push mit Link: Antippen öffnet die Aufnahme
 
     # ---------------------------------------------------------------- Nachrichten
     def pending_answers(self) -> list[str]:
@@ -545,17 +596,18 @@ class Vehicle:
     def channels(self) -> list[str]:
         """Eingerichtete Kanäle dieses Fahrzeugs, WhatsApp zuerst."""
         enabled = get_settings(self.hass).get(CONF_CHANNELS)  # Hauptschalter in den Einstellungen; ohne Angabe sind alle erlaubt
+        on = lambda ch: self.o.get(CONF_CH_ON[ch], True)  # noqa: E731   Schalter je Fahrzeug
         out = []
-        if self.o.get(CONF_WA_PHONE) and (not enabled or "whatsapp" in enabled):
+        if self.o.get(CONF_WA_PHONE) and on("whatsapp") and (not enabled or "whatsapp" in enabled):
             out.append("whatsapp")
-        if self.o.get(CONF_TG_TOKEN) and self.o.get(CONF_TG_CHAT) and (not enabled or "telegram" in enabled):
+        if self.o.get(CONF_TG_TOKEN) and self.o.get(CONF_TG_CHAT) and on("telegram") and (not enabled or "telegram" in enabled):
             out.append("telegram")
-        if self.o.get(CONF_NOTIFY) and (not enabled or "companion" in enabled):
+        if self.o.get(CONF_NOTIFY) and on("companion") and (not enabled or "companion" in enabled):
             out.append("companion")
         return out
 
-    async def send_channel(self, channel: str, text: str) -> tuple[bool, str]:
-        return await chan.send(self.hass, self.name, self.entry.entry_id, self.o, get_settings(self.hass), channel, text)
+    async def send_channel(self, channel: str, text: str, quick: bool = False) -> tuple[bool, str]:
+        return await chan.send(self.hass, self.name, self.entry.entry_id, self.o, get_settings(self.hass), channel, text, quick)
 
     async def test_channel(self, channel: str) -> tuple[bool, str]:
         if channel not in self.channels():
@@ -563,13 +615,17 @@ class Vehicle:
         label = {"whatsapp": "WhatsApp", "telegram": "Telegram", "companion": self.tr("die Companion-App")}[channel]
         return await self.send_channel(channel, self.tr("✅ Testnachricht von Drive Energy Doc ({0}): {1} funktioniert.", self.name, label))
 
-    async def _say(self, text: str) -> None:
+    async def _say(self, text: str, quick: bool = False, phase: str | None = None, el: bool = False) -> None:
         if self._capture is not None:
             self._capture.append(text)
             return
         self._panel("reply", text=text, entry=self.last_entry_id)   # das Panel zeigt dieselbe Meldung wie der Bot im Chat
         for ch in self.channels():
-            await self.send_channel(ch, text)
+            if quick:
+                when = self._phase_for(ch, el)
+                if not self.o.get(CONF_DETECT_ON[ch], True) or when is None or (phase and when != phase):
+                    continue   # Meldung bei erkanntem Tankvorgang und Beleg-Erinnerung ist für diesen Kanal aus oder kommt zu einem anderen Zeitpunkt
+            await self.send_channel(ch, text, quick)
 
     def _summary(self, e: dict, head: str) -> str:
         when = dt_util.as_local(dt_util.utc_from_timestamp(e["ts"])).strftime("%d.%m.%Y %H:%M")
@@ -1096,7 +1152,7 @@ class Vehicle:
             if not e or e.get("receipt") or e.get("quantity"):
                 return
             when = dt_util.as_local(dt_util.utc_from_timestamp(e["ts"])).strftime("%d.%m. %H:%M")
-            await self._say(self.tr("Zum Eintrag vom {0} ({1} km) fehlt noch der Beleg oder das Foto der Zapfsäule. Bitte schick es noch.", when, self._fmt_km(e.get("odometer") or 0)))
+            await self._say(self.tr("Zum Eintrag vom {0} ({1} km) fehlt noch der Beleg oder das Foto der Zapfsäule. Bitte schick es noch.", when, self._fmt_km(e.get("odometer") or 0)), quick=True)
 
         self._unsubs.append(async_call_later(self.hass, delay, _cb))
 
@@ -1193,6 +1249,12 @@ class Vehicle:
                 self._retime(open_e, dt_util.start_of_local_day(d).timestamp() + ((hm[0] * 3600 + hm[1] * 60) if hm else 12 * 3600))
                 self.data["entries"].sort(key=lambda x: x["ts"])
             await self._apply_and_report(open_e, values, photo)
+            return
+        pv = self._pending_for(en)
+        if pv is not None and pv.valid and (not d or d == dt_util.now().date()):   # es wird gerade getankt/geladen (oder gerade fertig): auch ein Beleg von heute gehört zu diesem Vorgang
+            pv.extras["receipt"] = {"values": {k: v for k, v in values.items() if k != "date"}, "photo": photo}
+            self._save()
+            await self._say(self.tr("Beleg vorgemerkt, er wird beim Abschluss des laufenden Tankvorgangs übernommen."))
             return
         if d:
             target = self._entry_on(d, False, en)
@@ -1315,7 +1377,7 @@ class Vehicle:
         if not orig.get("rate"):
             return hint + self.tr("Beleg in {0}, Umrechnung nicht möglich, Werte nicht in Euro! Original: {1}", orig["currency"], original)
         day = dt_util.parse_date(orig["date"]) if orig.get("date") else None
-        eur = f"{orig['total'] / orig['rate']:.2f}".replace(".", dec) if orig.get("total") else "?"
+        eur = f"{receipt.round_half_up(orig['total'] / orig['rate'], 2):.2f}".replace(".", dec) if orig.get("total") else "?"
         return hint + self.tr("Original: {0} → {4} € · Kurs: 1 EUR = {1} {2} (EZB, {3})", original, f(orig["rate"], 4), orig["currency"], day.strftime("%d.%m.%Y") if day else orig.get("date") or "", eur)
 
     async def set_currency(self, entry_id: str, currency: str) -> bool:
@@ -1335,9 +1397,9 @@ class Vehicle:
         new = {"currency": cur, "total": total, "unit_price": price, "rate": rate, "date": day, "assumed": None, "manual": True}
         div = rate or 1.0
         if total:
-            e["total"] = round(total / div, 2)
+            e["total"] = receipt.round_half_up(total / div, 2)
         if price:
-            e["unit_price"], e["price_source"] = round(price / div, 3), "beleg"
+            e["unit_price"], e["price_source"] = receipt.round_half_up(price / div, 3), "beleg"
         if not total and e.get("quantity") and e.get("unit_price"):
             e["total"] = round(e["quantity"] * e["unit_price"], 2)
         note = self.currency_note(new)
@@ -1424,7 +1486,7 @@ class Vehicle:
             if receipt.plausible(ai) or km is not None:
                 box = ai.get("crop")
                 out = {"note": self.currency_note(ai.get("orig")), "found": True, "quantity": ai.get("quantity"), "unit_price": ai.get("unit_price"), "total": ai.get("total"), "odometer": km,
-                       "station": ai.get("station"), "address": ai.get("address"), "ts": when, "receipt": bool(receipt.plausible(ai)), "category": ai.get("category"), "item": ai.get("item"), "fuel_grade": ai.get("fuel_grade")}
+                       "station": ai.get("station"), "address": ai.get("address"), "ts": when, "receipt": bool(receipt.plausible(ai)), "category": ai.get("category"), "item": ai.get("item"), "fuel_grade": ai.get("fuel_grade"), "ai_secs": ai.get("ai_secs")}
         name = receipt.new_photo_name(ai if isinstance(ai, dict) else None, sent, None, self.photo_dir)
         await self.hass.async_add_executor_job(receipt.crop_and_save, image, box, self.photo_dir, name, self.orig_dir)
         out["photo"] = name

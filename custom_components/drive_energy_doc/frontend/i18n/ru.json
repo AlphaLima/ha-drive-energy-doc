@@ -207,5 +207,16 @@
  "Umrechnen": "Пересчитать",
  "Keine Währung erkannt, Land nicht ermittelbar: Werte als Euro angenommen. Bitte Währung prüfen.": "Валюта не распознана, страна неизвестна: значения приняты в евро. Проверьте валюту.",
  "Währung manuell gesetzt: {0}.": "Валюта задана вручную: {0}.",
- "Kraftstoffart": "Вид топлива"
+ "Kraftstoffart": "Вид топлива",
+ "{0}: Tanken bzw. Laden läuft. Fotografiere jetzt die Anzeige an der Säule (Menge und Preis), solange du noch dort bist. Den Beleg kannst du danach schicken.": "{0}: Идёт заправка или зарядка. Сфотографируйте сейчас дисплей колонки (количество и цена), пока вы ещё на месте. Чек можно прислать потом.",
+ "Teststation": "Тестовая станция",
+ "Einheit": "Единица",
+ "Alle": "Все",
+ "Filter": "Фильтр",
+ "Tanken": "Заправка",
+ "Laden": "Зарядка",
+ "Tanken & Laden": "Заправка и зарядка",
+ "Zeilenfarben": "Цвета строк",
+ "an": "включено",
+ "aus": "выключено"
 }

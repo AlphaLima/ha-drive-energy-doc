@@ -205,5 +205,16 @@
  "Umrechnen": "Претвори",
  "Keine Währung erkannt, Land nicht ermittelbar: Werte als Euro angenommen. Bitte Währung prüfen.": "Валута није препозната, држава непозната: вредности су претпостављене у еврима. Проверите валуту.",
  "Währung manuell gesetzt: {0}.": "Валута ручно постављена: {0}.",
- "Kraftstoffart": "Врста горива"
+ "Kraftstoffart": "Врста горива",
+ "{0}: Tanken bzw. Laden läuft. Fotografiere jetzt die Anzeige an der Säule (Menge und Preis), solange du noch dort bist. Den Beleg kannst du danach schicken.": "{0}: Точење горива или пуњење је у току. Сада фотографишите екран пумпе или пуњача (количина и цена) док сте још тамо. Рачун можете послати после.",
+ "Teststation": "Тестна станица",
+ "Einheit": "Јединица",
+ "Alle": "Све",
+ "Filter": "Филтер",
+ "Tanken": "Точење",
+ "Laden": "Пуњење",
+ "Tanken & Laden": "Точење и пуњење",
+ "Zeilenfarben": "Боје редова",
+ "an": "укључено",
+ "aus": "искључено"
 }

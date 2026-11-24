@@ -22,6 +22,12 @@ CONF_PRICE_PROVIDER = "price_provider"  # auto | none | tankerkoenig | econtrol_
 CONF_EL_PRICE = "electric_price"  # Entity oder feste Zahl (EUR/kWh)
 CONF_TG_TOKEN = "telegram_token"
 CONF_TG_CHAT = "telegram_chat_id"
+CONF_PUSH_TIMING = "push_timing"  # auto | start | end: wann die Push-Nachricht kommt (auto: Kraftstoff am Beginn, Strom am Ende des Vorgangs)
+CONF_PUSH_DETECT = "push_detect"  # Push der Companion-App bei erkanntem Tankvorgang und Beleg-Erinnerung (Standard: an)
+CONF_CH_ON = {"companion": "companion_on", "telegram": "telegram_on", "whatsapp": "whatsapp_on"}  # je Fahrzeug: Kanal ein/aus (Standard: an)
+CONF_DETECT_ON = {"companion": "push_detect", "telegram": "telegram_detect", "whatsapp": "whatsapp_detect"}  # je Kanal: Meldung bei erkanntem Tankvorgang / fehlendem Beleg (Standard: an)
+CONF_TIMING_ON = {"companion": "push_timing", "telegram": "telegram_timing", "whatsapp": "whatsapp_timing"}  # je Kanal: Zeitpunkt der Meldung auto|start|end|none
+CONF_QUICK_LINK = "quick_link"    # Push der Companion-App öffnet beim Antippen gleich die Aufnahme (Standard: an)
 CONF_NOTIFY = "notify_service"    # optional, z. B. notify.whatsapp (nur Ausgang)
 CONF_AI_TASK = "ai_task_entity"
 
@@ -43,9 +49,13 @@ CONF_WA_PHONE = "wa_phone"  # je Fahrzeug: Handynummer des Fahrers
 CONF_CHANNELS = "channels"  # companion | telegram | whatsapp
 CONF_IMAGE = "image_entity"  # optional: Fahrzeugbild (image- oder camera-Entität), sonst automatisch vom selben Gerät
 CONF_VEHICLE_TYPE = "vehicle_type"  # Fahrzeugtyp, z. B. „BMW X1 20d“; leer = Modell aus dem Geräteregister
-PLATE_CODES = {'AL': 'AL', 'AD': 'AND', 'AT': 'A', 'BY': 'BY', 'BE': 'B', 'BA': 'BIH', 'BG': 'BG', 'HR': 'HR', 'CY': 'CY', 'CZ': 'CZ', 'DK': 'DK', 'EE': 'EST', 'FI': 'FIN', 'FR': 'F', 'DE': 'D', 'GR': 'GR', 'HU': 'H', 'IS': 'IS', 'IE': 'IRL', 'IT': 'I', 'XK': 'RKS', 'LV': 'LV', 'LI': 'FL', 'LT': 'LT', 'LU': 'L', 'MT': 'M', 'MD': 'MD', 'MC': 'MC', 'ME': 'MNE', 'NL': 'NL', 'MK': 'NMK', 'NO': 'N', 'PL': 'PL', 'PT': 'P', 'RO': 'RO', 'RU': 'RUS', 'SM': 'RSM', 'RS': 'SRB', 'SK': 'SK', 'SI': 'SLO', 'ES': 'E', 'SE': 'S', 'CH': 'CH', 'TR': 'TR', 'UA': 'UA', 'GB': 'UK', 'VA': 'V', 'US': 'USA'}  # ISO-Land -> Kennzeichen-Länderkennung (alle europäischen Länder + USA)
+PLATE_CODES = {'AL': 'AL', 'AD': 'AND', 'AT': 'A', 'BY': 'BY', 'BE': 'B', 'BA': 'BIH', 'BG': 'BG', 'HR': 'HR', 'CY': 'CY', 'CZ': 'CZ', 'DK': 'DK', 'EE': 'EST', 'FI': 'FIN', 'FR': 'F', 'DE': 'D', 'GR': 'GR', 'HU': 'H', 'IS': 'IS', 'IE': 'IRL', 'IT': 'I', 'XK': 'RKS', 'LV': 'LV', 'LI': 'FL', 'LT': 'LT', 'LU': 'L', 'MT': 'M', 'MD': 'MD', 'MC': 'MC', 'ME': 'MNE', 'NL': 'NL', 'MK': 'NMK', 'NO': 'N', 'PL': 'PL', 'PT': 'P', 'RO': 'RO', 'RU': 'RUS', 'SM': 'RSM', 'RS': 'SRB', 'SK': 'SK', 'SI': 'SLO', 'ES': 'E', 'SE': 'S', 'CH': 'CH', 'TR': 'TR', 'UA': 'UA', 'GB': 'GB', 'VA': 'V', 'US': 'USA'}  # ISO-Land -> Kennzeichen-Länderkennung (alle europäischen Länder + USA)
+from .plate import WORLD_CODES, WORLD_NAMES  # noqa: E402
+
+PLATE_CODES.update(WORLD_CODES)   # Länder außerhalb Europas (siehe plate.py)
 PLATE_COUNTRIES = list(PLATE_CODES)
 PLATE_NAMES = {'AL': 'Albanien', 'AD': 'Andorra', 'AT': 'Österreich', 'BY': 'Belarus', 'BE': 'Belgien', 'BA': 'Bosnien und Herzegowina', 'BG': 'Bulgarien', 'HR': 'Kroatien', 'CY': 'Zypern', 'CZ': 'Tschechien', 'DK': 'Dänemark', 'EE': 'Estland', 'FI': 'Finnland', 'FR': 'Frankreich', 'DE': 'Deutschland', 'GR': 'Griechenland', 'HU': 'Ungarn', 'IS': 'Island', 'IE': 'Irland', 'IT': 'Italien', 'XK': 'Kosovo', 'LV': 'Lettland', 'LI': 'Liechtenstein', 'LT': 'Litauen', 'LU': 'Luxemburg', 'MT': 'Malta', 'MD': 'Moldau', 'MC': 'Monaco', 'ME': 'Montenegro', 'NL': 'Niederlande', 'MK': 'Nordmazedonien', 'NO': 'Norwegen', 'PL': 'Polen', 'PT': 'Portugal', 'RO': 'Rumänien', 'RU': 'Russland', 'SM': 'San Marino', 'RS': 'Serbien', 'SK': 'Slowakei', 'SI': 'Slowenien', 'ES': 'Spanien', 'SE': 'Schweden', 'CH': 'Schweiz', 'TR': 'Türkei', 'UA': 'Ukraine', 'GB': 'Vereinigtes Königreich', 'VA': 'Vatikanstadt', 'US': 'USA'}  # deutsche Ländernamen für den Kennzeichen-Dialog im Panel
+PLATE_NAMES.update(WORLD_NAMES)   # Länder außerhalb Europas
 CONF_PLATE_COUNTRY = "plate_country"  # Land des Kennzeichens (Darstellung), Standard: Land der HA-Installation
 CONF_IMAGE_FILE = "image_file"  # hochgeladenes Fahrzeugbild (Dateiname in config/drive_energy_doc/images)
 CONF_PLATE = "license_plate"  # Kennzeichen, optional

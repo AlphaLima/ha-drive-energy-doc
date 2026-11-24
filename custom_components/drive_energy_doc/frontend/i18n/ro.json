@@ -205,5 +205,16 @@
  "Umrechnen": "Convertește",
  "Keine Währung erkannt, Land nicht ermittelbar: Werte als Euro angenommen. Bitte Währung prüfen.": "Moneda nu a fost recunoscută, țara este necunoscută: valorile sunt presupuse în euro. Verificați moneda.",
  "Währung manuell gesetzt: {0}.": "Moneda setată manual: {0}.",
- "Kraftstoffart": "Tipul de combustibil"
+ "Kraftstoffart": "Tipul de combustibil",
+ "{0}: Tanken bzw. Laden läuft. Fotografiere jetzt die Anzeige an der Säule (Menge und Preis), solange du noch dort bist. Den Beleg kannst du danach schicken.": "{0}: Alimentare sau încărcare în curs. Fotografiați acum afișajul stației (cantitate și preț) cât timp sunteți încă acolo. Bonul îl puteți trimite după aceea.",
+ "Teststation": "Stație de test",
+ "Einheit": "Unitate",
+ "Alle": "Toate",
+ "Filter": "Filtru",
+ "Tanken": "Alimentare",
+ "Laden": "Încărcare",
+ "Tanken & Laden": "Alimentare și încărcare",
+ "Zeilenfarben": "Culorile rândurilor",
+ "an": "pornit",
+ "aus": "oprit"
 }

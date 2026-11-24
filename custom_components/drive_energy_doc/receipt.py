@@ -225,7 +225,7 @@ async def country_at(hass, lat: float, lon: float) -> str | None:
     try:
         r = await async_get_clientsession(hass).get(
             "https://nominatim.openstreetmap.org/reverse", params={"format": "jsonv2", "lat": key[0], "lon": key[1], "zoom": 3, "addressdetails": 1},
-            headers={"User-Agent": "drive-energy-doc-homeassistant"}, timeout=aiohttp.ClientTimeout(total=10))
+            headers={"User-Agent": "drive-energy-doc-homeassistant"}, timeout=aiohttp.ClientTimeout(total=4))
         if r.status == 200:
             cc = str(((await r.json()).get("address") or {}).get("country_code") or "").upper() or None
     except (aiohttp.ClientError, TimeoutError, ValueError) as err:
@@ -265,6 +265,13 @@ def exif_gps(image: bytes) -> tuple[float, float] | None:
         return None
 
 
+def round_half_up(x: float, digits: int = 2) -> float:
+    """Kaufmännisch runden (0,125 -> 0,13); Pythons round() rundet wegen der Binärdarstellung gelegentlich ab."""
+    from decimal import ROUND_HALF_UP, Decimal
+
+    return float(Decimal(str(x)).quantize(Decimal(1).scaleb(-digits), rounding=ROUND_HALF_UP))
+
+
 async def convert_to_eur(hass, out: dict[str, Any], pos: tuple[float, float] | None = None, exif: tuple[float, float] | None = None) -> None:
     """Betrag und Preis eines Belegs in Fremdwährung zum Tageskurs des Belegdatums in Euro umrechnen. Die Originalwerte stehen danach in ``out["orig"]`` (für die Notiz)."""
     cur = str(out.get("currency") or "").strip().upper().replace("€", "EUR").replace("£", "GBP")   # „eur“, „€“ usw. nicht als Fremdwährung behandeln
@@ -293,9 +300,10 @@ async def convert_to_eur(hass, out: dict[str, Any], pos: tuple[float, float] | N
         return   # nicht umgerechnet: die Notiz weist darauf hin
     rate, day = got
     orig["rate"], orig["date"] = rate, day
-    for k in ("total", "unit_price"):
-        if out.get(k):
-            out[k] = out[k] / rate
+    if out.get("total"):
+        out["total"] = round_half_up(out["total"] / rate, 2)   # Betrag in Euro und Cent
+    if out.get("unit_price"):
+        out["unit_price"] = round_half_up(out["unit_price"] / rate, 3)   # Preis je Liter/kWh wie an der Säule auf drei Stellen
 
 
 FUEL_GRADES = ("diesel", "diesel_premium", "e10", "e5", "ron95", "ron98", "lpg")   # Kraftstoffsorten eines Tankeintrags
@@ -344,12 +352,25 @@ async def ai_read(hass, entity_id: str, image: bytes, media_dir: Path, pos: tupl
 
     def _write() -> None:
         folder.mkdir(parents=True, exist_ok=True)
-        (folder / name).write_bytes(image)
+        data = image
+        try:   # lange Seite höchstens 1568 px: genug für Belegtext, weniger Daten und Tokens (schneller)
+            from PIL import Image
+
+            img = Image.open(io.BytesIO(image))
+            if max(img.size) > 1568:
+                img.thumbnail((1568, 1568))
+                buf = io.BytesIO()
+                img.convert("RGB").save(buf, "JPEG", quality=85)
+                data = buf.getvalue()
+        except Exception:  # noqa: BLE001 - dann das Original senden
+            data = image
+        (folder / name).write_bytes(data)
 
     await hass.async_add_executor_job(_write)
+    t_ai = time.monotonic()
     resp = None
     try:
-        for attempt, wait in enumerate((5, 12, 25, None)):   # Die KI-Anbieter melden Überlastung mit 503 (Gemini) bzw. 529 (Claude): ein paar Mal mit Pause wiederholen
+        for attempt, wait in enumerate((4, 10, None)):   # Die KI-Anbieter melden Überlastung mit 503 (Gemini) bzw. 529 (Claude): ein paar Mal mit Pause wiederholen
             try:
                 resp = await asyncio.wait_for(
                     hass.services.async_call(
@@ -365,7 +386,7 @@ async def ai_read(hass, entity_id: str, image: bytes, media_dir: Path, pos: tupl
                         blocking=True,
                         return_response=True,
                     ),
-                    timeout=120,
+                    timeout=75,   # Gemini braucht bei Fotos meist 5 bis 30 s; was länger dauert, hängt in der Regel
                 )
                 break
             except Exception as err:  # noqa: BLE001 - KI-Fehler dürfen nie den Ablauf stoppen
@@ -378,6 +399,8 @@ async def ai_read(hass, entity_id: str, image: bytes, media_dir: Path, pos: tupl
                 await asyncio.sleep(wait)
     finally:
         await hass.async_add_executor_job(lambda: (folder / name).unlink(missing_ok=True))
+    ai_secs = round(time.monotonic() - t_ai, 1)
+    _LOGGER.info("Beleg-KI: Antwort nach %.1f s (%s, Bild %d KB)", ai_secs, entity_id, len(image) // 1024)
     data = (resp or {}).get("data") or {}
 
     def num(key: str) -> float | None:
@@ -387,7 +410,7 @@ async def ai_read(hass, entity_id: str, image: bytes, media_dir: Path, pos: tupl
         except (TypeError, ValueError):
             return None
 
-    out = {"quantity": num("quantity"), "unit_price": num("unit_price"), "total": num("total"), "odometer": num("odometer"), "date": parse_date_hint(str(data.get("date") or "")), "time": parse_time(str(data.get("time") or "")), "currency": (re.sub(r"[^A-Z]", "", str(data.get("currency") or "").upper())[:3] or None), "category": (lambda c: c if c in ("fuel", "charging", "adblue", "oil", "washer", "carwash", "other") else None)(re.sub(r"[^a-z]", "", str(data.get("category") or "").lower())), "fuel_grade": (lambda c: c if c in FUEL_GRADES else None)(re.sub(r"[^a-z0-9_]", "", str(data.get("fuel_grade") or "").lower())), "item": clean_text(data.get("item"), 60), "station": clean_text(data.get("station"), 60), "address": clean_text(data.get("address"), 120), "crop": None}
+    out = {"quantity": num("quantity"), "unit_price": num("unit_price"), "total": num("total"), "odometer": num("odometer"), "date": parse_date_hint(str(data.get("date") or "")), "time": parse_time(str(data.get("time") or "")), "currency": (re.sub(r"[^A-Z]", "", str(data.get("currency") or "").upper())[:3] or None), "category": (lambda c: c if c in ("fuel", "charging", "adblue", "oil", "washer", "carwash", "other") else None)(re.sub(r"[^a-z]", "", str(data.get("category") or "").lower())), "ai_secs": ai_secs, "fuel_grade": (lambda c: c if c in FUEL_GRADES else None)(re.sub(r"[^a-z0-9_]", "", str(data.get("fuel_grade") or "").lower())), "item": clean_text(data.get("item"), 60), "station": clean_text(data.get("station"), 60), "address": clean_text(data.get("address"), 120), "crop": None}
     box = [int(float(x)) for x in re.findall(r"\d+(?:\.\d+)?", str(data.get("crop") or ""))]
     if len(box) == 4 and box[2] > box[0] and box[3] > box[1] and all(0 <= b <= 1000 for b in box):
         out["crop"] = box

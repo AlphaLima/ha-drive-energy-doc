@@ -205,5 +205,16 @@
  "Umrechnen": "Prepočítať",
  "Keine Währung erkannt, Land nicht ermittelbar: Werte als Euro angenommen. Bitte Währung prüfen.": "Mena nebola rozpoznaná, krajina neznáma: hodnoty považované za eurá. Skontrolujte menu.",
  "Währung manuell gesetzt: {0}.": "Mena nastavená ručne: {0}.",
- "Kraftstoffart": "Druh paliva"
+ "Kraftstoffart": "Druh paliva",
+ "{0}: Tanken bzw. Laden läuft. Fotografiere jetzt die Anzeige an der Säule (Menge und Preis), solange du noch dort bist. Den Beleg kannst du danach schicken.": "{0}: Prebieha tankovanie alebo nabíjanie. Odfoťte teraz displej stojana alebo nabíjačky (množstvo a cena), kým ste na mieste. Doklad môžete poslať potom.",
+ "Teststation": "Testovacia stanica",
+ "Einheit": "Jednotka",
+ "Alle": "Všetko",
+ "Filter": "Filter",
+ "Tanken": "Tankovanie",
+ "Laden": "Nabíjanie",
+ "Tanken & Laden": "Tankovanie a nabíjanie",
+ "Zeilenfarben": "Farby riadkov",
+ "an": "zapnuté",
+ "aus": "vypnuté"
 }

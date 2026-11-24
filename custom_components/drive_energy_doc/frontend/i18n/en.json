@@ -205,5 +205,16 @@
  "Umrechnen": "Convert",
  "Keine Währung erkannt, Land nicht ermittelbar: Werte als Euro angenommen. Bitte Währung prüfen.": "No currency recognised, country unknown: values assumed to be euros. Please check the currency.",
  "Währung manuell gesetzt: {0}.": "Currency set manually: {0}.",
- "Kraftstoffart": "Fuel type"
+ "Kraftstoffart": "Fuel type",
+ "{0}: Tanken bzw. Laden läuft. Fotografiere jetzt die Anzeige an der Säule (Menge und Preis), solange du noch dort bist. Den Beleg kannst du danach schicken.": "{0}: Refuelling or charging in progress. Take a photo of the pump or charger display now (quantity and price) while you are still there. You can send the receipt afterwards.",
+ "Teststation": "Test station",
+ "Einheit": "Unit",
+ "Alle": "All",
+ "Filter": "Filter",
+ "Tanken": "Refuelling",
+ "Laden": "Charging",
+ "Tanken & Laden": "Refuelling & charging",
+ "Zeilenfarben": "Row colours",
+ "an": "on",
+ "aus": "off"
 }

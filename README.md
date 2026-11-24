@@ -80,7 +80,7 @@ The effort is kept as small as possible: the car reports the refuelling by itsel
 | Way | What you do | What happens automatically |
 |---|---|---|
 | **1. Automatic (sensors)** | nothing | Level rises, refuelling is detected; quantity, place, odometer and (if available) price are recorded |
-| **2. Receipt photo via Telegram / WhatsApp / Companion** | photograph the receipt or pump and send it to the bot | AI reads quantity/price/total/date, the photo is cropped and stored with the entry, receipt values replace the estimated ones |
+| **2. Receipt photo via Companion / Telegram / WhatsApp** | photograph the receipt or pump and send it to the bot | AI reads quantity/price/total/date, the photo is cropped and stored with the entry, receipt values replace the estimated ones |
 | **3. Receipt as text** | write `45,93 105,13` or `27.10. 45,93 105,13` | values are assigned to the matching refuelling (no AI) |
 | **4. Accessories** | `+ 24,90`, `extra Öl 1 9,50`, short word `adblue`, or a photo with a caption | own entry, counts towards costs, not towards consumption |
 | **5. Odometer photo / `km 54210`** | photograph the odometer or send text | mileage is assigned to the refuelling that fits in time; the bot asks if in doubt |
@@ -110,7 +110,7 @@ Car sensors (level %, odometer, GPS)
         │
         ├─► look up the price (fuel price service, optional)
         ├─► create the log entry (time, quantity, price, cost, odometer, place)
-        └─► message via Telegram/WhatsApp/Companion app: "Refuelling detected – send the receipt if you like"
+        └─► message via Companion app/Telegram/WhatsApp: "Refuelling detected – send the receipt if you like"
                    │
                    ▼
         Photo of receipt / pump / text  ─►  AI reads quantity, price, total, date
@@ -190,7 +190,7 @@ function in `price.py` plus an entry in `PROVIDERS` and `BY_COUNTRY`.
 
 ## Receipt, accessories and odometer by message
 
-Messages run via **Telegram** (own bot, recommended), **WhatsApp** (Meta Cloud API) or the **Companion app** (push message; photo upload then in the panel). Per vehicle you choose which channels are used. With `?`, `h`, `help` or `hilfe` (also `/help`, `/start`) the bot lists all commands. Replies and keywords work in many languages (see *Languages*).
+Messages run via the **Companion app with the panel** (**the easiest way and our recommendation to start**: no account, token or chat ID needed; you take the photo with the camera in the panel and the push message reaches your phone; nothing leaves your home network), via **Telegram** (own bot; for sending straight from the messenger and answering questions as a chat) or via **WhatsApp** (Meta Cloud API). Per vehicle you choose which channels are used. With `?`, `h`, `help` or `hilfe` (also `/help`, `/start`) the bot lists all commands. Replies and keywords work in many languages (see *Languages*).
 
 ### Receipt for refuelling
 - Send a **photo** of the receipt or the pump. The AI reads quantity, price, total, date and, if visible, the mileage. The photo is **cropped to the receipt** (the AI gives the frame; without an AI answer a simple detection of tall, bright paper receipts takes over). The original is kept and can be viewed in the panel.
@@ -267,11 +267,11 @@ The print (button "Print" in the panel) produces a list of all entries and, if w
 <table>
 <tr>
 <td align="center"><img src="docs/beispiel-ausdruck-liste.png" alt="Example printout: list" width="360"><br><sub>Page 1: the list</sub></td>
-<td align="center"><img src="docs/beispiel-ausdruck-belege.png" alt="Example printout: receipts" width="360"><br><sub>Page 2: receipt and odometer photos per entry</sub></td>
+<td align="center"><img src="docs/beispiel-ausdruck-belege.png" alt="Example printout: receipts" width="360"><br><sub>Page 3: receipt and odometer photos per entry</sub></td>
 </tr>
 </table>
 
-The complete example (7 pages) as PDF: [docs/beispiel-ausdruck.pdf](docs/beispiel-ausdruck.pdf).
+The complete example (15 pages) as PDF: [docs/beispiel-ausdruck.pdf](docs/beispiel-ausdruck.pdf).
 
 ## Sensors, event and services
 

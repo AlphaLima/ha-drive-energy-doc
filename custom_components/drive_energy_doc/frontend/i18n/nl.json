@@ -205,5 +205,16 @@
  "Umrechnen": "Omrekenen",
  "Keine Währung erkannt, Land nicht ermittelbar: Werte als Euro angenommen. Bitte Währung prüfen.": "Geen valuta herkend, land onbekend: waarden als euro aangenomen. Controleer de valuta.",
  "Währung manuell gesetzt: {0}.": "Valuta handmatig ingesteld: {0}.",
- "Kraftstoffart": "Brandstofsoort"
+ "Kraftstoffart": "Brandstofsoort",
+ "{0}: Tanken bzw. Laden läuft. Fotografiere jetzt die Anzeige an der Säule (Menge und Preis), solange du noch dort bist. Den Beleg kannst du danach schicken.": "{0}: Tanken of laden bezig. Maak nu een foto van het display van de pomp of lader (hoeveelheid en prijs) zolang je er nog bent. De bon kun je daarna sturen.",
+ "Teststation": "Teststation",
+ "Einheit": "Eenheid",
+ "Alle": "Alle",
+ "Filter": "Filter",
+ "Tanken": "Tanken",
+ "Laden": "Laden",
+ "Tanken & Laden": "Tanken & laden",
+ "Zeilenfarben": "Rijkleuren",
+ "an": "aan",
+ "aus": "uit"
 }

@@ -205,5 +205,16 @@
  "Umrechnen": "Pārrēķināt",
  "Keine Währung erkannt, Land nicht ermittelbar: Werte als Euro angenommen. Bitte Währung prüfen.": "Valūta nav atpazīta, valsts nav zināma: vērtības pieņemtas eiro. Pārbaudiet valūtu.",
  "Währung manuell gesetzt: {0}.": "Valūta iestatīta manuāli: {0}.",
- "Kraftstoffart": "Degvielas veids"
+ "Kraftstoffart": "Degvielas veids",
+ "{0}: Tanken bzw. Laden läuft. Fotografiere jetzt die Anzeige an der Säule (Menge und Preis), solange du noch dort bist. Den Beleg kannst du danach schicken.": "{0}: Notiek uzpilde vai uzlāde. Nofotografējiet tagad degvielas kolonnas vai lādētāja displeju (daudzums un cena), kamēr vēl esat uz vietas. Čeku varat nosūtīt vēlāk.",
+ "Teststation": "Testa stacija",
+ "Einheit": "Vienība",
+ "Alle": "Visi",
+ "Filter": "Filtrs",
+ "Tanken": "Uzpilde",
+ "Laden": "Uzlāde",
+ "Tanken & Laden": "Uzpilde un uzlāde",
+ "Zeilenfarben": "Rindu krāsas",
+ "an": "ieslēgts",
+ "aus": "izslēgts"
 }

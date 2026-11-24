@@ -32,61 +32,45 @@
       },
       "vehicle": {
         "title": "Fahrzeug hinzufügen",
-        "description": "{plate_preview}\n\n{image_preview}\n\nWähle das Land des Kennzeichens. Nach „OK“ siehst du das Schild mit dem gewählten Land gezeichnet, bevor etwas gespeichert wird.",
-        "data": {
-          "name": "Name",
-          "energy": "Kraftstoff / Antrieb",
-          "phev": "Plug-in-Hybrid (Kraftstoff und Strom in einer Liste; nächster Schritt: Akku-Sensor)",
-          "level_entity": "Tankinhalt / Ladestand (%, optional)",
-          "odometer_entity": "Kilometerstand (optional)",
-          "tracker_entity": "GPS-Position (device_tracker, optional)",
-          "capacity": "Tankgröße / Akkukapazität (l / kWh)",
-          "image_entity": "Fahrzeugbild (optional, sonst automatisch)",
-          "license_plate": "Kennzeichen (optional)",
-          "vehicle_type": "Fahrzeugtyp (z. B. BMW X1 20d, optional)",
-          "language": "Sprache der Bot-Antworten (leer = Sprache von Home Assistant)",
-          "image_upload": "Fahrzeugbild hochladen (alternativ zur Bild-Entität, hat Vorrang)",
-          "image_remove": "Hochgeladenes Bild entfernen",
-          "plate_country": "Land des Kennzeichens"
+        "description": "{plate_preview}\n\n{image_preview}\n\nNach „OK“ siehst du das Kennzeichen gezeichnet, bevor etwas gespeichert wird.",
+        "sections": {
+          "vehicle": {
+            "name": "Fahrzeug",
+            "data": {
+              "name": "Name",
+              "energy": "Antrieb",
+              "phev": "Plug-in-Hybrid (Auto tankt und lädt am Stecker)",
+              "capacity": "Tank / Akku (l / kWh)"
+            }
+          },
+          "sensors": {
+            "name": "Sensoren (optional, für die automatische Erkennung)",
+            "data": {
+              "level_entity": "Tankinhalt / Ladestand (%)",
+              "odometer_entity": "Kilometerstand",
+              "tracker_entity": "GPS-Position (device_tracker)"
+            }
+          },
+          "look": {
+            "name": "Aussehen und Sprache",
+            "data": {
+              "license_plate": "Kennzeichen",
+              "plate_country": "Land des Kennzeichens",
+              "vehicle_type": "Fahrzeugtyp (z. B. BMW X1 20d)",
+              "language": "Sprache der Bot-Antworten (leer = wie HA)",
+              "image_entity": "Fahrzeugbild (Entität)",
+              "image_upload": "Fahrzeugbild hochladen (Vorrang)",
+              "image_remove": "Hochgeladenes Bild entfernen"
+            }
+          }
         }
       },
       "phev": {
         "title": "Plug-in-Hybrid",
-        "description": "Optional: Ladestand des Akkus (%), damit das Laden automatisch erkannt wird, und die Akkugröße in kWh. Ohne Sensor wird das Laden per Beleg, Foto oder von Hand erfasst.",
+        "description": "Nur für Plug-in-Hybride: Ladestand des Akkus (%) damit das Laden erkannt wird, und die Akkugröße in kWh. Beides ist optional, ohne Sensor erfasst du das Laden per Beleg, Foto oder von Hand.",
         "data": {
           "level_entity_electric": "Akku-Ladestand (%, optional)",
           "capacity_electric": "Akkugröße (kWh)"
-        }
-      },
-      "messaging": {
-        "title": "Kommunikation für dieses Fahrzeug",
-        "description": "Gruppiert nach Kanal. Mit „Testnachricht senden“ prüfst du einen Kanal sofort mit den eingegebenen Werten, noch bevor etwas gespeichert wird. Nur die Kanäle, die du in den Einstellungen gewählt hast.",
-        "sections": {
-          "whatsapp": {
-            "name": "WhatsApp",
-            "description": "Nummer des Fahrers. Die Zugangsdaten stehen in den Einstellungen.",
-            "data": {
-              "wa_phone": "Handynummer des Fahrers (mit Landesvorwahl, z. B. 491701234567)",
-              "test": "Testnachricht senden"
-            }
-          },
-          "telegram": {
-            "name": "Telegram",
-            "description": "Eigener Bot oder eigener Chat je Fahrzeug.",
-            "data": {
-              "telegram_token": "Bot-Token",
-              "telegram_chat_id": "Deine Chat-ID (nicht die des Bots: schreib dem Bot /start, er nennt sie dir)",
-              "test": "Testnachricht senden"
-            }
-          },
-          "companion": {
-            "name": "Companion-App",
-            "description": "Push-Nachricht aufs Handy, ein Tipp öffnet das Panel.",
-            "data": {
-              "notify_service": "Benachrichtigungsdienst (notify.mobile_app_…)",
-              "test": "Testnachricht senden"
-            }
-          }
         }
       },
       "plate_preview": {
@@ -103,6 +87,41 @@
           "msg_save": "Speichern",
           "msg_again": "Nochmal senden",
           "msg_back": "Zurück zum Formular"
+        }
+      },
+      "messaging_companion": {
+        "title": "Companion-App",
+        "description": "Push-Nachricht aufs Handy, ein Tipp öffnet das Panel.",
+        "data": {
+          "companion_on": "Kanal für dieses Fahrzeug aktiv",
+          "notify_service": "Benachrichtigungsdienst (notify.mobile_app_…)",
+          "push_detect": "Push bei erkanntem Tankvorgang und fehlendem Beleg",
+          "push_timing": "Zeitpunkt der Meldung",
+          "quick_link": "Push-Link: Antippen öffnet gleich die Aufnahme (Kamera)",
+          "test": "Testnachricht senden"
+        }
+      },
+      "messaging_telegram": {
+        "title": "Telegram",
+        "description": "Eigener Bot oder eigener Chat je Fahrzeug.",
+        "data": {
+          "telegram_on": "Kanal für dieses Fahrzeug aktiv",
+          "telegram_token": "Bot-Token",
+          "telegram_chat_id": "Deine Chat-ID (nicht die des Bots: schreib dem Bot /start, er nennt sie dir)",
+          "telegram_detect": "Meldung bei erkanntem Tankvorgang und fehlendem Beleg",
+          "telegram_timing": "Zeitpunkt der Meldung",
+          "test": "Testnachricht senden"
+        }
+      },
+      "messaging_whatsapp": {
+        "title": "WhatsApp",
+        "description": "Nummer des Fahrers. Die Zugangsdaten stehen in den Einstellungen.",
+        "data": {
+          "whatsapp_on": "Kanal für dieses Fahrzeug aktiv",
+          "wa_phone": "Handynummer des Fahrers (mit Landesvorwahl, z. B. 491701234567)",
+          "whatsapp_detect": "Meldung bei erkanntem Tankvorgang und fehlendem Beleg",
+          "whatsapp_timing": "Zeitpunkt der Meldung",
+          "test": "Testnachricht senden"
         }
       }
     },
@@ -123,7 +142,9 @@
           "price_key": "Tankerkönig-Schlüssel",
           "whatsapp": "WhatsApp-Zugang",
           "basic": "Fahrzeugdaten",
-          "messaging": "Kommunikation",
+          "messaging_companion": "Companion-App (Push)",
+          "messaging_telegram": "Telegram",
+          "messaging_whatsapp": "WhatsApp",
           "thresholds": "Tankerkennung (Feintuning)"
         }
       },
@@ -158,61 +179,45 @@
       },
       "basic": {
         "title": "Fahrzeugdaten",
-        "description": "{plate_preview}\n\n{image_preview}\n\nWähle das Land des Kennzeichens. Nach „OK“ siehst du das Schild mit dem gewählten Land gezeichnet, bevor etwas gespeichert wird.",
-        "data": {
-          "name": "Name",
-          "energy": "Kraftstoff / Antrieb",
-          "phev": "Plug-in-Hybrid (Kraftstoff und Strom in einer Liste; nächster Schritt: Akku-Sensor)",
-          "level_entity": "Tankinhalt / Ladestand (%, optional)",
-          "odometer_entity": "Kilometerstand (optional)",
-          "tracker_entity": "GPS-Position (device_tracker, optional)",
-          "capacity": "Tankgröße / Akkukapazität (l / kWh)",
-          "image_entity": "Fahrzeugbild (optional, sonst automatisch)",
-          "license_plate": "Kennzeichen (optional)",
-          "vehicle_type": "Fahrzeugtyp (z. B. BMW X1 20d, optional)",
-          "language": "Sprache der Bot-Antworten (leer = Sprache von Home Assistant)",
-          "image_upload": "Fahrzeugbild hochladen (alternativ zur Bild-Entität, hat Vorrang)",
-          "image_remove": "Hochgeladenes Bild entfernen",
-          "plate_country": "Land des Kennzeichens"
+        "description": "{plate_preview}\n\n{image_preview}\n\nNach „OK“ siehst du das Kennzeichen gezeichnet, bevor etwas gespeichert wird.",
+        "sections": {
+          "vehicle": {
+            "name": "Fahrzeug",
+            "data": {
+              "name": "Name",
+              "energy": "Antrieb",
+              "phev": "Plug-in-Hybrid (Auto tankt und lädt am Stecker)",
+              "capacity": "Tank / Akku (l / kWh)"
+            }
+          },
+          "sensors": {
+            "name": "Sensoren (optional, für die automatische Erkennung)",
+            "data": {
+              "level_entity": "Tankinhalt / Ladestand (%)",
+              "odometer_entity": "Kilometerstand",
+              "tracker_entity": "GPS-Position (device_tracker)"
+            }
+          },
+          "look": {
+            "name": "Aussehen und Sprache",
+            "data": {
+              "license_plate": "Kennzeichen",
+              "plate_country": "Land des Kennzeichens",
+              "vehicle_type": "Fahrzeugtyp (z. B. BMW X1 20d)",
+              "language": "Sprache der Bot-Antworten (leer = wie HA)",
+              "image_entity": "Fahrzeugbild (Entität)",
+              "image_upload": "Fahrzeugbild hochladen (Vorrang)",
+              "image_remove": "Hochgeladenes Bild entfernen"
+            }
+          }
         }
       },
       "phev": {
         "title": "Plug-in-Hybrid",
-        "description": "Optional: Ladestand des Akkus (%), damit das Laden automatisch erkannt wird, und die Akkugröße in kWh. Ohne Sensor wird das Laden per Beleg, Foto oder von Hand erfasst.",
+        "description": "Nur für Plug-in-Hybride: Ladestand des Akkus (%) damit das Laden erkannt wird, und die Akkugröße in kWh. Beides ist optional, ohne Sensor erfasst du das Laden per Beleg, Foto oder von Hand.",
         "data": {
           "level_entity_electric": "Akku-Ladestand (%, optional)",
           "capacity_electric": "Akkugröße (kWh)"
-        }
-      },
-      "messaging": {
-        "title": "Kommunikation für dieses Fahrzeug",
-        "description": "Gruppiert nach Kanal. Mit „Testnachricht senden“ prüfst du einen Kanal sofort mit den eingegebenen Werten, noch bevor etwas gespeichert wird. Nur die Kanäle, die du in den Einstellungen gewählt hast.",
-        "sections": {
-          "whatsapp": {
-            "name": "WhatsApp",
-            "description": "Nummer des Fahrers. Die Zugangsdaten stehen in den Einstellungen.",
-            "data": {
-              "wa_phone": "Handynummer des Fahrers (mit Landesvorwahl, z. B. 491701234567)",
-              "test": "Testnachricht senden"
-            }
-          },
-          "telegram": {
-            "name": "Telegram",
-            "description": "Eigener Bot oder eigener Chat je Fahrzeug.",
-            "data": {
-              "telegram_token": "Bot-Token",
-              "telegram_chat_id": "Deine Chat-ID (nicht die des Bots: schreib dem Bot /start, er nennt sie dir)",
-              "test": "Testnachricht senden"
-            }
-          },
-          "companion": {
-            "name": "Companion-App",
-            "description": "Push-Nachricht aufs Handy, ein Tipp öffnet das Panel.",
-            "data": {
-              "notify_service": "Benachrichtigungsdienst (notify.mobile_app_…)",
-              "test": "Testnachricht senden"
-            }
-          }
         }
       },
       "thresholds": {
@@ -240,6 +245,41 @@
           "msg_again": "Nochmal senden",
           "msg_back": "Zurück zum Formular"
         }
+      },
+      "messaging_companion": {
+        "title": "Companion-App",
+        "description": "Push-Nachricht aufs Handy, ein Tipp öffnet das Panel.",
+        "data": {
+          "companion_on": "Kanal für dieses Fahrzeug aktiv",
+          "notify_service": "Benachrichtigungsdienst (notify.mobile_app_…)",
+          "push_detect": "Push bei erkanntem Tankvorgang und fehlendem Beleg",
+          "push_timing": "Zeitpunkt der Meldung",
+          "quick_link": "Push-Link: Antippen öffnet gleich die Aufnahme (Kamera)",
+          "test": "Testnachricht senden"
+        }
+      },
+      "messaging_telegram": {
+        "title": "Telegram",
+        "description": "Eigener Bot oder eigener Chat je Fahrzeug.",
+        "data": {
+          "telegram_on": "Kanal für dieses Fahrzeug aktiv",
+          "telegram_token": "Bot-Token",
+          "telegram_chat_id": "Deine Chat-ID (nicht die des Bots: schreib dem Bot /start, er nennt sie dir)",
+          "telegram_detect": "Meldung bei erkanntem Tankvorgang und fehlendem Beleg",
+          "telegram_timing": "Zeitpunkt der Meldung",
+          "test": "Testnachricht senden"
+        }
+      },
+      "messaging_whatsapp": {
+        "title": "WhatsApp",
+        "description": "Nummer des Fahrers. Die Zugangsdaten stehen in den Einstellungen.",
+        "data": {
+          "whatsapp_on": "Kanal für dieses Fahrzeug aktiv",
+          "wa_phone": "Handynummer des Fahrers (mit Landesvorwahl, z. B. 491701234567)",
+          "whatsapp_detect": "Meldung bei erkanntem Tankvorgang und fehlendem Beleg",
+          "whatsapp_timing": "Zeitpunkt der Meldung",
+          "test": "Testnachricht senden"
+        }
       }
     },
     "error": {
@@ -257,6 +297,14 @@
         "companion": "Companion-App (Push, Foto im Drive-Energy-Doc-Panel)",
         "telegram": "Telegram",
         "whatsapp": "WhatsApp"
+      }
+    },
+    "push_timing": {
+      "options": {
+        "auto": "Automatisch (Kraftstoff: am Anfang, Strom: am Ende)",
+        "start": "Am Anfang des Tankens bzw. Ladens",
+        "end": "Am Ende des Tankens bzw. Ladens",
+        "none": "Keine Benachrichtigung"
       }
     },
     "provider": {
@@ -312,6 +360,14 @@
       },
       "cost_12m": {
         "name": "Kosten 12 Monate"
+      }
+    },
+    "button": {
+      "simulate_refuel": {
+        "name": "Tankvorgang simulieren"
+      },
+      "simulate_charge": {
+        "name": "Ladevorgang simulieren"
       }
     }
   }

@@ -11,7 +11,7 @@ stats = importlib.import_module("drive_energy_doc.stats")
 src = ast.parse((pkg_dir / "vehicle.py").read_text(encoding="utf-8"))
 cls = next(n for n in src.body if isinstance(n, ast.ClassDef) and n.name == "Vehicle")
 fns = {n.name: n for n in cls.body if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef))}
-ns = {"stats": stats, "time": time, "datetime": datetime, "dt_util": types.SimpleNamespace(as_local=lambda x: x, utc_from_timestamp=lambda t: datetime.fromtimestamp(t))}
+ns = {"receipt": types.SimpleNamespace(FUEL_GRADES=("diesel", "diesel_premium", "e10", "e5", "ron95", "ron98", "lpg")), "stats": stats, "time": time, "datetime": datetime, "dt_util": types.SimpleNamespace(as_local=lambda x: x, utc_from_timestamp=lambda t: datetime.fromtimestamp(t))}
 for name in ("_energy_of", "_fits_energy", "_entry_on", "_newest_within", "_apply_values", "unit_of"):
     node = fns[name]
     node.decorator_list = []
@@ -94,7 +94,10 @@ class V2:
     def _apply_values(self, *a): pass
     def _summary(self, e, h): return h
     def tr(self, k, *a): return k
-    async def _say(self, m): self.said.append(m)
+    async def _say(self, m, quick=False, phase=None, el=False): self.said.append(m)
+    def _detected_text(self, entry): return "detected"
+    def _push_at_start(self, det): return True
+    async def _push_started(self, det): pass   # früher Push: hier nicht Gegenstand des Tests
     async def _fetch_price(self, pending=None, det=None):
         return {"unit_price": 0.30, "price_source": "eingestellt"} if det is self.detector_el else {"unit_price": 1.80, "price_source": "tankerkoenig"}
     for n in ("_state_changed", "_tick", "_detectors", "_pending_for", "_valid_pending", "_finish"):

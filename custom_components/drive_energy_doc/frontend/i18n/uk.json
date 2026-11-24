@@ -207,5 +207,16 @@
  "Umrechnen": "Перерахувати",
  "Keine Währung erkannt, Land nicht ermittelbar: Werte als Euro angenommen. Bitte Währung prüfen.": "Валюту не розпізнано, країна невідома: значення прийнято в євро. Перевірте валюту.",
  "Währung manuell gesetzt: {0}.": "Валюту задано вручну: {0}.",
- "Kraftstoffart": "Вид пального"
+ "Kraftstoffart": "Вид пального",
+ "{0}: Tanken bzw. Laden läuft. Fotografiere jetzt die Anzeige an der Säule (Menge und Preis), solange du noch dort bist. Den Beleg kannst du danach schicken.": "{0}: Триває заправка або зарядка. Сфотографуйте зараз дисплей колонки (кількість і ціна), поки ви ще на місці. Чек можна надіслати потім.",
+ "Teststation": "Тестова станція",
+ "Einheit": "Одиниця",
+ "Alle": "Усе",
+ "Filter": "Фільтр",
+ "Tanken": "Заправка",
+ "Laden": "Заряджання",
+ "Tanken & Laden": "Заправка і заряджання",
+ "Zeilenfarben": "Кольори рядків",
+ "an": "увімкнено",
+ "aus": "вимкнено"
 }

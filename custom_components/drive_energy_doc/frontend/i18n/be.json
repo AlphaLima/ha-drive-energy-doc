@@ -205,5 +205,16 @@
  "Umrechnen": "Пералічыць",
  "Keine Währung erkannt, Land nicht ermittelbar: Werte als Euro angenommen. Bitte Währung prüfen.": "Валюта не распазнана, краіна невядомая: значэнні прынятыя ў еўра. Праверце валюту.",
  "Währung manuell gesetzt: {0}.": "Валюта зададзена ўручную: {0}.",
- "Kraftstoffart": "Від паліва"
+ "Kraftstoffart": "Від паліва",
+ "{0}: Tanken bzw. Laden läuft. Fotografiere jetzt die Anzeige an der Säule (Menge und Preis), solange du noch dort bist. Den Beleg kannst du danach schicken.": "{0}: Ідзе запраўка або зарадка. Сфатаграфуйце цяпер дысплей калонкі (колькасць і цана), пакуль вы яшчэ на месцы. Чэк можна даслаць потым.",
+ "Teststation": "Тэставая станцыя",
+ "Einheit": "Адзінка",
+ "Alle": "Усе",
+ "Filter": "Фільтр",
+ "Tanken": "Запраўка",
+ "Laden": "Зарадка",
+ "Tanken & Laden": "Запраўка і зарадка",
+ "Zeilenfarben": "Колеры радкоў",
+ "an": "уключана",
+ "aus": "выключана"
 }

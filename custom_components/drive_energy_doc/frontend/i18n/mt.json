@@ -205,5 +205,16 @@
  "Umrechnen": "Ikkonverti",
  "Keine Währung erkannt, Land nicht ermittelbar: Werte als Euro angenommen. Bitte Währung prüfen.": "Ma ġiex rikonoxxuta valuta, pajjiż mhux magħruf: il-valuri huma assunti bl-euro. Iċċekkja l-valuta.",
  "Währung manuell gesetzt: {0}.": "Valuta stabbilita manwalment: {0}.",
- "Kraftstoffart": "Tip ta' fuel"
+ "Kraftstoffart": "Tip ta' fuel",
+ "{0}: Tanken bzw. Laden läuft. Fotografiere jetzt die Anzeige an der Säule (Menge und Preis), solange du noch dort bist. Den Beleg kannst du danach schicken.": "{0}: It-tmexxija jew iċ-ċarġjar għaddej. Ħu ritratt tal-iskrin tal-pompa jew taċ-ċarġer (kwantità u prezz) issa waqt li għadek hemm. Tista' tibgħat l-irċevuta wara.",
+ "Teststation": "Stazzjon tat-test",
+ "Einheit": "Unità",
+ "Alle": "Kollha",
+ "Filter": "Filtru",
+ "Tanken": "Tfaddil tal-fuel",
+ "Laden": "Tlaqqigħ",
+ "Tanken & Laden": "Fuel u tlaqqigħ",
+ "Zeilenfarben": "Kuluri tar-ringieli",
+ "an": "mixgħul",
+ "aus": "mitfi"
 }

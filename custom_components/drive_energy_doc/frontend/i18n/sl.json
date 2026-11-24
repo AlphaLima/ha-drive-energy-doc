@@ -205,5 +205,16 @@
  "Umrechnen": "Pretvori",
  "Keine Währung erkannt, Land nicht ermittelbar: Werte als Euro angenommen. Bitte Währung prüfen.": "Valuta ni prepoznana, država neznana: vrednosti so privzete v evrih. Preverite valuto.",
  "Währung manuell gesetzt: {0}.": "Valuta nastavljena ročno: {0}.",
- "Kraftstoffart": "Vrsta goriva"
+ "Kraftstoffart": "Vrsta goriva",
+ "{0}: Tanken bzw. Laden läuft. Fotografiere jetzt die Anzeige an der Säule (Menge und Preis), solange du noch dort bist. Den Beleg kannst du danach schicken.": "{0}: Točenje goriva ali polnjenje poteka. Zdaj fotografirajte zaslon črpalke ali polnilnice (količina in cena), dokler ste še tam. Račun lahko pošljete pozneje.",
+ "Teststation": "Testna postaja",
+ "Einheit": "Enota",
+ "Alle": "Vse",
+ "Filter": "Filter",
+ "Tanken": "Točenje goriva",
+ "Laden": "Polnjenje",
+ "Tanken & Laden": "Točenje in polnjenje",
+ "Zeilenfarben": "Barve vrstic",
+ "an": "vklopljeno",
+ "aus": "izklopljeno"
 }

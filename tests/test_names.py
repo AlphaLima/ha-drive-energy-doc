@@ -5,8 +5,15 @@ import pathlib
 import symtable
 
 pkg = pathlib.Path(__file__).parent.parent / "custom_components" / "drive_energy_doc"
-spec = importlib.util.spec_from_file_location("const", pkg / "const.py")
+import sys
+import types
+
+fake = types.ModuleType("dedpkg")   # const.py importiert .plate relativ, darum als Paket laden
+fake.__path__ = [str(pkg)]
+sys.modules["dedpkg"] = fake
+spec = importlib.util.spec_from_file_location("dedpkg.const", pkg / "const.py")
 const = importlib.util.module_from_spec(spec)
+sys.modules["dedpkg.const"] = const
 spec.loader.exec_module(const)
 star = set(dir(const))  # Namen aus „from .const import *“
 

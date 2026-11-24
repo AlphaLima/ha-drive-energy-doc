@@ -205,5 +205,16 @@
  "Umrechnen": "Regn om",
  "Keine Währung erkannt, Land nicht ermittelbar: Werte als Euro angenommen. Bitte Währung prüfen.": "Ingen valuta gjenkjent, land ukjent: verdiene antas å være i euro. Kontroller valutaen.",
  "Währung manuell gesetzt: {0}.": "Valuta satt manuelt: {0}.",
- "Kraftstoffart": "Drivstofftype"
+ "Kraftstoffart": "Drivstofftype",
+ "{0}: Tanken bzw. Laden läuft. Fotografiere jetzt die Anzeige an der Säule (Menge und Preis), solange du noch dort bist. Den Beleg kannst du danach schicken.": "{0}: Tanking eller lading pågår. Ta et bilde av displayet på pumpen eller laderen (mengde og pris) nå, mens du fortsatt er der. Kvitteringen kan du sende etterpå.",
+ "Teststation": "Teststasjon",
+ "Einheit": "Enhet",
+ "Alle": "Alle",
+ "Filter": "Filter",
+ "Tanken": "Tanking",
+ "Laden": "Lading",
+ "Tanken & Laden": "Tanking og lading",
+ "Zeilenfarben": "Radfarger",
+ "an": "på",
+ "aus": "av"
 }

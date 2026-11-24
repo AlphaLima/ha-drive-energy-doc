@@ -205,5 +205,16 @@
  "Umrechnen": "Átváltás",
  "Keine Währung erkannt, Land nicht ermittelbar: Werte als Euro angenommen. Bitte Währung prüfen.": "A pénznem nem ismerhető fel, az ország ismeretlen: az értékek euróban feltételezve. Ellenőrizze a pénznemet.",
  "Währung manuell gesetzt: {0}.": "A pénznem kézzel beállítva: {0}.",
- "Kraftstoffart": "Üzemanyag típusa"
+ "Kraftstoffart": "Üzemanyag típusa",
+ "{0}: Tanken bzw. Laden läuft. Fotografiere jetzt die Anzeige an der Säule (Menge und Preis), solange du noch dort bist. Den Beleg kannst du danach schicken.": "{0}: Tankolás vagy töltés folyamatban. Fényképezze le most a kút vagy töltő kijelzőjét (mennyiség és ár), amíg még ott van. A nyugtát utána is elküldheti.",
+ "Teststation": "Teszt állomás",
+ "Einheit": "Egység",
+ "Alle": "Mind",
+ "Filter": "Szűrő",
+ "Tanken": "Tankolás",
+ "Laden": "Töltés",
+ "Tanken & Laden": "Tankolás és töltés",
+ "Zeilenfarben": "Sorszínek",
+ "an": "be",
+ "aus": "ki"
 }

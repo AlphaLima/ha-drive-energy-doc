@@ -32,61 +32,45 @@
       },
       "vehicle": {
         "title": "Add vehicle",
-        "description": "{plate_preview}\n\n{image_preview}\n\nChoose the country of the plate. After “OK” you see the plate drawn with the chosen country before anything is saved.",
-        "data": {
-          "name": "Name",
-          "energy": "Fuel / drive",
-          "phev": "Plug-in hybrid (fuel and electricity in one list; next step: battery sensor)",
-          "level_entity": "Fuel / charge level (%, optional)",
-          "odometer_entity": "Odometer (optional)",
-          "tracker_entity": "GPS position (device_tracker, optional)",
-          "capacity": "Tank / battery capacity (l / kWh)",
-          "image_entity": "Vehicle picture (optional, otherwise automatic)",
-          "license_plate": "License plate (optional)",
-          "vehicle_type": "Vehicle type (e.g. BMW X1 20d, optional)",
-          "language": "Language of the bot's replies (empty = Home Assistant language)",
-          "image_upload": "Upload a vehicle picture (alternative to the image entity, takes precedence)",
-          "image_remove": "Remove uploaded picture",
-          "plate_country": "Country of the plate"
+        "description": "{plate_preview}\n\n{image_preview}\n\nAfter “OK” you see the drawn plate before anything is saved.",
+        "sections": {
+          "vehicle": {
+            "name": "Vehicle",
+            "data": {
+              "name": "Name",
+              "energy": "Drive",
+              "phev": "Plug-in hybrid (car both refuels and plugs in)",
+              "capacity": "Tank / battery (l / kWh)"
+            }
+          },
+          "sensors": {
+            "name": "Sensors (optional, for automatic detection)",
+            "data": {
+              "level_entity": "Fuel / charge level (%)",
+              "odometer_entity": "Odometer",
+              "tracker_entity": "GPS position (device_tracker)"
+            }
+          },
+          "look": {
+            "name": "Look and language",
+            "data": {
+              "license_plate": "License plate",
+              "plate_country": "Plate country",
+              "vehicle_type": "Vehicle type (e.g. BMW X1 20d)",
+              "language": "Bot reply language (empty = like HA)",
+              "image_entity": "Vehicle picture (entity)",
+              "image_upload": "Upload vehicle picture (takes priority)",
+              "image_remove": "Remove uploaded picture"
+            }
+          }
         }
       },
       "phev": {
         "title": "Plug-in hybrid",
-        "description": "Optional: battery charge level (%) so that charging is detected automatically, and the battery capacity in kWh. Without a sensor, charging is captured by receipt, photo or by hand.",
+        "description": "Plug-in hybrids only: battery level (%) so charging is detected, and battery size in kWh. Both are optional; without a sensor you log charging by receipt, photo or by hand.",
         "data": {
           "level_entity_electric": "Battery charge level (%, optional)",
           "capacity_electric": "Battery capacity (kWh)"
-        }
-      },
-      "messaging": {
-        "title": "Messaging for this vehicle",
-        "description": "Grouped by channel. “Send test message” checks a channel right away with the values you entered, before anything is saved. Only the channels you chose in the settings.",
-        "sections": {
-          "whatsapp": {
-            "name": "WhatsApp",
-            "description": "The driver's number. Credentials are in the settings.",
-            "data": {
-              "wa_phone": "Driver's mobile number (with country code, e.g. 491701234567)",
-              "test": "Send test message"
-            }
-          },
-          "telegram": {
-            "name": "Telegram",
-            "description": "Own bot or own chat per vehicle.",
-            "data": {
-              "telegram_token": "Bot token",
-              "telegram_chat_id": "Your chat ID (not the bot's: send /start to the bot, it tells you)",
-              "test": "Send test message"
-            }
-          },
-          "companion": {
-            "name": "Companion app",
-            "description": "Push message to the phone, a tap opens the panel.",
-            "data": {
-              "notify_service": "Notify service (notify.mobile_app_…)",
-              "test": "Send test message"
-            }
-          }
         }
       },
       "plate_preview": {
@@ -103,6 +87,41 @@
           "msg_save": "Save",
           "msg_again": "Send again",
           "msg_back": "Back to the form"
+        }
+      },
+      "messaging_companion": {
+        "title": "Companion app",
+        "description": "Push message to your phone, a tap opens the panel.",
+        "data": {
+          "companion_on": "Channel active for this vehicle",
+          "notify_service": "Notify service (notify.mobile_app_…)",
+          "push_detect": "Push when refuelling is detected and when a receipt is missing",
+          "push_timing": "Timing of the message",
+          "quick_link": "Push link: a tap opens the photo capture (camera) directly",
+          "test": "Send test message"
+        }
+      },
+      "messaging_telegram": {
+        "title": "Telegram",
+        "description": "Own bot or own chat per vehicle.",
+        "data": {
+          "telegram_on": "Channel active for this vehicle",
+          "telegram_token": "Bot token",
+          "telegram_chat_id": "Your chat ID (not the bot's: send /start to the bot, it tells you)",
+          "telegram_detect": "Message when refuelling is detected and when a receipt is missing",
+          "telegram_timing": "Timing of the message",
+          "test": "Send test message"
+        }
+      },
+      "messaging_whatsapp": {
+        "title": "WhatsApp",
+        "description": "The driver's number. The access data is in the settings.",
+        "data": {
+          "whatsapp_on": "Channel active for this vehicle",
+          "wa_phone": "Driver's mobile number (with country code, e.g. 491701234567)",
+          "whatsapp_detect": "Message when refuelling is detected and when a receipt is missing",
+          "whatsapp_timing": "Timing of the message",
+          "test": "Send test message"
         }
       }
     },
@@ -123,7 +142,9 @@
           "price_key": "Tankerkoenig key",
           "whatsapp": "WhatsApp access",
           "basic": "Vehicle data",
-          "messaging": "Messaging",
+          "messaging_companion": "Companion app (push)",
+          "messaging_telegram": "Telegram",
+          "messaging_whatsapp": "WhatsApp",
           "thresholds": "Refuel detection (fine tuning)"
         }
       },
@@ -158,61 +179,45 @@
       },
       "basic": {
         "title": "Vehicle data",
-        "description": "{plate_preview}\n\n{image_preview}\n\nChoose the country of the plate. After “OK” you see the plate drawn with the chosen country before anything is saved.",
-        "data": {
-          "name": "Name",
-          "energy": "Fuel / drive",
-          "phev": "Plug-in hybrid (fuel and electricity in one list; next step: battery sensor)",
-          "level_entity": "Fuel / charge level (%, optional)",
-          "odometer_entity": "Odometer (optional)",
-          "tracker_entity": "GPS position (device_tracker, optional)",
-          "capacity": "Tank / battery capacity (l / kWh)",
-          "image_entity": "Vehicle picture (optional, otherwise automatic)",
-          "license_plate": "License plate (optional)",
-          "vehicle_type": "Vehicle type (e.g. BMW X1 20d, optional)",
-          "language": "Language of the bot's replies (empty = Home Assistant language)",
-          "image_upload": "Upload a vehicle picture (alternative to the image entity, takes precedence)",
-          "image_remove": "Remove uploaded picture",
-          "plate_country": "Country of the plate"
+        "description": "{plate_preview}\n\n{image_preview}\n\nAfter “OK” you see the drawn plate before anything is saved.",
+        "sections": {
+          "vehicle": {
+            "name": "Vehicle",
+            "data": {
+              "name": "Name",
+              "energy": "Drive",
+              "phev": "Plug-in hybrid (car both refuels and plugs in)",
+              "capacity": "Tank / battery (l / kWh)"
+            }
+          },
+          "sensors": {
+            "name": "Sensors (optional, for automatic detection)",
+            "data": {
+              "level_entity": "Fuel / charge level (%)",
+              "odometer_entity": "Odometer",
+              "tracker_entity": "GPS position (device_tracker)"
+            }
+          },
+          "look": {
+            "name": "Look and language",
+            "data": {
+              "license_plate": "License plate",
+              "plate_country": "Plate country",
+              "vehicle_type": "Vehicle type (e.g. BMW X1 20d)",
+              "language": "Bot reply language (empty = like HA)",
+              "image_entity": "Vehicle picture (entity)",
+              "image_upload": "Upload vehicle picture (takes priority)",
+              "image_remove": "Remove uploaded picture"
+            }
+          }
         }
       },
       "phev": {
         "title": "Plug-in hybrid",
-        "description": "Optional: battery charge level (%) so that charging is detected automatically, and the battery capacity in kWh. Without a sensor, charging is captured by receipt, photo or by hand.",
+        "description": "Plug-in hybrids only: battery level (%) so charging is detected, and battery size in kWh. Both are optional; without a sensor you log charging by receipt, photo or by hand.",
         "data": {
           "level_entity_electric": "Battery charge level (%, optional)",
           "capacity_electric": "Battery capacity (kWh)"
-        }
-      },
-      "messaging": {
-        "title": "Messaging for this vehicle",
-        "description": "Grouped by channel. “Send test message” checks a channel right away with the values you entered, before anything is saved. Only the channels you chose in the settings.",
-        "sections": {
-          "whatsapp": {
-            "name": "WhatsApp",
-            "description": "The driver's number. Credentials are in the settings.",
-            "data": {
-              "wa_phone": "Driver's mobile number (with country code, e.g. 491701234567)",
-              "test": "Send test message"
-            }
-          },
-          "telegram": {
-            "name": "Telegram",
-            "description": "Own bot or own chat per vehicle.",
-            "data": {
-              "telegram_token": "Bot token",
-              "telegram_chat_id": "Your chat ID (not the bot's: send /start to the bot, it tells you)",
-              "test": "Send test message"
-            }
-          },
-          "companion": {
-            "name": "Companion app",
-            "description": "Push message to the phone, a tap opens the panel.",
-            "data": {
-              "notify_service": "Notify service (notify.mobile_app_…)",
-              "test": "Send test message"
-            }
-          }
         }
       },
       "thresholds": {
@@ -240,6 +245,41 @@
           "msg_again": "Send again",
           "msg_back": "Back to the form"
         }
+      },
+      "messaging_companion": {
+        "title": "Companion app",
+        "description": "Push message to your phone, a tap opens the panel.",
+        "data": {
+          "companion_on": "Channel active for this vehicle",
+          "notify_service": "Notify service (notify.mobile_app_…)",
+          "push_detect": "Push when refuelling is detected and when a receipt is missing",
+          "push_timing": "Timing of the message",
+          "quick_link": "Push link: a tap opens the photo capture (camera) directly",
+          "test": "Send test message"
+        }
+      },
+      "messaging_telegram": {
+        "title": "Telegram",
+        "description": "Own bot or own chat per vehicle.",
+        "data": {
+          "telegram_on": "Channel active for this vehicle",
+          "telegram_token": "Bot token",
+          "telegram_chat_id": "Your chat ID (not the bot's: send /start to the bot, it tells you)",
+          "telegram_detect": "Message when refuelling is detected and when a receipt is missing",
+          "telegram_timing": "Timing of the message",
+          "test": "Send test message"
+        }
+      },
+      "messaging_whatsapp": {
+        "title": "WhatsApp",
+        "description": "The driver's number. The access data is in the settings.",
+        "data": {
+          "whatsapp_on": "Channel active for this vehicle",
+          "wa_phone": "Driver's mobile number (with country code, e.g. 491701234567)",
+          "whatsapp_detect": "Message when refuelling is detected and when a receipt is missing",
+          "whatsapp_timing": "Timing of the message",
+          "test": "Send test message"
+        }
       }
     },
     "error": {
@@ -257,6 +297,14 @@
         "companion": "Companion app (push, photo in the Drive Energy Doc panel)",
         "telegram": "Telegram",
         "whatsapp": "WhatsApp"
+      }
+    },
+    "push_timing": {
+      "options": {
+        "auto": "Automatic (fuel: at the start, electric: at the end)",
+        "start": "At the start of refuelling / charging",
+        "end": "At the end of refuelling / charging",
+        "none": "No notification"
       }
     },
     "provider": {
@@ -312,6 +360,14 @@
       },
       "cost_12m": {
         "name": "Cost 12 months"
+      }
+    },
+    "button": {
+      "simulate_refuel": {
+        "name": "Simulate refuelling"
+      },
+      "simulate_charge": {
+        "name": "Simulate charging"
       }
     }
   }

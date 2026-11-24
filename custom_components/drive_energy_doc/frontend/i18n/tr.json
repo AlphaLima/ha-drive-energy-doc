@@ -205,5 +205,16 @@
  "Umrechnen": "Dönüştür",
  "Keine Währung erkannt, Land nicht ermittelbar: Werte als Euro angenommen. Bitte Währung prüfen.": "Para birimi tanınmadı, ülke bilinmiyor: değerler euro varsayıldı. Lütfen para birimini kontrol edin.",
  "Währung manuell gesetzt: {0}.": "Para birimi elle ayarlandı: {0}.",
- "Kraftstoffart": "Yakıt türü"
+ "Kraftstoffart": "Yakıt türü",
+ "{0}: Tanken bzw. Laden läuft. Fotografiere jetzt die Anzeige an der Säule (Menge und Preis), solange du noch dort bist. Den Beleg kannst du danach schicken.": "{0}: Yakıt alımı veya şarj sürüyor. Henüz oradayken pompa veya şarj cihazının ekranının (miktar ve fiyat) fotoğrafını şimdi çekin. Fişi daha sonra gönderebilirsiniz.",
+ "Teststation": "Test istasyonu",
+ "Einheit": "Birim",
+ "Alle": "Tümü",
+ "Filter": "Filtre",
+ "Tanken": "Yakıt alma",
+ "Laden": "Şarj",
+ "Tanken & Laden": "Yakıt alma ve şarj",
+ "Zeilenfarben": "Satır renkleri",
+ "an": "açık",
+ "aus": "kapalı"
 }

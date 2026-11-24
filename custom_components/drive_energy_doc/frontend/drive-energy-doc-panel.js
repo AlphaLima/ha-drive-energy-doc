@@ -4,7 +4,7 @@ const CURRENCIES = ["ALL", "AED", "AUD", "BAM", "BRL", "BYN", "CAD", "CHF", "CNY
 const FUEL_GRADES = { diesel: "Diesel", diesel_premium: "Diesel Premium", e10: "Super E10", e5: "Super E5", ron95: "Super 95", ron98: "Super 98", lpg: "LPG" };
 const COLS = ["nr", "date", "km", "station", "qty", "price", "total", "cons", "receipt", "note", "act"];
 
-const VERSION = "0.1.81";
+const VERSION = "0.1.82b28";
 
 class DriveEnergyDocPanel extends HTMLElement {
   set hass(h) {
@@ -71,10 +71,13 @@ class DriveEnergyDocPanel extends HTMLElement {
   }
   set narrow(v) { this._narrow = v; }
   connectedCallback() {
+    if (!this._locCb) { this._locCb = () => this._quick(); }
+    window.addEventListener("location-changed", this._locCb);   // Link aus der Push-Nachricht, während das Panel schon offen ist
     if (!this.shadowRoot) {
       this.attachShadow({ mode: "open" });
       // ShadowRoot kennt kein onclick: echten Listener setzen
       this.shadowRoot.addEventListener("click", ev => { if (this._cur) this._click(ev, this._cur); });
+      this.shadowRoot.addEventListener("change", ev => { if (ev.target && ev.target.id === "flt") { this._flt = ev.target.value; this._selId = null; this._render(); } });   // Filter der Liste
       document.addEventListener("keydown", ev => { if (this.isConnected) this._keys(ev); });
       this.shadowRoot.addEventListener("pointerdown", ev => this._rsStart(ev));
       // Beleg beim Darüberfahren vergrößern (Maus/Stift; am Handy gibt es den Foto-Viewer per Tipp)
@@ -145,6 +148,8 @@ class DriveEnergyDocPanel extends HTMLElement {
     this._ori = "portrait";
     this._rcp = true;
     try { if (localStorage.getItem("deRcp") === "0") this._rcp = false; } catch (e) { /* ignore */ }
+    this._clr = true;   // Zeilenfarben: Laden grün, Tanken orange, alles andere blau
+    try { if (localStorage.getItem("deClr") === "0") this._clr = false; } catch (e) { /* ignore */ }
     try { if (localStorage.getItem("deOri") === "landscape") this._ori = "landscape"; } catch (e) { /* ignore */ }
     this._render();
     this._timer = setInterval(() => this._load(), 60000);
@@ -152,6 +157,7 @@ class DriveEnergyDocPanel extends HTMLElement {
   }
   disconnectedCallback() {
     clearInterval(this._timer);
+    if (this._locCb) window.removeEventListener("location-changed", this._locCb);
     if (this._sub) { try { this._sub(); } catch (e) { /* ignore */ } this._sub = null; }
   }
 
@@ -184,12 +190,26 @@ class DriveEnergyDocPanel extends HTMLElement {
       }
       if (!this._dlg && !this.shadowRoot.querySelector(".busy, .dlg")) {   // nicht neu zeichnen, solange der Fortschritts- oder ein anderer Dialog offen ist
         this._render();
+        this._quick();
         if (this._jumpId) { const id = this._jumpId; this._jumpId = null; setTimeout(() => { const r = [...this.shadowRoot.querySelectorAll("tr[data-id]")].find(x => x.dataset.id === id); if (r) { this._selId = id; r.classList.add("rsel"); r.scrollIntoView({ block: "center", behavior: "smooth" }); } }, 50); }   // zur Zeile des gerade erfassten Belegs springen
       } else {   // ein Dialog ist offen: die neuen Daten liegen schon vor, gezeichnet wird nach dem Schließen (nicht verlieren)
         clearTimeout(this._retryT);
         this._retryT = setTimeout(() => this._load(), 2000);
       }
     } catch (e) { this._err = String(e.message || e); this._render(); }
+  }
+  _quick() {
+    // Link aus der Push-Nachricht „Tankvorgang erkannt“ (?quick=<Fahrzeug>): das Fahrzeug wählen und gleich die Aufnahme anbieten (Kamera oder Galerie). Der Browser erlaubt den Kamera-Start nur nach einem Antippen, darum der große Dialog.
+    try {
+      const q = new URLSearchParams(location.search).get("quick");
+      if (!q || !this._data) return;
+      history.replaceState(history.state, "", location.pathname);   // nur einmal auslösen
+      const i = this._data.findIndex(x => x.id === q);
+      if (i < 0) return;
+      this._tab = i;
+      this._render();
+      setTimeout(() => { if (!this._dlg && !this.shadowRoot.querySelector(".dlg, .busy")) this._pick(this._data[i], null, true); }, 300);
+    } catch (e) { /* kein Link, nichts zu tun */ }
   }
   _fmt(n, d = 2) { return n == null ? "–" : Number(n).toLocaleString(this._locale || "de-DE", { minimumFractionDigits: d, maximumFractionDigits: d }); }
   _d(ts) { return new Date(ts * 1000).toLocaleDateString(this._locale || "de-DE", { dateStyle: "short" }); }
@@ -402,6 +422,8 @@ class DriveEnergyDocPanel extends HTMLElement {
       portrait: '<path d="M7 3h7l5 5v11a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/><path d="M14 3v5h5"/>',
       landscape: '<path d="M3 7a2 2 0 0 1 2-2h11l5 5v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M16 5v5h5"/>',
       photo: '<rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="10" r="1.5"/><path d="M21 16l-5-5-8 8"/>',
+      palette: '<path d="M12 3a9 9 0 1 0 0 18c1.4 0 2-.9 2-1.8 0-1.6-1.4-1.7-1.4-3 0-1 .8-1.7 1.9-1.7H17a4 4 0 0 0 4-4C21 6.6 17 3 12 3z"/><circle cx="7.5" cy="11" r="1"/><circle cx="10" cy="7.5" r="1"/><circle cx="14.5" cy="7.5" r="1"/>',
+      paletteOff: '<path d="M12 3a9 9 0 1 0 0 18c1.4 0 2-.9 2-1.8 0-1.6-1.4-1.7-1.4-3 0-1 .8-1.7 1.9-1.7H17a4 4 0 0 0 4-4C21 6.6 17 3 12 3z"/><path d="M3.5 3.5l17 17"/>',
       photoOff: '<rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="10" r="1.5"/><path d="M21 16l-5-5-8 8"/><path d="M3.5 3.5l17 17"/>',
       plate: '<rect x="2.5" y="7" width="19" height="10" rx="2"/><path d="M6.5 7v10"/><path d="M10 12h8"/>',
       plus: '<path d="M12 5v14M5 12h14"/>',
@@ -529,7 +551,9 @@ class DriveEnergyDocPanel extends HTMLElement {
       table.fx{table-layout:fixed}
       table.fx td,table.fx th{overflow:hidden;text-overflow:ellipsis}
       tbody tr{cursor:pointer}tbody tr:hover{background:color-mix(in srgb,var(--primary-color) 8%,var(--card-background-color))}
-      tbody tr.ex,tbody tr.ex:hover{background:color-mix(in srgb,var(--warning-color,#ff9800) 20%,var(--card-background-color))}
+      tbody tr.c-fu,tbody tr.c-fu:hover{background:color-mix(in srgb,#ff9800 22%,var(--card-background-color))}
+      tbody tr.c-el,tbody tr.c-el:hover{background:color-mix(in srgb,#43a047 24%,var(--card-background-color))}
+      tbody tr.c-ex,tbody tr.c-ex:hover{background:color-mix(in srgb,#1e88e5 22%,var(--card-background-color))}
       tbody tr.rsel,tbody tr.rsel:hover{background:color-mix(in srgb,var(--primary-color) 30%,var(--card-background-color));outline:2px solid var(--primary-color);outline-offset:-2px}
       tbody tr.rsel td:first-child{box-shadow:inset 5px 0 0 var(--primary-color)}
       .livebn{position:fixed;top:14px;left:50%;transform:translateX(-50%);z-index:130;display:flex;align-items:center;gap:12px;padding:12px 18px;border-radius:12px;background:var(--card-background-color,#fff);color:var(--primary-text-color);box-shadow:0 4px 18px rgba(0,0,0,.35);font-size:16px}
@@ -539,7 +563,8 @@ class DriveEnergyDocPanel extends HTMLElement {
       .wq{display:inline-flex;vertical-align:middle;color:var(--secondary-text-color);cursor:help}.wq .ico{width:16px;height:16px;stroke-width:2}
       td.est{color:var(--secondary-text-color);font-style:italic}
       .wtri{display:inline-flex;vertical-align:middle;color:var(--warning-color,#e67e22);cursor:help}.wtri .ico{width:16px;height:16px;stroke-width:2.2}
-      .bar{display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap}
+      .bar{display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap;align-items:center}
+      .bar .flt{font-size:14px;padding:8px 10px;border:1px solid var(--divider-color,#ccc);border-radius:8px;background:var(--card-background-color,#fff);color:var(--primary-text-color);max-width:46vw}
       .bar button[data-act=add]{background:var(--primary-color);color:var(--text-primary-color,#fff);border-color:var(--primary-color);padding:8px 14px}.bar button[data-act=add] .ico{width:30px;height:30px;stroke-width:2.6}
       td.nr{color:var(--secondary-text-color);font-size:12px}
       .tm{display:block;color:var(--secondary-text-color);font-size:12px}
@@ -598,7 +623,21 @@ class DriveEnergyDocPanel extends HTMLElement {
       if (none(y)) return -1;
       return (typeof x === "string" ? x.localeCompare(y, this._locale || "de") : x - y) * sk.dir;
     });
-    const rows = list.map(e => {
+    const PRE = [["oil", "Öl", ["öl", "oel", "oil"]], ["adblue", "AdBlue", ["adblue"]], ["washer", "Scheibenreiniger", ["scheibenreiniger", "scheibenwasser", "washer"]], ["wash", "Waschen", ["wasch", "wäsch", "wash"]]];
+    const catOf = e => {   // Gruppe eines Eintrags für den Filter
+      if (e.kind !== "extra") return e.energy === "electric" || v.energy === "electric" ? "electric" : "fuel";
+      const low = String(e.item || "").toLowerCase();
+      const hit = PRE.find(x => x[2].some(m => low.includes(m)));
+      return hit && (hit[0] !== "adblue" || v.energy === "diesel") ? hit[0] : "other";   // AdBlue gibt es nur beim Diesel, sonst zählt es unter Sonstiges
+    };
+    const cnt = {}; v.entries.forEach(e => { const c = catOf(e); cnt[c] = (cnt[c] || 0) + 1; if (e.kind === "extra") cnt.extra = (cnt.extra || 0) + 1; else cnt.both = (cnt.both || 0) + 1; });
+    const FLT = [["all", this.T("Alle")], ["fuel", this.T("Tanken")], ["electric", this.T("Laden")], ["both", this.T("Tanken & Laden")], ["extra", this.T("Zubehör")], ["oil", this.T("Öl")], ["adblue", "AdBlue"], ["washer", this.T("Scheibenreiniger")], ["wash", this.T("Waschen")], ["other", this.T("Sonstiges")]]
+      .filter(([k]) => k === "all" || (k === "both" ? cnt.fuel && cnt.electric : cnt[k]));   // nur Gruppen, zu denen es Einträge gibt
+    let flt = FLT.some(x => x[0] === this._flt) ? this._flt : "all";
+    const shown = flt === "all" ? list : list.filter(e => flt === "extra" ? e.kind === "extra" : flt === "both" ? e.kind !== "extra" : catOf(e) === flt);
+    const fltSel = `<select id="flt" class="flt" title="${this.T("Filter")}" aria-label="${this.T("Filter")}">${FLT.map(([k, l]) => `<option value="${k}"${k === flt ? " selected" : ""}>${this._esc(l)}${k === "all" ? "" : " (" + (cnt[k] || 0) + ")"}</option>`).join("")}</select>`;
+    this._shownIds = flt === "all" ? null : new Set(shown.map(e => e.id)); this._fltLabel = (FLT.find(x => x[0] === flt) || [])[1] || "";   // der Ausdruck übernimmt den Filter
+    const rows = shown.map(e => {
       const cell = {
         nr: `<td class="n nr">${nums[e.id] || ""}</td>`,
         date: `<td data-nr="${nums[e.id] ? "#" + nums[e.id] : ""}"><span>${this._d(e.ts)}</span><span class="tm">${this._tm(e.ts)}</span></td>`,
@@ -612,7 +651,7 @@ class DriveEnergyDocPanel extends HTMLElement {
         note: (() => { const full = [e.kind === "extra" ? (e.item || this.T("Zubehör")) : "", e.note || ""].filter(Boolean).join("\n"); return `<td>${full ? `<span class="notec" data-note="${this._esc(full)}">` : ""}${e.kind === "extra" ? `<span class="tag">${this._esc(e.item || this.T("Zubehör"))}</span> ` : ""}${e.note ? `<span class="notei" tabindex="0" role="button" aria-label="${this.T("Notiz anzeigen")}">${this._ico("note")}</span>` : ""}${full ? "</span>" : ""}</td>`; })(),
         act: `<td><button data-act="edit" title="${this.T("Bearbeiten")}" aria-label="${this.T("Bearbeiten")}">${this._ico("edit")}</button> <button data-act="del" title="${this.T("Eintrag löschen")}" aria-label="${this.T("Eintrag löschen")}">${this._ico("trash")}</button></td>`,
       };
-      return `<tr data-id="${e.id}" class="${e.kind === "extra" ? "ex" : ""}${this._selId === e.id ? " rsel" : ""}">${order.map(k => cell[k].replace("<td", `<td data-c="${k}"`)).join("")}</tr>`;
+      return `<tr data-id="${e.id}" class="${this._clr ? (e.kind === "extra" ? "c-ex" : (catOf(e) === "electric" ? "c-el" : "c-fu")) : ""}${this._selId === e.id ? " rsel" : ""}">${order.map(k => cell[k].replace("<td", `<td data-c="${k}"`)).join("")}</tr>`;
     }).join("");
     this.shadowRoot.innerHTML = `<style>${css}</style>
       <div class="head${d.length > 1 ? " pick" : ""}"${d.length > 1 ? ` role="button" tabindex="0"` : ""}><div class="ttl"><img class="logo" src="/drive_energy_doc_static/icon.png?v=${VERSION}" alt=""><div><div class="app">Drive Energy Doc</div><h1>${this._esc(this._title(v))}${d.length > 1 ? ` <span class="chev">▾</span>` : ""}</h1></div>${v.plate ? this._plate(v) : ""}</div>${pic ? `<img class="car" src="${pic}" alt="${this._esc(v.name)}">` : ""}</div>
@@ -622,7 +661,7 @@ class DriveEnergyDocPanel extends HTMLElement {
         <div><b>${this._fmt(s.cost_12m)} €</b><span>${this.T("Kosten 12 Monate")}</span></div>
         <button class="shoot" data-act="shoot" title="${this.T("Beleg fotografieren oder hochladen")}" aria-label="${this.T("Beleg fotografieren")}">${this._ico("camera")}<span>${this.T("Beleg / km Stand fotografieren")}</span></button>
       </div>
-      <div class="bar"><button data-act="csv" title="${this.T("CSV-Export")}" aria-label="${this.T("CSV-Export")}">${this._ico("csv")}</button><button data-act="print" title="${this.T("Drucken / PDF")}" aria-label="${this.T("Drucken")}">${this._ico("print")}</button><button data-act="ori" title="${this._ori === "portrait" ? this.T("Hochformat") : this.T("Querformat")} (${this.T("zum Wechseln klicken")})" aria-label="${this.T("Seitenformat")}">${this._ico(this._ori)}</button><button data-act="rcp" title="${this.T("Belege im Druck")}: ${this._rcp ? this.T("mit") : this.T("ohne")} (${this.T("zum Wechseln klicken")})" aria-label="${this.T("Belege im Druck")}" aria-pressed="${this._rcp}">${this._ico(this._rcp ? "photo" : "photoOff")}</button><button data-act="cols" title="${this.T("Spalten")}" aria-label="${this.T("Spalten")}">${this._ico("cols")}</button><button data-act="add" title="${this.T("Eintrag von Hand hinzufügen")}" aria-label="${this.T("Eintrag von Hand")}">${this._ico("plus")}</button><span class="stat"><b>${s.count}</b><span>${this.T("Einträge")}</span></span><span class="stat"><b>${this.T({ idle: "Bereit", candidate: "Anstieg erkannt", refuelling: "Tankt" }[s.status])}</b><span>${this.T("Status")}</span></span><input type="file" id="cam" accept="image/*" capture="environment" hidden><input type="file" id="pic" accept="image/*" multiple hidden></div>
+      <div class="bar"><button data-act="csv" title="${this.T("CSV-Export")}" aria-label="${this.T("CSV-Export")}">${this._ico("csv")}</button><button data-act="print" title="${this.T("Drucken / PDF")}" aria-label="${this.T("Drucken")}">${this._ico("print")}</button><button data-act="ori" title="${this._ori === "portrait" ? this.T("Hochformat") : this.T("Querformat")} (${this.T("zum Wechseln klicken")})" aria-label="${this.T("Seitenformat")}">${this._ico(this._ori)}</button><button data-act="rcp" title="${this.T("Belege im Druck")}: ${this._rcp ? this.T("mit") : this.T("ohne")} (${this.T("zum Wechseln klicken")})" aria-label="${this.T("Belege im Druck")}" aria-pressed="${this._rcp}">${this._ico(this._rcp ? "photo" : "photoOff")}</button><button data-act="clr" title="${this.T("Zeilenfarben")}: ${this._clr ? this.T("an") : this.T("aus")} (${this.T("zum Wechseln klicken")})" aria-label="${this.T("Zeilenfarben")}" aria-pressed="${this._clr}">${this._ico(this._clr ? "palette" : "paletteOff")}</button><button data-act="cols" title="${this.T("Spalten")}" aria-label="${this.T("Spalten")}">${this._ico("cols")}</button><button data-act="add" title="${this.T("Eintrag von Hand hinzufügen")}" aria-label="${this.T("Eintrag von Hand")}">${this._ico("plus")}</button>${fltSel}<span class="stat"><b>${s.count}</b><span>${this.T("Einträge")}</span></span><span class="stat"><b>${this.T({ idle: "Bereit", candidate: "Anstieg erkannt", refuelling: "Tankt" }[s.status])}</b><span>${this.T("Status")}</span></span><input type="file" id="cam" accept="image/*" capture="environment" hidden><input type="file" id="pic" accept="image/*" multiple hidden></div>
       <div class="wrap"><table class="${fixed ? "fx" : ""}" ${fixed ? `style="width:${sumW}px"` : ""}><colgroup>${order.map(c => `<col data-c="${c}" ${cw[c] || (fixed && DEFW[c]) ? `style="width:${cw[c] || DEFW[c]}px"` : ""}>`).join("")}</colgroup><thead><tr>${order.map(c => { const H = { nr: [this.T("Nr."), "n"], date: [this.T("Datum"), ""], km: [this.T("km"), "n"], station: [this.T("Tankstelle"), ""], qty: [this.T("Menge"), "n"], price: [`€/${u}`, "n"], total: [this.T("Betrag"), "n"], cons: [`${u}/100 ${this.T("km")}`, "n"], receipt: [this.T("Beleg"), ""], note: [this.T("Notiz"), ""], act: ["", ""] }[c]; return `<th data-c="${c}" class="${H[1]}${c === "act" ? "" : " sortable"}" ${sk && sk.c === c ? `aria-sort="${sk.dir > 0 ? "ascending" : "descending"}"` : ""} ${c === "act" ? "" : `draggable="true" title="${this.T("Auf eine andere Überschrift ziehen: Reihenfolge ändern")}"`}>${H[0]}${sk && sk.c === c ? `<span class="si">${sk.dir > 0 ? "▲" : "▼"}</span>` : ""}<span class="rs" data-c="${c}" title="${this.T("Ziehen: Spaltenbreite ändern · Doppelklick: Breiten und Reihenfolge zurücksetzen")}"></span></th>`; }).join("")}</tr></thead><tbody>${rows}</tbody></table></div>
       <div class="ver">Drive Energy Doc ${VERSION}</div>`;
     this._cur = v;
@@ -637,6 +676,14 @@ class DriveEnergyDocPanel extends HTMLElement {
   }
 
   _keys(ev) {
+    if (ev.key === "Enter") {   // Enter bei einer markierten Zeile öffnet den Dialog zum Bearbeiten (nicht, wenn gerade ein Knopf, Link oder Eingabefeld den Fokus hat)
+      if (this._dlg || this.shadowRoot.querySelector(".dlg, .busy") || /^(INPUT|SELECT|TEXTAREA|BUTTON|A)$/.test((ev.composedPath()[0] || {}).tagName || "")) return;
+      const v = this._data && this._data[this._tab], e = v && this._selId && v.entries.find(x => x.id === this._selId);
+      if (!e) return;
+      ev.preventDefault();
+      this._form(v, e);
+      return;
+    }
     if (ev.key !== "ArrowDown" && ev.key !== "ArrowUp") return;
     if (this._dlg || this.shadowRoot.querySelector(".dlg, .busy") || /^(INPUT|SELECT|TEXTAREA)$/.test((ev.composedPath()[0] || {}).tagName || "")) return;
     const rows = [...this.shadowRoot.querySelectorAll("tbody tr[data-id]")];
@@ -689,6 +736,11 @@ class DriveEnergyDocPanel extends HTMLElement {
     if (act === "add") return this._form(v, null);
     if (act === "print") return this._print(v, this._ori);
     if (act === "plate") return this._openPlate(v);
+    if (act === "clr") {
+      this._clr = !this._clr;
+      try { localStorage.setItem("deClr", this._clr ? "1" : "0"); } catch (e) { /* ignore */ }
+      return this._render();
+    }
     if (act === "rcp") {
       this._rcp = !this._rcp;
       try { localStorage.setItem("deRcp", this._rcp ? "1" : "0"); } catch (e) { /* ignore */ }
@@ -884,6 +936,12 @@ class DriveEnergyDocPanel extends HTMLElement {
     return null;
   }
 
+  _busyHtml(v, shot, i = 0, total = 1, strip = "") {
+    // Der Standard-Fortschrittsdialog beim Lesen eines Belegs: Fahrzeugbild, Kennzeichen, Foto mit Lupe, Text, Abbrechen
+    const pic = this._pic(v);
+    return `<div class="card">${pic ? `<img class="bpic" src="${pic}" alt="">` : ""}${v.plate ? `<div class="bplate">${this._plate(v)}</div>` : ""}${shot ? `<div class="scan"><img src="${shot}" alt=""><svg class="lupe" viewBox="0 0 64 64" aria-hidden="true"><circle cx="26" cy="26" r="19" fill="rgba(255,255,255,.28)" stroke="#1b1b1b" stroke-width="5"/><path d="M40 40 L58 58" stroke="#1b1b1b" stroke-width="8" stroke-linecap="round"/><path d="M15 20 A13 13 0 0 1 24 12" stroke="rgba(255,255,255,.9)" stroke-width="3" fill="none" stroke-linecap="round"/></svg></div>` : ""}<div class="brow"><div class="spin"></div><div>${this.T("Beleg wird gelesen …")}${total > 1 ? ` (${i + 1} / ${total})` : ""}</div></div>${strip}<button class="stopb" data-d="stop">${this.T("Abbrechen")}</button></div>`;
+  }
+
   async _sendFiles(v, files, text) {
     if (files.length > 1) {   // chronologisch nach Aufnahmezeit (sonst nach Änderungsdatum der Datei), nicht nach Dateiname; bei Gleichstand bleibt die Reihenfolge
       const keyed = await Promise.all(files.map(async (f, i) => ({ f, i, k: (await this._taken(f)) ?? f.lastModified ?? 0 })));
@@ -902,9 +960,7 @@ class DriveEnergyDocPanel extends HTMLElement {
     busy.onclick = ev => { if (ev.target.closest("[data-d=stop]")) { cancelled = true; ctl.abort(); } };   // Abbruch: nichts weiter senden
     const shots = files.map(f => { const u = URL.createObjectURL(f); urls.push(u); return u; });
     const strip = i => total > 1 ? `<div class="pstrip">${shots.map((u, k) => `<div class="pt${k < i ? " done" : k === i ? " cur" : ""}"><img src="${u}" alt="">${k < i ? "<b>✓</b>" : ""}</div>`).join("")}</div><div class="pbar"><i style="width:${Math.round(i / total * 100)}%"></i></div>` : "";
-    const paint = (shot, i) => {
-      busy.innerHTML = `<div class="card">${pic ? `<img class="bpic" src="${pic}" alt="">` : ""}${v.plate ? `<div class="bplate">${this._plate(v)}</div>` : ""}${shot ? `<div class="scan"><img src="${shot}" alt=""><svg class="lupe" viewBox="0 0 64 64" aria-hidden="true"><circle cx="26" cy="26" r="19" fill="rgba(255,255,255,.28)" stroke="#1b1b1b" stroke-width="5"/><path d="M40 40 L58 58" stroke="#1b1b1b" stroke-width="8" stroke-linecap="round"/><path d="M15 20 A13 13 0 0 1 24 12" stroke="rgba(255,255,255,.9)" stroke-width="3" fill="none" stroke-linecap="round"/></svg></div>` : ""}<div class="brow"><div class="spin"></div><div>${this.T("Beleg wird gelesen …")}${total > 1 ? ` (${i + 1} / ${total})` : ""}</div></div>${strip(i)}<button class="stopb" data-d="stop">${this.T("Abbrechen")}</button></div>`;
-    };
+    const paint = (shot, i) => { busy.innerHTML = this._busyHtml(v, shot, i, total, strip(i)); };
     try {
       for (let i = 0; i < total; i++) {
         const file = files[i] || null;
@@ -973,16 +1029,22 @@ class DriveEnergyDocPanel extends HTMLElement {
     // A4 quer oder hoch; im Druckdialog "Als PDF speichern" wählen. Alle Einträge, darunter die Belegfotos je Eintrag (max. 4).
     const u = this.T(v.unit), e = this._esc.bind(this);
     const pn = {}; [...v.entries].filter(x => x.kind !== "extra").sort((p, q) => p.ts - q.ts).forEach((x, i) => { pn[x.id] = i + 1; });
-    const rows = [...v.entries].reverse().map(x => `<tr><td class="n">${pn[x.id] || ""}</td><td>${this._date(x.ts)}</td><td class="n">${x.odometer != null ? this._fmt(x.odometer, 0) : ""}</td><td>${x.kind === "extra" ? "[" + e(x.item || this.T("Zubehör")) + "] " : ""}${e(x.station || "")}<br><small>${e(x.address || "")}</small><br><small>${this._gps(x, false)}</small></td><td class="n">${x.quantity != null ? this._fmt(x.quantity) + " " + (x.kind === "extra" ? e(x.unit || "") : (v.phev && x.energy === "electric" ? "kWh" : u)) : ""}</td><td class="n">${this._fmt(x.unit_price, 3)}</td><td class="n">${this._fmt(x.total)} €</td><td class="n">${x.consumption != null ? this._fmt(x.consumption) : ""}</td><td>${e(x.note || "")}</td></tr>`).join("");
-    const photos = v.entries.filter(x => (x.photo_urls || []).length).map(x => `<div class="g"><div class="c">${this._date(x.ts)} · ${e(x.station || "")} · ${this._fmt(x.total)} €</div>${x.photo_urls.slice(0, 4).map(p => `<img src="${new URL(p, location.origin).href}">`).join("")}</div>`).join("");
-    const total = v.entries.reduce((a, x) => a + (x.total || 0), 0), qty = v.entries.reduce((a, x) => a + (x.quantity || 0), 0);
+    const ents = this._shownIds ? v.entries.filter(x => this._shownIds.has(x.id)) : v.entries;   // gesetzter Filter der Liste
+    const rows = [...ents].reverse().map(x => `<tr><td class="n">${pn[x.id] || ""}</td><td>${this._date(x.ts)}</td><td class="n">${x.odometer != null ? this._fmt(x.odometer, 0) : ""}</td><td>${x.kind === "extra" ? "[" + e(x.item || this.T("Zubehör")) + "] " : ""}${e(x.station || "")}<br><small>${e(x.address || "")}</small><br><small>${this._gps(x, false)}</small></td><td class="n">${x.quantity != null ? this._fmt(x.quantity) + " " + (x.kind === "extra" ? e(x.unit || "") : (v.phev && x.energy === "electric" ? "kWh" : u)) : ""}</td><td class="n">${this._fmt(x.unit_price, 3)}</td><td class="n">${this._fmt(x.total)} €</td><td class="n">${x.consumption != null ? this._fmt(x.consumption) : ""}</td><td>${e(x.note || "")}</td></tr>`).join("");
+    const photos = ents.filter(x => (x.photo_urls || []).length).map(x => `<div class="g"><div class="c">${this._date(x.ts)} · ${e(x.station || "")} · ${this._fmt(x.total)} €</div>${x.photo_urls.slice(0, 4).map(p => `<img src="${new URL(p, location.origin).href}">`).join("")}</div>`).join("");
+    const abs = u => new URL(u, location.origin).href;   // im Druck-Frame brauchen Bilder absolute Adressen
+    const logo = abs("/drive_energy_doc_static/icon.png");   // Logo Drive Energy Doc
+    const carImg = this._pic(v) ? abs(this._pic(v)) : "";   // Bild des Autos wie im Kopf des Panels
+    const plateImg = v.plate ? abs(`/api/drive_energy_doc/plate.svg?cc=${encodeURIComponent(v.plate_country || "DE")}&t=${encodeURIComponent(v.plate)}`) : "";   // das gezeichnete Kennzeichen
+    const total = ents.reduce((a, x) => a + (x.total || 0), 0), qty = ents.reduce((a, x) => a + (x.quantity || 0), 0);
     const html = `<!doctype html><meta charset="utf-8"><title>Drive Energy Doc ${e(v.name)}${v.plate ? " " + e(v.plate) : ""}</title><style>
       @page{size:A4 ${orient};margin:${orient === "portrait" ? "10mm" : "12mm"}}body{font:${orient === "portrait" ? "9.5px" : "11px"}/1.35 Arial,sans-serif;color:#000}h1{font-size:16px;margin:0 0 4px}
       table{border-collapse:collapse;width:100%}th,td{border-bottom:1px solid #bbb;padding:3px 5px;text-align:left;vertical-align:top}
       th{border-bottom:2px solid #000}.n{text-align:right;white-space:nowrap}small{color:#555}
       .g{break-inside:avoid;margin-top:10px}.c{font-weight:bold;margin-bottom:3px}.g img{max-height:75mm;max-width:90mm;margin-right:6px;border:1px solid #ccc}
-      h2{margin:14px 0 0;font-size:13px;break-before:page}</style>
-      <h1>Drive Energy Doc ${e(v.name)}${v.plate ? " · " + e(v.plate) : ""}</h1><div>${v.entries.length} ${this.T("Einträge")} · ${this._fmt(qty)} ${u} · ${this._fmt(total)} € · ${this.T("erstellt")} ${new Date().toLocaleDateString(this._locale || "de-DE")}</div>
+      h2{margin:14px 0 0;font-size:13px;break-before:page}
+      .hd{display:flex;align-items:center;gap:12px;margin-bottom:6px}.hd .logo{height:15mm;width:15mm;flex:none}.hd .tt{flex:1}.hd .plate{height:11mm;width:auto;flex:none}.hd .car{height:16mm;max-width:45mm;object-fit:contain;flex:none}.hd .sub{color:#555;font-size:11px}</style>
+      <div class="hd"><img class="logo" src="${logo}" alt="Drive Energy Doc"><div class="tt"><h1>Drive Energy Doc</h1><div class="sub">${e(v.name)}${v.plate ? " · " + e(v.plate) : ""}${this._shownIds ? " · " + this.T("Filter") + ": " + e(this._fltLabel) : ""}</div></div>${carImg ? `<img class="car" src="${carImg}" alt="">` : ""}${plateImg ? `<img class="plate" src="${plateImg}" alt="${e(v.plate)}">` : ""}</div><div>${v.entries.length} ${this.T("Einträge")} · ${this._fmt(qty)} ${u} · ${this._fmt(total)} € · ${this.T("erstellt")} ${new Date().toLocaleDateString(this._locale || "de-DE")}</div>
       <table><thead><tr><th class="n">${this.T("Nr.")}</th><th>${this.T("Datum")}</th><th class="n">${this.T("km")}</th><th>${this.T("Tankstelle")}</th><th class="n">${this.T("Menge")}</th><th class="n">€/${u}</th><th class="n">${this.T("Betrag")}</th><th class="n">${u}/100 ${this.T("km")}</th><th>${this.T("Notiz")}</th></tr></thead><tbody>${rows}</tbody></table>
       ${photos && this._rcp ? `<h2>${this.T("Belege")}</h2>${photos}` : ""}`;
     if (this._printOnlyHtml) return html;  // Testhilfe
@@ -1022,7 +1084,7 @@ class DriveEnergyDocPanel extends HTMLElement {
       <div class="g2"><label class="fl"><span>${this.T("Art")}</span><select id="f_kind"><option value="fuel">${esc(v.energy === "electric" ? this.T("Strom") : this.T("Kraftstoff"))}</option>${v.phev ? `<option value="electric"${e && e.kind !== "extra" && e.energy === "electric" ? " selected" : ""}>${esc(this.T("Strom"))}</option>` : ""}${PRESETS.map(x => `<option value="${x.k}"${isExtra && subSel === x.k ? " selected" : ""}>${esc(this.T(x.k))}</option>`).join("")}<option value="other"${isExtra && subSel === "other" ? " selected" : ""}>${esc(this.T("Sonstiges"))}</option></select></label>
       <label class="fl" id="w_grade"${isExtra || v.energy === "electric" || (e && e.energy === "electric") ? ' style="display:none"' : ""}><span>${this.T("Kraftstoffart")}</span><select id="f_grade">${gradeOpts.map(k => `<option value="${k}"${k === gradeCur ? " selected" : ""}>${esc(FUEL_GRADES[k])}</option>`).join("")}</select></label></div>
       <div class="g2">${fld("f_item", this.T("Bezeichnung"), e ? e.item || "" : "", ` id="w_item"${isExtra ? "" : ' style="display:none"'}`)}
-      ${fld("f_unit", this.T("Einheit (z. B. l, Stk), leer = keine"), e ? e.unit : "", ` id="w_unit"${isExtra ? "" : ' style="display:none"'}`)}</div>
+      ${fld("f_unit", this.T("Einheit"), e ? e.unit : "", ` id="w_unit" title="${esc(this.T("Einheit (z. B. l, Stk), leer = keine"))}"${isExtra ? "" : ' style="display:none"'}`)}</div>
       <div class="g2">
         ${fld("f_q", this.T("Menge"), e ? e.quantity : "")}
         ${curSel ? `<label class="fl"><span>${this.T("Preis")} €</span><div class="pr"><input id="f_p" type="text" inputmode="decimal" value="${esc(e.unit_price)}" autocomplete="off" style="min-width:0"><select id="f_cur" title="${esc(this.T("Währung des Belegs"))}" aria-label="${esc(this.T("Währung des Belegs"))}">${e.orig.currency ? "" : '<option value="" selected>?</option>'}${["EUR", ...CURRENCIES].map(c => `<option value="${c}"${c === e.orig.currency ? " selected" : ""}>${c}</option>`).join("")}</select></div></label>` : fld("f_p", this.T("Preis") + " €", e ? e.unit_price : "")}
@@ -1051,42 +1113,55 @@ class DriveEnergyDocPanel extends HTMLElement {
       this.shadowRoot.appendChild(q);
       q.onclick = ev => { ev.stopPropagation(); const b = ev.target.closest("[data-q]"); if (b) { q.remove(); res(b.dataset.q === "yes"); } };
     });
-    const scan = async files => {   // Foto per KI lesen und die gefundenen Werte in diesen Dialog eintragen (der Dialog bleibt offen)
+    const scan = async files => {   // mehrere Fotos (Säule, Tacho, Beleg): der Reihe nach lesen, die Werte zusammenführen; ein Beleg gilt mehr als ein Display
+      for (let i = 0; i < files.length; i++) { if (!(await scanOne(files[i], i, files.length))) break; }
+    };
+    const scanOne = async (file, i, total) => {   // Foto per KI lesen und die gefundenen Werte in diesen Dialog eintragen (der Dialog bleibt offen); false = Abbruch, nicht weiter
       const btn = dlg.querySelector('[data-d="photo"]');
       btn.disabled = true;
       ph(this.T("Foto wird gelesen …"));
-      const busy = document.createElement("div");   // Fortschritt mitten über dem Dialog (die Zeile im Dialog liegt am Handy oft außerhalb des sichtbaren Bereichs)
-      busy.className = "dlg";
-      busy.style.zIndex = 120;
-      busy.innerHTML = `<div class="card" style="align-items:center;text-align:center;gap:14px;padding:26px 30px;max-width:300px"><div class="spin"></div><div class="dh">${esc(this.T("Foto wird gelesen …"))}</div></div>`;
+      // derselbe Fortschrittsdialog wie beim Hochladen (Fahrzeugbild, Kennzeichen, Foto mit Lupe, Abbrechen), mitten über dem Dialog
+      const busy = document.createElement("div");
+      busy.className = "busy";
+      const ctl = new AbortController();
+      const shotUrl = URL.createObjectURL(file);
+      busy.innerHTML = this._busyHtml(v, shotUrl, i, total);
+      busy.onclick = ev => { if (ev.target.closest("[data-d=stop]")) ctl.abort(); };
       this.shadowRoot.appendChild(busy);
       let r = null;
-      try { r = (await this._upload(v, files[0], "", "scan")).scan; } catch (err) { busy.remove(); ph(""); btn.disabled = false; alert(this.T("Fehler") + ": " + (err.message || err)); return; }
+      try { r = (await this._upload(v, file, "", "scan", ctl.signal)).scan; } catch (err) {
+        busy.remove(); URL.revokeObjectURL(shotUrl); ph(""); btn.disabled = false;
+        if (!ctl.signal.aborted) alert(this.T("Fehler") + ": " + (err.message || err));
+        return false;
+      }
+      URL.revokeObjectURL(shotUrl);
       busy.remove();
       btn.disabled = false;
-      if (!r) { ph(""); return; }
-      if (r.busy) { ph(""); alert(this.T("Die KI ist gerade überlastet. Bitte in ein paar Minuten noch einmal versuchen.")); return; }
+      if (!r) { ph(""); return false; }
+      if (r.busy) { ph(""); alert(this.T("Die KI ist gerade überlastet. Bitte in ein paar Minuten noch einmal versuchen.")); return false; }
       if (!r.found) {
         ph("");
         const keep = await ask(this.T("Auf dem Foto konnte ich keine Daten lesen. Soll es trotzdem zur Dokumentation behalten werden?"), this.T("Behalten"), this.T("Verwerfen"));
-        if (!keep) return discard([r.photo]);
+        if (!keep) { discard([r.photo]); return true; }
         photos.push(r.photo);
         if (!$("f_item").value.trim()) $("f_item").value = this.T("Dokumentation");
         ph(this.T("{0} Foto(s) angehängt", photos.length));
-        return;
+        return true;
       }
       photos.push(r.photo);
-      const set = (id, x) => { if (x != null && x !== "") $(id).value = x; };
+      const strong = i === 0 || r.receipt;   // das erste Foto und ein Beleg überschreiben vorhandene Werte, ein späteres Display oder Tacho füllt nur Lücken
+      const set = (id, x) => { if (x != null && x !== "" && (strong || !String($(id).value).trim())) $(id).value = x; };
       const cat = { adblue: "AdBlue", oil: "Öl", washer: "Scheibenreiniger", carwash: "Waschen" }[r.category];   // Kategorie aus dem Beleg wählen
-      if (cat || r.category === "other") {
+      if (!strong) { /* Art und Kraftstoffart bleiben, wie sie sind */ } else if (cat || r.category === "other") {
         $("f_kind").value = cat || "other"; $("f_kind").onchange();
         if (!cat && r.item) $("f_item").value = r.item;
       } else if (r.receipt || r.quantity || r.total) { $("f_kind").value = v.phev && r.category === "charging" ? "electric" : "fuel"; $("f_kind").onchange(); }
-      if (r.fuel_grade && gradeOpts.includes(r.fuel_grade)) $("f_grade").value = r.fuel_grade;
+      if (strong && r.fuel_grade && gradeOpts.includes(r.fuel_grade)) $("f_grade").value = r.fuel_grade;
       set("f_q", r.quantity); set("f_p", r.unit_price); set("f_t", r.total); set("f_km", r.odometer ? Math.round(r.odometer) : null);
       if (r.note) $("f_note").value = $("f_note").value.trim() ? $("f_note").value.trim() + " · " + r.note : r.note;   // Fremdwährung: Originalpreis und Kurs
-      if (r.ts && !e) { const d = new Date(r.ts * 1000); if (!isNaN(d)) $("f_when").value = local(d); }
-      ph(this.T("Foto gelesen: Werte eingetragen, bitte prüfen.") + (photos.length > 1 ? " · " + this.T("{0} Foto(s) angehängt", photos.length) : ""));
+      if (r.ts && !e && strong) { const d = new Date(r.ts * 1000); if (!isNaN(d)) $("f_when").value = local(d); }
+      ph(this.T("Foto gelesen: Werte eingetragen, bitte prüfen.") + (r.ai_secs != null ? ` (KI ${Math.round(r.ai_secs)} s)` : "") + (photos.length > 1 ? " · " + this.T("{0} Foto(s) angehängt", photos.length) : ""));
+      return true;
     };
     const close = () => { if (photos.length) { discard(photos); photos.length = 0; } if (vv && coarse) { vv.removeEventListener("resize", fit); vv.removeEventListener("scroll", fit); } dlg.remove(); this._dlg = null; this._load(); };
     const num = s => (s == null || String(s).trim() === "" ? null : parseFloat(String(s).replace(",", ".")));

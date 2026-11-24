@@ -29,3 +29,29 @@ test_message:
       selector:
         select:
           options: [whatsapp, telegram, companion]
+simulate_refuel:
+  fields:
+    config_entry:
+      required: true
+      selector:
+        config_entry:
+          integration: drive_energy_doc
+    phase:
+      required: false
+      default: both
+      selector:
+        select:
+          options: [start, end, both]
+    delay:
+      required: false
+      default: 30
+      selector:
+        number:
+          min: 0
+          max: 600
+          unit_of_measurement: s
+    energy:
+      required: false
+      selector:
+        select:
+          options: [fuel, electric]

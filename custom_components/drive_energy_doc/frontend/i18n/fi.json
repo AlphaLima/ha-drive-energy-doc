@@ -205,5 +205,16 @@
  "Umrechnen": "Muunna",
  "Keine Währung erkannt, Land nicht ermittelbar: Werte als Euro angenommen. Bitte Währung prüfen.": "Valuuttaa ei tunnistettu, maa tuntematon: arvot oletettu euroiksi. Tarkista valuutta.",
  "Währung manuell gesetzt: {0}.": "Valuutta asetettu käsin: {0}.",
- "Kraftstoffart": "Polttoainetyyppi"
+ "Kraftstoffart": "Polttoainetyyppi",
+ "{0}: Tanken bzw. Laden läuft. Fotografiere jetzt die Anzeige an der Säule (Menge und Preis), solange du noch dort bist. Den Beleg kannst du danach schicken.": "{0}: Tankkaus tai lataus on käynnissä. Ota nyt kuva pumpun tai laturin näytöstä (määrä ja hinta), kun olet vielä paikalla. Kuitin voit lähettää sen jälkeen.",
+ "Teststation": "Testiasema",
+ "Einheit": "Yksikkö",
+ "Alle": "Kaikki",
+ "Filter": "Suodatin",
+ "Tanken": "Tankkaus",
+ "Laden": "Lataus",
+ "Tanken & Laden": "Tankkaus ja lataus",
+ "Zeilenfarben": "Rivien värit",
+ "an": "päällä",
+ "aus": "pois"
 }

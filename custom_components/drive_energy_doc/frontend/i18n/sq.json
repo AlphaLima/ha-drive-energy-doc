@@ -205,5 +205,16 @@
  "Umrechnen": "Konverto",
  "Keine Währung erkannt, Land nicht ermittelbar: Werte als Euro angenommen. Bitte Währung prüfen.": "Monedha nuk u njoh, vendi është i panjohur: vlerat u supozuan në euro. Kontrolloni monedhën.",
  "Währung manuell gesetzt: {0}.": "Monedha u caktua manualisht: {0}.",
- "Kraftstoffart": "Lloji i karburantit"
+ "Kraftstoffart": "Lloji i karburantit",
+ "{0}: Tanken bzw. Laden läuft. Fotografiere jetzt die Anzeige an der Säule (Menge und Preis), solange du noch dort bist. Den Beleg kannst du danach schicken.": "{0}: Po bëhet furnizimi ose karikimi. Fotografoni tani ekranin e pompës ose karikuesit (sasia dhe çmimi) ndërsa jeni ende aty. Faturën mund ta dërgoni më vonë.",
+ "Teststation": "Stacion provë",
+ "Einheit": "Njësia",
+ "Alle": "Të gjitha",
+ "Filter": "Filtri",
+ "Tanken": "Karburant",
+ "Laden": "Karikim",
+ "Tanken & Laden": "Karburant dhe karikim",
+ "Zeilenfarben": "Ngjyrat e rreshtave",
+ "an": "aktiv",
+ "aus": "joaktiv"
 }

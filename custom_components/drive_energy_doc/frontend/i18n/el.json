@@ -205,5 +205,16 @@
  "Umrechnen": "Μετατροπή",
  "Keine Währung erkannt, Land nicht ermittelbar: Werte als Euro angenommen. Bitte Währung prüfen.": "Δεν αναγνωρίστηκε νόμισμα, άγνωστη χώρα: οι τιμές θεωρήθηκαν σε ευρώ. Ελέγξτε το νόμισμα.",
  "Währung manuell gesetzt: {0}.": "Το νόμισμα ορίστηκε χειροκίνητα: {0}.",
- "Kraftstoffart": "Τύπος καυσίμου"
+ "Kraftstoffart": "Τύπος καυσίμου",
+ "{0}: Tanken bzw. Laden läuft. Fotografiere jetzt die Anzeige an der Säule (Menge und Preis), solange du noch dort bist. Den Beleg kannst du danach schicken.": "{0}: Ο ανεφοδιασμός ή η φόρτιση βρίσκεται σε εξέλιξη. Φωτογραφίστε τώρα την οθόνη της αντλίας ή του φορτιστή (ποσότητα και τιμή) όσο είστε ακόμα εκεί. Την απόδειξη μπορείτε να τη στείλετε μετά.",
+ "Teststation": "Δοκιμαστικός σταθμός",
+ "Einheit": "Μονάδα",
+ "Alle": "Όλα",
+ "Filter": "Φίλτρο",
+ "Tanken": "Ανεφοδιασμός",
+ "Laden": "Φόρτιση",
+ "Tanken & Laden": "Ανεφοδιασμός και φόρτιση",
+ "Zeilenfarben": "Χρώματα γραμμών",
+ "an": "ενεργό",
+ "aus": "ανενεργό"
 }

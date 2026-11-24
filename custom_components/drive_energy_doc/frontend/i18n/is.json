@@ -205,5 +205,16 @@
  "Umrechnen": "Umreikna",
  "Keine Währung erkannt, Land nicht ermittelbar: Werte als Euro angenommen. Bitte Währung prüfen.": "Gjaldmiðill þekktist ekki, land óþekkt: gert ráð fyrir evrum. Athugaðu gjaldmiðilinn.",
  "Währung manuell gesetzt: {0}.": "Gjaldmiðill stilltur handvirkt: {0}.",
- "Kraftstoffart": "Eldsneytistegund"
+ "Kraftstoffart": "Eldsneytistegund",
+ "{0}: Tanken bzw. Laden läuft. Fotografiere jetzt die Anzeige an der Säule (Menge und Preis), solange du noch dort bist. Den Beleg kannst du danach schicken.": "{0}: Áfylling eða hleðsla stendur yfir. Taktu mynd af skjá dælunnar eða hleðslutækisins (magn og verð) núna meðan þú ert enn á staðnum. Kvittunina geturðu sent á eftir.",
+ "Teststation": "Prófunarstöð",
+ "Einheit": "Eining",
+ "Alle": "Allt",
+ "Filter": "Sía",
+ "Tanken": "Eldsneyti",
+ "Laden": "Hleðsla",
+ "Tanken & Laden": "Eldsneyti og hleðsla",
+ "Zeilenfarben": "Litir lína",
+ "an": "kveikt",
+ "aus": "slökkt"
 }
