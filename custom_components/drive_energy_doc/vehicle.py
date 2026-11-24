@@ -93,6 +93,7 @@ class Vehicle:
             reject_moving=True,   # Anstieg des Akkus beim Fahren (Rekuperation) ist kein Laden
         ) if self.phev and o.get(CONF_LEVEL_EL) else None
         self._pos: tuple[float, float] | None = None
+        self._exif_pos: tuple[float, float] | None = None   # Aufnahmeort des Fotos, das gerade gelesen wird (Foto-Metadaten)
         self._capture: list[str] | None = None
         self._upload_lock = asyncio.Lock()
         self.last_extra_id: str | None = None
@@ -245,7 +246,7 @@ class Vehicle:
                         rows.append(f"{when};{n};;Datei fehlt;")
                         continue
                     image = await self.hass.async_add_executor_job(lambda p=src: receipt.normalize(p.read_bytes()))
-                    ai = await receipt.ai_read(self.hass, self._ai_entity(), image, self.media_dir)
+                    ai = await receipt.ai_read(self.hass, self._ai_entity(), image, self.media_dir, self._pos, self._exif_pos)
                     if ai and ai.get("busy"):
                         rows.append(f"{when};{n};;KI überlastet, unverändert;")
                         _LOGGER.warning("Foto-Neueinlesen: KI überlastet, Foto %s bleibt unverändert", n)
@@ -490,6 +491,7 @@ class Vehicle:
         try:
             if image:
                 sent = None   # Aufnahmezeit aus dem Foto: so wird ein später hochgeladenes Tacho-Foto dem richtigen Tankvorgang zugeordnet
+                self._exif_pos = await self.hass.async_add_executor_job(receipt.exif_gps, image)
                 taken = await self.hass.async_add_executor_job(receipt.exif_time, image)
                 if taken:
                     ts = dt_util.as_timestamp(taken.replace(tzinfo=dt_util.get_default_time_zone()))
@@ -834,6 +836,7 @@ class Vehicle:
     async def receive_photo(self, image: bytes, caption: str = "", sent_ts: float | None = None) -> None:
         for k in ("awaiting", "awaiting_overwrite", "awaiting_odo", "unread_photo"):   # ein neues Foto ersetzt alte, unbeantwortete Rückfragen (sonst kreisen sie)
             self.data[k] = None
+        self._exif_pos = await self.hass.async_add_executor_job(receipt.exif_gps, image)   # vor dem Normalisieren: dabei gehen die Metadaten verloren
         image = await self.hass.async_add_executor_job(receipt.normalize, image)
         low = caption.lower().strip()
         px = receipt.parse_extra(caption)
@@ -841,7 +844,7 @@ class Vehicle:
             item, rest = px
             values, box = receipt.parse_extra_values(rest), None
             if not values:
-                ai = await receipt.ai_read(self.hass, self._ai_entity(), image, self.media_dir)
+                ai = await receipt.ai_read(self.hass, self._ai_entity(), image, self.media_dir, self._pos, self._exif_pos)
                 if ai and receipt.plausible(ai):
                     values, box = ai, ai.get("crop")
             name = receipt.new_photo_name(values, sent_ts, item or "Zubehoer", self.photo_dir)
@@ -855,10 +858,10 @@ class Vehicle:
         rejected_km = None   # von der KI gelesen, aber unplausibel (Reihenfolge der Einträge): dem Nutzer sagen statt nur „nichts lesbar“
         if not extra and not values and km is None:
             t0 = time.time()
-            ai = await receipt.ai_read(self.hass, self._ai_entity(), image, self.media_dir)
+            ai = await receipt.ai_read(self.hass, self._ai_entity(), image, self.media_dir, self._pos, self._exif_pos)
             if not ai and time.time() - t0 < 60:   # schneller Fehlschlag (z. B. Überlastung des KI-Dienstes): einmal wiederholen
                 await asyncio.sleep(3)
-                ai = await receipt.ai_read(self.hass, self._ai_entity(), image, self.media_dir)
+                ai = await receipt.ai_read(self.hass, self._ai_entity(), image, self.media_dir, self._pos, self._exif_pos)
             if ai and ai.get("busy"):   # KI überlastet: nichts ablegen, kein Eintrag
                 return await self._say("⚠ " + self.tr("Die KI ist gerade überlastet. Bitte schick das Foto in ein paar Minuten noch einmal.") + " " + self.tr("Es wurde nichts gespeichert."))
             if ai and receipt.plausible(ai):
@@ -1281,7 +1284,9 @@ class Vehicle:
             else:
                 entry.pop("energy", None)
         note = self.currency_note(values.get("orig"))
-        if note:
+        if values.get("orig") and note:
+            entry["orig"] = {**values["orig"], "note": note}   # Originalwerte und Umrechnung: die Währung lässt sich später von Hand ändern
+        if note and note not in (entry.get("note") or ""):   # jede Umrechnung steht in der Notiz, aber nie doppelt (derselbe Beleg zweimal angewendet)
             entry["note"] = f"{entry['note']} · {note}" if entry.get("note") else note
         if photo:
             entry["photos"].insert(0, photo)
@@ -1298,11 +1303,48 @@ class Vehicle:
         if orig.get("unit_price"):
             parts.append(self.tr("Preis {0}", f"{f(orig['unit_price'], 3)} {orig['currency']}"))
         original = ", ".join(parts)
+        if orig.get("unknown"):
+            return "⚠ " + self.tr("Keine Währung erkannt, Land nicht ermittelbar: Werte als Euro angenommen. Bitte Währung prüfen.")
+        hint = (self.tr("Währung manuell gesetzt: {0}.", orig["currency"]) + " ") if orig.get("manual") else ""
+        if orig.get("assumed"):
+            hint = self.tr("Keine Währung erkannt, Landeswährung {0} angenommen ({1}).", orig["currency"], orig["assumed"]) + " "   # Währung aus dem Land der GPS-Position
+        if orig.get("currency") == "EUR":
+            return hint.strip()
         if not orig.get("rate"):
-            return self.tr("Beleg in {0}, Umrechnung nicht möglich, Werte nicht in Euro! Original: {1}", orig["currency"], original)
+            return hint + self.tr("Beleg in {0}, Umrechnung nicht möglich, Werte nicht in Euro! Original: {1}", orig["currency"], original)
         day = dt_util.parse_date(orig["date"]) if orig.get("date") else None
         eur = f"{orig['total'] / orig['rate']:.2f}".replace(".", dec) if orig.get("total") else "?"
-        return self.tr("Original: {0} → {4} € · Kurs: 1 EUR = {1} {2} (EZB, {3})", original, f(orig["rate"], 4), orig["currency"], day.strftime("%d.%m.%Y") if day else orig.get("date") or "", eur)
+        return hint + self.tr("Original: {0} → {4} € · Kurs: 1 EUR = {1} {2} (EZB, {3})", original, f(orig["rate"], 4), orig["currency"], day.strftime("%d.%m.%Y") if day else orig.get("date") or "", eur)
+
+    async def set_currency(self, entry_id: str, currency: str) -> bool:
+        """Währung eines Belegs von Hand ändern (z. B. wenn sie nicht erkannt wurde): Betrag und Preis werden aus den Originalwerten zum Tageskurs neu umgerechnet, die Notiz wird ersetzt."""
+        e = self.get_entry(entry_id)
+        cur = str(currency or "").strip().upper()
+        o = (e or {}).get("orig")
+        if not e or not o or not re.fullmatch(r"[A-Z]{3}", cur):
+            return False
+        total, price = o.get("total"), o.get("unit_price")
+        rate, day = None, None
+        if cur != "EUR":
+            on = dt_util.as_local(dt_util.utc_from_timestamp(e["ts"])).date()
+            got = await receipt.eur_rate(self.hass, cur, on)
+            if got:
+                rate, day = got
+        new = {"currency": cur, "total": total, "unit_price": price, "rate": rate, "date": day, "assumed": None, "manual": True}
+        div = rate or 1.0
+        if total:
+            e["total"] = round(total / div, 2)
+        if price:
+            e["unit_price"], e["price_source"] = round(price / div, 3), "beleg"
+        if not total and e.get("quantity") and e.get("unit_price"):
+            e["total"] = round(e["quantity"] * e["unit_price"], 2)
+        note = self.currency_note(new)
+        keep = (e.get("note") or "").replace(o.get("note") or "", "").strip(" ·")
+        e["note"] = f"{keep} · {note}" if keep and note else (keep or note)
+        e["orig"] = {**new, "note": note}
+        self._save()
+        self._notify_entities()
+        return True
 
     # ---------------------------------------------------------------- Bearbeiten (Panel)
     def get_entry(self, entry_id: str) -> dict | None:
@@ -1337,6 +1379,9 @@ class Vehicle:
             e["quantity_source"] = "manuell"
         if "unit_price" in fields and fields["unit_price"] not in (None, ""):
             e["price_source"] = "manuell"
+        for n in fields.get("photos") or []:   # im Bearbeiten-Dialog aufgenommene, schon abgelegte Fotos
+            if isinstance(n, str) and n not in e["photos"] and (self.photo_dir / n).is_file():
+                e["photos"].append(n)
         if fields.get("ts"):   # Datum und Uhrzeit ändern
             e["ts"] = e["ts_start"] = float(fields["ts"])
             self.data["entries"].sort(key=lambda x: x["ts"])
@@ -1347,6 +1392,7 @@ class Vehicle:
     async def scan_photo(self, image: bytes, read: bool = True) -> dict:
         """Foto für den Dialog „Eintrag von Hand“ auslesen, ohne einen Eintrag anzulegen: liefert die gefundenen Werte und den Namen des abgelegten Fotos."""
         sent = None
+        self._exif_pos = await self.hass.async_add_executor_job(receipt.exif_gps, image)
         taken = await self.hass.async_add_executor_job(receipt.exif_time, image)
         if taken:
             ts = dt_util.as_timestamp(taken.replace(tzinfo=dt_util.get_default_time_zone()))
@@ -1354,10 +1400,10 @@ class Vehicle:
                 sent = ts
         image = await self.hass.async_add_executor_job(receipt.normalize, image)
         t0 = time.time()
-        ai = await receipt.ai_read(self.hass, self._ai_entity(), image, self.media_dir) if read else None   # read=False: Foto nur ablegen (die KI hat es schon vergeblich gelesen)
+        ai = await receipt.ai_read(self.hass, self._ai_entity(), image, self.media_dir, self._pos, self._exif_pos) if read else None   # read=False: Foto nur ablegen (die KI hat es schon vergeblich gelesen)
         if read and not ai and time.time() - t0 < 60:   # schneller Fehlschlag: einmal wiederholen
             await asyncio.sleep(3)
-            ai = await receipt.ai_read(self.hass, self._ai_entity(), image, self.media_dir)
+            ai = await receipt.ai_read(self.hass, self._ai_entity(), image, self.media_dir, self._pos, self._exif_pos)
         out: dict[str, Any] = {"found": False, "ts": sent}
         box = None
         if ai and ai.get("busy"):   # KI überlastet: Foto nicht ablegen, der Nutzer soll es später noch einmal versuchen

@@ -199,5 +199,10 @@
  "Unplausibler Wert": "Neverjetna vrednost",
  "Angabe fehlt": "Podatek manjka",
  "Auf dem Foto steht der Kilometerstand {0} km, das passt aber nicht zur Reihenfolge der Einträge. Schick den Stand als Text (z. B. „km {0}“), wenn er stimmt, oder lege das Foto nur zur Dokumentation ab, oder lösche es.": "Na fotografiji je {0} km, kar ne ustreza vrstnemu redu vnosov. Pošljite vrednost kot besedilo (npr. »km {0}«), če je pravilna, fotografijo obdržite samo kot dokumentacijo ali jo izbrišite.",
- "Quittieren": "Potrdi"
+ "Quittieren": "Potrdi",
+ "Keine Währung erkannt, Landeswährung {0} angenommen ({1}).": "Valuta ni prepoznana, predpostavljena lokalna valuta {0} ({1}).",
+ "Währung des Belegs": "Valuta računa",
+ "Umrechnen": "Pretvori",
+ "Keine Währung erkannt, Land nicht ermittelbar: Werte als Euro angenommen. Bitte Währung prüfen.": "Valuta ni prepoznana, država neznana: vrednosti so privzete v evrih. Preverite valuto.",
+ "Währung manuell gesetzt: {0}.": "Valuta nastavljena ročno: {0}."
 }

@@ -201,5 +201,10 @@
  "Unplausibler Wert": "Неправдоподобна стойност",
  "Angabe fehlt": "Липсва информация",
  "Auf dem Foto steht der Kilometerstand {0} km, das passt aber nicht zur Reihenfolge der Einträge. Schick den Stand als Text (z. B. „km {0}“), wenn er stimmt, oder lege das Foto nur zur Dokumentation ab, oder lösche es.": "На снимката е {0} km, което не съответства на реда на записите. Изпратете стойността като текст (напр. „km {0}“), ако е вярна, запазете снимката само като документация или я изтрийте.",
- "Quittieren": "Потвърди"
+ "Quittieren": "Потвърди",
+ "Keine Währung erkannt, Landeswährung {0} angenommen ({1}).": "Валутата не е разпозната, приета е местната валута {0} ({1}).",
+ "Währung des Belegs": "Валута на бележката",
+ "Umrechnen": "Преобразувай",
+ "Keine Währung erkannt, Land nicht ermittelbar: Werte als Euro angenommen. Bitte Währung prüfen.": "Валутата не е разпозната, държавата е неизвестна: стойностите са приети в евро. Проверете валутата.",
+ "Währung manuell gesetzt: {0}.": "Валутата е зададена ръчно: {0}."
 }

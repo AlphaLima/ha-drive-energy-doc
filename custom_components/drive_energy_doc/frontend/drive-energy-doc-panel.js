@@ -1,8 +1,9 @@
 /* Drive-Energy-Doc-Panel: Fahrzeug-Reiter, Tankliste mit Belegfotos, Bearbeiten, CSV-Export */
 const DEFW = { nr: 46 };   // Standardbreite einzelner Spalten in px (sonst 120 bei fester Breite)
+const CURRENCIES = ["ALL", "AED", "AUD", "BAM", "BRL", "BYN", "CAD", "CHF", "CNY", "CZK", "DKK", "EGP", "GBP", "GEL", "HUF", "INR", "ISK", "JPY", "MAD", "MDL", "MKD", "MXN", "NOK", "NZD", "PLN", "RON", "RSD", "SEK", "THB", "TND", "TRY", "UAH", "USD", "ZAR"];
 const COLS = ["nr", "date", "km", "station", "qty", "price", "total", "cons", "receipt", "note", "act"];
 
-const VERSION = "0.1.81b55";
+const VERSION = "0.1.81b62";
 
 class DriveEnergyDocPanel extends HTMLElement {
   set hass(h) {
@@ -501,10 +502,10 @@ class DriveEnergyDocPanel extends HTMLElement {
       .stopb{font:inherit;font-size:15px;padding:8px 22px;border-radius:8px;border:1px solid var(--divider-color);background:var(--card-background-color,#fff);color:var(--primary-text-color);cursor:pointer}
       .spin{width:26px;height:26px;border:4px solid var(--divider-color);border-top-color:var(--primary-color);border-radius:50%;animation:sp 1s linear infinite}@keyframes sp{to{transform:rotate(360deg)}}
       .ck{display:flex;align-items:center;gap:12px;padding:8px 4px;font-size:16px;cursor:pointer}.ck input{padding:0;width:20px;height:20px;border:0;background:none;accent-color:var(--primary-color)}
-      .form .card{width:min(400px,94vw);padding:20px;gap:14px;max-height:92vh;max-height:92dvh;overflow:hidden}.form .bd{display:flex;flex-direction:column;gap:14px;overflow:auto;min-height:0;flex:1 1 auto;padding:2px}.form .dh{font-size:22px;font-weight:600}.form .g2{display:flex;flex-direction:column;gap:14px}
+      .form .card{width:min(400px,94vw);padding:16px;gap:10px;max-height:92vh;max-height:92dvh;overflow:hidden}.form .bd{display:flex;flex-direction:column;gap:9px;overflow:auto;min-height:0;flex:1 1 auto;padding:2px}.form .dh{font-size:20px;font-weight:600}.form .g2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:9px 10px}.form .pr{display:flex;gap:6px}.form .fl .pr input{flex:1 1 0;width:0;min-width:0}.form .fl .pr select{flex:none;width:76px;padding:8px 4px}
       .phn{font-size:14px;color:var(--secondary-text-color)}
       .spin{width:44px;height:44px;border:5px solid var(--divider-color);border-top-color:var(--primary-color);border-radius:50%;animation:dspin 1s linear infinite}@keyframes dspin{to{transform:rotate(360deg)}}
-      @media (pointer:coarse){.g2{display:grid;grid-template-columns:1fr 1fr;gap:10px}.form .fl textarea{min-height:64px}.form .bd{gap:10px}}.form .fl{display:flex;flex-direction:column;gap:5px;font-size:14px;color:var(--secondary-text-color)}.form .fl input,.form .fl textarea{font-size:19px;padding:11px 12px;color:var(--primary-text-color);width:100%;box-sizing:border-box;min-height:0}.form .fl input[type=datetime-local]{min-height:48px}.form .fl textarea{min-height:130px}.form .fl select{font:inherit;font-size:19px;padding:11px 12px;border:1px solid var(--divider-color);border-radius:8px;background:var(--primary-background-color);color:var(--primary-text-color);width:100%;box-sizing:border-box;min-height:48px}.form .hint{font-size:13px;color:var(--secondary-text-color);margin-top:-8px}.form .df{flex:none}.form .df button{font-size:17px;padding:10px 26px}
+      .form .fl{display:flex;flex-direction:column;gap:5px;font-size:14px;color:var(--secondary-text-color)}.form .fl input,.form .fl textarea{font-size:16px;padding:8px 10px;color:var(--primary-text-color);width:100%;box-sizing:border-box;min-height:0}.form .fl input[type=datetime-local]{min-height:40px}.form .fl textarea{min-height:60px}.form .fl select{font:inherit;font-size:16px;padding:8px 10px;border:1px solid var(--divider-color);border-radius:8px;background:var(--primary-background-color);color:var(--primary-text-color);width:100%;box-sizing:border-box;min-height:40px}.form .hint{font-size:13px;color:var(--secondary-text-color);margin-top:-8px}.form .df{flex:none}.form .df button{font-size:16px;padding:8px 22px}.form .df button.ico{flex:0 0 92px;width:92px;min-height:58px;padding:0}.form .df button.ico svg{width:40px;height:40px;stroke-width:1.6}
       .dlg textarea{font:inherit;min-height:120px;padding:8px 10px;border:1px solid var(--divider-color);border-radius:8px;background:var(--primary-background-color);color:inherit;resize:vertical}
       .dlg .big{justify-content:center;font-size:17px;padding:16px 12px}
       .dlg input{font:inherit;padding:8px 10px;border:1px solid var(--divider-color);border-radius:8px;background:var(--primary-background-color);color:inherit}
@@ -1009,20 +1010,21 @@ class DriveEnergyDocPanel extends HTMLElement {
     const itemLow = (e && e.item ? String(e.item) : "").toLowerCase();
     const subSel = isExtra ? (PRESETS.find(x => [this.T(x.k).toLowerCase(), x.k.toLowerCase(), ...x.m].some(w => itemLow === w || itemLow.endsWith(w) || (w.length >= 5 && itemLow.includes(w)))) || {}).k || "other" : "other";
     const fld = (id, label, val, extra = "") => `<label class="fl"${extra}><span>${label}</span><input id="${id}" type="text" inputmode="${id === "f_date" || id === "f_item" || id === "f_unit" ? "text" : "decimal"}" value="${esc(val)}" autocomplete="off"></label>`;
+    const curSel = !!(e && e.orig && (e.orig.unknown || e.orig.assumed || e.orig.manual));   // nur wenn die Währung nicht erkannt wurde (unbekannt, aus dem Land angenommen oder schon von Hand gesetzt)
     const dlg = document.createElement("div");
     dlg.className = "dlg form";
     dlg.innerHTML = `<div class="card"><div class="bd">
       <div class="dh">${this.T(e ? "Bearbeiten" : "Eintrag von Hand")}${e ? " · " + esc(this._date(e.ts)) : ""}</div>
             <label class="fl"><span>${this.T("Datum")}</span><input id="f_when" type="datetime-local" value="${whenOrig}"></label>
-      <label class="fl"><span>${this.T("Art")}</span><select id="f_kind"><option value="fuel">${esc(v.energy === "electric" ? this.T("Strom") : this.T("Kraftstoff"))}</option>${v.phev ? `<option value="electric"${e && e.kind !== "extra" && e.energy === "electric" ? " selected" : ""}>${esc(this.T("Strom"))}</option>` : ""}${PRESETS.map(x => `<option value="${x.k}"${isExtra && subSel === x.k ? " selected" : ""}>${esc(this.T(x.k))}</option>`).join("")}<option value="other"${isExtra && subSel === "other" ? " selected" : ""}>${esc(this.T("Sonstiges"))}</option></select></label>
-      ${fld("f_item", this.T("Bezeichnung"), e ? e.item || "" : "", ` id="w_item"${isExtra ? "" : ' style="display:none"'}`)}
+      <label class="fl"><span>${this.T("Art")}</span><select id="f_kind"><option value="fuel">${esc(v.energy === "electric" ? this.T("Strom") : ({ diesel: "Diesel", e5: "Super E5", e10: "Super E10", lpg: "LPG" })[v.energy] || this.T("Kraftstoff"))   /* konkrete Kraftstoffart des Fahrzeugs */}</option>${v.phev ? `<option value="electric"${e && e.kind !== "extra" && e.energy === "electric" ? " selected" : ""}>${esc(this.T("Strom"))}</option>` : ""}${PRESETS.map(x => `<option value="${x.k}"${isExtra && subSel === x.k ? " selected" : ""}>${esc(this.T(x.k))}</option>`).join("")}<option value="other"${isExtra && subSel === "other" ? " selected" : ""}>${esc(this.T("Sonstiges"))}</option></select></label>
+      <div class="g2">${fld("f_item", this.T("Bezeichnung"), e ? e.item || "" : "", ` id="w_item"${isExtra ? "" : ' style="display:none"'}`)}
+      ${fld("f_unit", this.T("Einheit (z. B. l, Stk), leer = keine"), e ? e.unit : "", ` id="w_unit"${isExtra ? "" : ' style="display:none"'}`)}</div>
       <div class="g2">
         ${fld("f_q", this.T("Menge"), e ? e.quantity : "")}
-        ${fld("f_p", this.T("Preis") + " €", e ? e.unit_price : "")}
+        ${curSel ? `<label class="fl"><span>${this.T("Preis")} €</span><div class="pr"><input id="f_p" type="text" inputmode="decimal" value="${esc(e.unit_price)}" autocomplete="off" style="min-width:0"><select id="f_cur" title="${esc(this.T("Währung des Belegs"))}" aria-label="${esc(this.T("Währung des Belegs"))}">${e.orig.currency ? "" : '<option value="" selected>?</option>'}${["EUR", ...CURRENCIES].map(c => `<option value="${c}"${c === e.orig.currency ? " selected" : ""}>${c}</option>`).join("")}</select></div></label>` : fld("f_p", this.T("Preis") + " €", e ? e.unit_price : "")}
         ${fld("f_t", this.T("Betrag") + " €", e ? e.total : "")}
         ${fld("f_km", this.T("Kilometerstand"), e ? e.odometer : "")}
       </div>
-      ${fld("f_unit", this.T("Einheit (z. B. l, Stk), leer = keine"), e ? e.unit : "", ` id="w_unit"${isExtra ? "" : ' style="display:none"'}`)}
       <label class="fl"><span>${this.T("Notiz")}</span><textarea id="f_note" maxlength="1000">${esc(e ? e.note : "")}</textarea></label>
       <div id="f_ph" class="phn" style="display:none"></div>
     </div><div class="df"><button data-d="photo" class="ico" title="${this.T("Foto zu diesem Eintrag")}" aria-label="${this.T("Foto hinzufügen")}">${this._ico("camera")}</button><button data-d="cancel">${this.T("Abbrechen")}</button><button data-d="save" class="pri">${this.T("Speichern")}</button></div></div>`;
@@ -1078,7 +1080,7 @@ class DriveEnergyDocPanel extends HTMLElement {
       } else if (r.receipt || r.quantity || r.total) { $("f_kind").value = v.phev && r.category === "charging" ? "electric" : "fuel"; $("f_kind").onchange(); }
       set("f_q", r.quantity); set("f_p", r.unit_price); set("f_t", r.total); set("f_km", r.odometer ? Math.round(r.odometer) : null);
       if (r.note) $("f_note").value = $("f_note").value.trim() ? $("f_note").value.trim() + " · " + r.note : r.note;   // Fremdwährung: Originalpreis und Kurs
-      if (r.ts) { const d = new Date(r.ts * 1000); if (!isNaN(d)) $("f_when").value = local(d); }
+      if (r.ts && !e) { const d = new Date(r.ts * 1000); if (!isNaN(d)) $("f_when").value = local(d); }
       ph(this.T("Foto gelesen: Werte eingetragen, bitte prüfen.") + (photos.length > 1 ? " · " + this.T("{0} Foto(s) angehängt", photos.length) : ""));
     };
     const close = () => { if (photos.length) { discard(photos); photos.length = 0; } if (vv && coarse) { vv.removeEventListener("resize", fit); vv.removeEventListener("scroll", fit); } dlg.remove(); this._dlg = null; this._load(); };
@@ -1097,8 +1099,11 @@ class DriveEnergyDocPanel extends HTMLElement {
       if (extra) { f.item = ($("f_item").value || "").trim() || this.T("Zubehör"); f.unit = ($("f_unit").value || "").trim(); }
       if (e && $("f_when").value && $("f_when").value !== whenOrig) { const w = new Date($("f_when").value); if (!isNaN(w)) f.ts = w.getTime() / 1000; }
       try {
-        if (e) await this._hass.callWS({ type: "drive_energy_doc/update", vehicle: v.id, entry: e.id, fields: f });
-        else {
+        if (e) {
+          if (photos.length) f.photos = [...photos];   // im Dialog aufgenommene Fotos gehören jetzt zum Eintrag
+          await this._hass.callWS({ type: "drive_energy_doc/update", vehicle: v.id, entry: e.id, fields: f });
+          photos.length = 0;
+        } else {
           const w = new Date($("f_when").value);
           if (isNaN(w)) { $("f_when").focus(); return; }
           f.ts = w.getTime() / 1000;
@@ -1110,12 +1115,22 @@ class DriveEnergyDocPanel extends HTMLElement {
       close();
       this._load();
     };
+    dlg.onchange = ev => {   // Währung gewählt: Betrag und Preis werden neu umgerechnet, der Dialog öffnet danach mit den neuen Werten
+      if (ev.target.id !== "f_cur" || !e || !ev.target.value) return;
+      ev.target.disabled = true;
+      this._hass.callWS({ type: "drive_energy_doc/set_currency", vehicle: v.id, entry: e.id, currency: ev.target.value }).then(async () => {
+        close();
+        await this._load();
+        const v2 = (this._data || []).find(x => x.id === v.id), e2 = v2 && v2.entries.find(x => x.id === e.id);
+        if (e2) this._form(v2, e2);
+      }, err => { ev.target.disabled = false; alert(this.T("Fehler") + ": " + (err.message || err)); });
+    };
     dlg.onclick = ev => {
       ev.stopPropagation();
       const b = ev.target.closest("[data-d]");
       if ((b && b.dataset.d === "cancel") || ev.target === dlg) return close();
       if (b && b.dataset.d === "save") save();
-      if (b && b.dataset.d === "photo") { if (e) { close(); this._pick(v, e, true); } else this._pick(v, null, true, scan); }
+      if (b && b.dataset.d === "photo") this._pick(v, null, true, scan);   // auch beim Bearbeiten: das Foto wird gelesen, die Werte kommen in den offenen Dialog, gespeichert wird erst mit „Speichern“
     };
     dlg.onkeydown = ev => { if (ev.key === "Escape") close(); else if (ev.key === "Enter" && ev.target.tagName === "INPUT") save(); };
     if (pre && pre.photo) {   // unlesbarer Beleg aus dem Hauptmenü: Foto hängt schon am Dialog, Rest von Hand

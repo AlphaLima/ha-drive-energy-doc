@@ -199,5 +199,10 @@
  "Unplausibler Wert": "Usannsynlig verdi",
  "Angabe fehlt": "Opplysning mangler",
  "Auf dem Foto steht der Kilometerstand {0} km, das passt aber nicht zur Reihenfolge der Einträge. Schick den Stand als Text (z. B. „km {0}“), wenn er stimmt, oder lege das Foto nur zur Dokumentation ab, oder lösche es.": "Bildet viser {0} km, men det passer ikke med rekkefølgen på postene. Send verdien som tekst (f.eks. «km {0}») hvis den stemmer, behold bildet bare som dokumentasjon, eller slett det.",
- "Quittieren": "Kvitter"
+ "Quittieren": "Kvitter",
+ "Keine Währung erkannt, Landeswährung {0} angenommen ({1}).": "Ingen valuta gjenkjent, lokal valuta {0} antatt ({1}).",
+ "Währung des Belegs": "Kvitteringens valuta",
+ "Umrechnen": "Regn om",
+ "Keine Währung erkannt, Land nicht ermittelbar: Werte als Euro angenommen. Bitte Währung prüfen.": "Ingen valuta gjenkjent, land ukjent: verdiene antas å være i euro. Kontroller valutaen.",
+ "Währung manuell gesetzt: {0}.": "Valuta satt manuelt: {0}."
 }

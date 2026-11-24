@@ -196,7 +196,7 @@ def resolve_provider(setting: str | None, country: str | None, key: str | None) 
 
 
 async def lookup(session, provider: str | None, key: str | None, lat: float, lon: float, fuel: str) -> dict[str, Any] | None:
-    if not provider:
+    if not provider or fuel not in ("diesel", "e5", "e10"):   # Autogas (LPG) u. a.: die Preisdienste kennen nur diese Sorten, der Preis kommt dann vom Beleg
         return None
     try:
         return await PROVIDERS[provider](session, key, lat, lon, fuel)

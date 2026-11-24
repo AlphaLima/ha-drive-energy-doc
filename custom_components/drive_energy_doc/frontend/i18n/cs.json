@@ -199,5 +199,10 @@
  "Unplausibler Wert": "Nepravděpodobná hodnota",
  "Angabe fehlt": "Údaj chybí",
  "Auf dem Foto steht der Kilometerstand {0} km, das passt aber nicht zur Reihenfolge der Einträge. Schick den Stand als Text (z. B. „km {0}“), wenn er stimmt, oder lege das Foto nur zur Dokumentation ab, oder lösche es.": "Na fotografii je {0} km, ale to nesedí s pořadím záznamů. Pošlete hodnotu jako text (např. „km {0}“), pokud je správná, ponechte fotografii jen jako dokumentaci, nebo ji smažte.",
- "Quittieren": "Potvrdit"
+ "Quittieren": "Potvrdit",
+ "Keine Währung erkannt, Landeswährung {0} angenommen ({1}).": "Měna nebyla rozpoznána, předpokládá se místní měna {0} ({1}).",
+ "Währung des Belegs": "Měna účtenky",
+ "Umrechnen": "Přepočítat",
+ "Keine Währung erkannt, Land nicht ermittelbar: Werte als Euro angenommen. Bitte Währung prüfen.": "Měna nebyla rozpoznána, země neznámá: hodnoty považovány za eura. Zkontrolujte měnu.",
+ "Währung manuell gesetzt: {0}.": "Měna nastavena ručně: {0}."
 }

@@ -199,5 +199,10 @@
  "Unplausibler Wert": "Epäuskottava arvo",
  "Angabe fehlt": "Tieto puuttuu",
  "Auf dem Foto steht der Kilometerstand {0} km, das passt aber nicht zur Reihenfolge der Einträge. Schick den Stand als Text (z. B. „km {0}“), wenn er stimmt, oder lege das Foto nur zur Dokumentation ab, oder lösche es.": "Kuvassa on {0} km, mutta se ei sovi merkintöjen järjestykseen. Lähetä arvo tekstinä (esim. ”km {0}”), jos se on oikein, säilytä kuva vain dokumentaationa tai poista se.",
- "Quittieren": "Kuittaa"
+ "Quittieren": "Kuittaa",
+ "Keine Währung erkannt, Landeswährung {0} angenommen ({1}).": "Valuuttaa ei tunnistettu, oletettu paikallinen valuutta {0} ({1}).",
+ "Währung des Belegs": "Kuitin valuutta",
+ "Umrechnen": "Muunna",
+ "Keine Währung erkannt, Land nicht ermittelbar: Werte als Euro angenommen. Bitte Währung prüfen.": "Valuuttaa ei tunnistettu, maa tuntematon: arvot oletettu euroiksi. Tarkista valuutta.",
+ "Währung manuell gesetzt: {0}.": "Valuutta asetettu käsin: {0}."
 }

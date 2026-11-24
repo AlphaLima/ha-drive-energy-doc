@@ -199,5 +199,10 @@
  "Unplausibler Wert": "Valeur peu plausible",
  "Angabe fehlt": "Information manquante",
  "Auf dem Foto steht der Kilometerstand {0} km, das passt aber nicht zur Reihenfolge der Einträge. Schick den Stand als Text (z. B. „km {0}“), wenn er stimmt, oder lege das Foto nur zur Dokumentation ab, oder lösche es.": "La photo indique {0} km, mais cela ne correspond pas à l'ordre des entrées. Envoie la valeur en texte (p. ex. « km {0} ») si elle est correcte, ou garde la photo uniquement pour la documentation, ou supprime-la.",
- "Quittieren": "Acquitter"
+ "Quittieren": "Acquitter",
+ "Keine Währung erkannt, Landeswährung {0} angenommen ({1}).": "Aucune devise reconnue, devise locale {0} supposée ({1}).",
+ "Währung des Belegs": "Devise du ticket",
+ "Umrechnen": "Convertir",
+ "Keine Währung erkannt, Land nicht ermittelbar: Werte als Euro angenommen. Bitte Währung prüfen.": "Aucune devise reconnue, pays inconnu : valeurs supposées en euros. Vérifiez la devise.",
+ "Währung manuell gesetzt: {0}.": "Devise définie manuellement : {0}."
 }

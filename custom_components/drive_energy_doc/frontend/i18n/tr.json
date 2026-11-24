@@ -199,5 +199,10 @@
  "Unplausibler Wert": "Olası olmayan değer",
  "Angabe fehlt": "Bilgi eksik",
  "Auf dem Foto steht der Kilometerstand {0} km, das passt aber nicht zur Reihenfolge der Einträge. Schick den Stand als Text (z. B. „km {0}“), wenn er stimmt, oder lege das Foto nur zur Dokumentation ab, oder lösche es.": "Fotoğrafta {0} km yazıyor, ancak bu kayıtların sırasına uymuyor. Doğruysa değeri metin olarak gönderin (örn. “km {0}”), fotoğrafı yalnızca belgeleme için saklayın veya silin.",
- "Quittieren": "Onayla"
+ "Quittieren": "Onayla",
+ "Keine Währung erkannt, Landeswährung {0} angenommen ({1}).": "Para birimi tanınmadı, yerel para birimi {0} varsayıldı ({1}).",
+ "Währung des Belegs": "Fiş para birimi",
+ "Umrechnen": "Dönüştür",
+ "Keine Währung erkannt, Land nicht ermittelbar: Werte als Euro angenommen. Bitte Währung prüfen.": "Para birimi tanınmadı, ülke bilinmiyor: değerler euro varsayıldı. Lütfen para birimini kontrol edin.",
+ "Währung manuell gesetzt: {0}.": "Para birimi elle ayarlandı: {0}."
 }

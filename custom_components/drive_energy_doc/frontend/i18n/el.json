@@ -199,5 +199,10 @@
  "Unplausibler Wert": "Μη εύλογη τιμή",
  "Angabe fehlt": "Λείπει η τιμή",
  "Auf dem Foto steht der Kilometerstand {0} km, das passt aber nicht zur Reihenfolge der Einträge. Schick den Stand als Text (z. B. „km {0}“), wenn er stimmt, oder lege das Foto nur zur Dokumentation ab, oder lösche es.": "Η φωτογραφία δείχνει {0} km, αλλά δεν ταιριάζει με τη σειρά των εγγραφών. Στείλτε την τιμή ως κείμενο (π.χ. «km {0}») αν είναι σωστή, κρατήστε τη φωτογραφία μόνο ως τεκμηρίωση ή διαγράψτε την.",
- "Quittieren": "Επιβεβαίωση"
+ "Quittieren": "Επιβεβαίωση",
+ "Keine Währung erkannt, Landeswährung {0} angenommen ({1}).": "Δεν αναγνωρίστηκε νόμισμα, θεωρήθηκε το τοπικό νόμισμα {0} ({1}).",
+ "Währung des Belegs": "Νόμισμα απόδειξης",
+ "Umrechnen": "Μετατροπή",
+ "Keine Währung erkannt, Land nicht ermittelbar: Werte als Euro angenommen. Bitte Währung prüfen.": "Δεν αναγνωρίστηκε νόμισμα, άγνωστη χώρα: οι τιμές θεωρήθηκαν σε ευρώ. Ελέγξτε το νόμισμα.",
+ "Währung manuell gesetzt: {0}.": "Το νόμισμα ορίστηκε χειροκίνητα: {0}."
 }

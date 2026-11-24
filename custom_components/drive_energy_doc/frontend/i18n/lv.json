@@ -199,5 +199,10 @@
  "Unplausibler Wert": "Neticama vērtība",
  "Angabe fehlt": "Trūkst datu",
  "Auf dem Foto steht der Kilometerstand {0} km, das passt aber nicht zur Reihenfolge der Einträge. Schick den Stand als Text (z. B. „km {0}“), wenn er stimmt, oder lege das Foto nur zur Dokumentation ab, oder lösche es.": "Fotoattēlā ir {0} km, bet tas neatbilst ierakstu secībai. Nosūtiet vērtību kā tekstu (piem., „km {0}”), ja tā ir pareiza, saglabājiet fotoattēlu tikai kā dokumentāciju vai dzēsiet to.",
- "Quittieren": "Apstiprināt"
+ "Quittieren": "Apstiprināt",
+ "Keine Währung erkannt, Landeswährung {0} angenommen ({1}).": "Valūta nav atpazīta, pieņemta vietējā valūta {0} ({1}).",
+ "Währung des Belegs": "Čeka valūta",
+ "Umrechnen": "Pārrēķināt",
+ "Keine Währung erkannt, Land nicht ermittelbar: Werte als Euro angenommen. Bitte Währung prüfen.": "Valūta nav atpazīta, valsts nav zināma: vērtības pieņemtas eiro. Pārbaudiet valūtu.",
+ "Währung manuell gesetzt: {0}.": "Valūta iestatīta manuāli: {0}."
 }

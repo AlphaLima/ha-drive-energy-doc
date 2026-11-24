@@ -199,5 +199,10 @@
  "Unplausibler Wert": "Valore poco plausibile",
  "Angabe fehlt": "Dato mancante",
  "Auf dem Foto steht der Kilometerstand {0} km, das passt aber nicht zur Reihenfolge der Einträge. Schick den Stand als Text (z. B. „km {0}“), wenn er stimmt, oder lege das Foto nur zur Dokumentation ab, oder lösche es.": "La foto mostra {0} km, ma non corrisponde all'ordine delle voci. Invia il valore come testo (es. «km {0}») se è giusto, tieni la foto solo come documentazione o eliminala.",
- "Quittieren": "Conferma"
+ "Quittieren": "Conferma",
+ "Keine Währung erkannt, Landeswährung {0} angenommen ({1}).": "Valuta non riconosciuta, presunta valuta locale {0} ({1}).",
+ "Währung des Belegs": "Valuta dello scontrino",
+ "Umrechnen": "Converti",
+ "Keine Währung erkannt, Land nicht ermittelbar: Werte als Euro angenommen. Bitte Währung prüfen.": "Valuta non riconosciuta, paese sconosciuto: valori ipotizzati in euro. Controlla la valuta.",
+ "Währung manuell gesetzt: {0}.": "Valuta impostata manualmente: {0}."
 }

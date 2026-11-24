@@ -5,7 +5,7 @@ PANEL_PATH = "drive-energy-doc"
 PANEL_URL = "/drive_energy_doc_static/drive-energy-doc-panel.js"
 
 CONF_NAME = "name"
-CONF_ENERGY = "energy"            # diesel | e5 | e10 | electric
+CONF_ENERGY = "energy"            # diesel | e5 | e10 | lpg | electric
 CONF_ODOMETER = "odometer_entity"
 CONF_TRACKER = "tracker_entity"
 CONF_LEVEL = "level_entity"       # Tankinhalt / Ladestand in %

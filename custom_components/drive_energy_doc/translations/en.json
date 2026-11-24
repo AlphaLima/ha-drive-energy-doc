@@ -275,6 +275,7 @@
         "diesel": "Diesel",
         "e5": "Petrol E5",
         "e10": "Petrol E10",
+        "lpg": "LPG (autogas)",
         "electric": "Electric"
       }
     },

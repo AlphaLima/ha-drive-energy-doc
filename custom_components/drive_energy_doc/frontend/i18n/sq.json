@@ -199,5 +199,10 @@
  "Unplausibler Wert": "Vlerë jo e besueshme",
  "Angabe fehlt": "Mungon informacioni",
  "Auf dem Foto steht der Kilometerstand {0} km, das passt aber nicht zur Reihenfolge der Einträge. Schick den Stand als Text (z. B. „km {0}“), wenn er stimmt, oder lege das Foto nur zur Dokumentation ab, oder lösche es.": "Fotoja tregon {0} km, por kjo nuk përputhet me rendin e regjistrimeve. Dërgo vlerën si tekst (p.sh. «km {0}») nëse është e saktë, ruaje fotot vetëm si dokumentim ose fshije.",
- "Quittieren": "Konfirmo"
+ "Quittieren": "Konfirmo",
+ "Keine Währung erkannt, Landeswährung {0} angenommen ({1}).": "Monedha nuk u njoh, u supozua monedha vendase {0} ({1}).",
+ "Währung des Belegs": "Monedha e faturës",
+ "Umrechnen": "Konverto",
+ "Keine Währung erkannt, Land nicht ermittelbar: Werte als Euro angenommen. Bitte Währung prüfen.": "Monedha nuk u njoh, vendi është i panjohur: vlerat u supozuan në euro. Kontrolloni monedhën.",
+ "Währung manuell gesetzt: {0}.": "Monedha u caktua manualisht: {0}."
 }

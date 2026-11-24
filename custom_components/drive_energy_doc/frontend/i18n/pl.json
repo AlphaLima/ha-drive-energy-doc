@@ -199,5 +199,10 @@
  "Unplausibler Wert": "Nieprawdopodobna wartość",
  "Angabe fehlt": "Brak danych",
  "Auf dem Foto steht der Kilometerstand {0} km, das passt aber nicht zur Reihenfolge der Einträge. Schick den Stand als Text (z. B. „km {0}“), wenn er stimmt, oder lege das Foto nur zur Dokumentation ab, oder lösche es.": "Na zdjęciu widać {0} km, ale to nie pasuje do kolejności wpisów. Wyślij wartość jako tekst (np. „km {0}”), jeśli jest poprawna, zachowaj zdjęcie tylko jako dokumentację albo je usuń.",
- "Quittieren": "Potwierdź"
+ "Quittieren": "Potwierdź",
+ "Keine Währung erkannt, Landeswährung {0} angenommen ({1}).": "Nie rozpoznano waluty, przyjęto walutę lokalną {0} ({1}).",
+ "Währung des Belegs": "Waluta paragonu",
+ "Umrechnen": "Przelicz",
+ "Keine Währung erkannt, Land nicht ermittelbar: Werte als Euro angenommen. Bitte Währung prüfen.": "Nie rozpoznano waluty, kraj nieznany: przyjęto euro. Sprawdź walutę.",
+ "Währung manuell gesetzt: {0}.": "Waluta ustawiona ręcznie: {0}."
 }

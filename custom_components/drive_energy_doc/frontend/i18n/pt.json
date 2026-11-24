@@ -199,5 +199,10 @@
  "Unplausibler Wert": "Valor pouco plausível",
  "Angabe fehlt": "Informação em falta",
  "Auf dem Foto steht der Kilometerstand {0} km, das passt aber nicht zur Reihenfolge der Einträge. Schick den Stand als Text (z. B. „km {0}“), wenn er stimmt, oder lege das Foto nur zur Dokumentation ab, oder lösche es.": "A foto mostra {0} km, mas não encaixa na ordem das entradas. Envie o valor como texto (p. ex. «km {0}») se estiver certo, guarde a foto apenas como documentação ou elimine-a.",
- "Quittieren": "Confirmar"
+ "Quittieren": "Confirmar",
+ "Keine Währung erkannt, Landeswährung {0} angenommen ({1}).": "Moeda não reconhecida, assumida a moeda local {0} ({1}).",
+ "Währung des Belegs": "Moeda do talão",
+ "Umrechnen": "Converter",
+ "Keine Währung erkannt, Land nicht ermittelbar: Werte als Euro angenommen. Bitte Währung prüfen.": "Moeda não reconhecida, país desconhecido: valores assumidos em euros. Verifique a moeda.",
+ "Währung manuell gesetzt: {0}.": "Moeda definida manualmente: {0}."
 }

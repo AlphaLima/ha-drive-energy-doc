@@ -199,5 +199,10 @@
  "Unplausibler Wert": "Onwaarschijnlijke waarde",
  "Angabe fehlt": "Gegeven ontbreekt",
  "Auf dem Foto steht der Kilometerstand {0} km, das passt aber nicht zur Reihenfolge der Einträge. Schick den Stand als Text (z. B. „km {0}“), wenn er stimmt, oder lege das Foto nur zur Dokumentation ab, oder lösche es.": "Op de foto staat {0} km, maar dat past niet bij de volgorde van de invoeren. Stuur de stand als tekst (bijv. “km {0}”) als hij klopt, bewaar de foto alleen als documentatie of verwijder hem.",
- "Quittieren": "Bevestigen"
+ "Quittieren": "Bevestigen",
+ "Keine Währung erkannt, Landeswährung {0} angenommen ({1}).": "Geen valuta herkend, lokale valuta {0} aangenomen ({1}).",
+ "Währung des Belegs": "Valuta van de bon",
+ "Umrechnen": "Omrekenen",
+ "Keine Währung erkannt, Land nicht ermittelbar: Werte als Euro angenommen. Bitte Währung prüfen.": "Geen valuta herkend, land onbekend: waarden als euro aangenomen. Controleer de valuta.",
+ "Währung manuell gesetzt: {0}.": "Valuta handmatig ingesteld: {0}."
 }

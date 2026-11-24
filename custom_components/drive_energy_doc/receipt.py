@@ -204,12 +204,89 @@ async def eur_rate(hass, currency: str, on: date | None) -> tuple[float, str] | 
     return None
 
 
-async def convert_to_eur(hass, out: dict[str, Any]) -> None:
+CURRENCY_BY_COUNTRY = {
+    "CH": "CHF", "LI": "CHF", "GB": "GBP", "PL": "PLN", "CZ": "CZK", "HU": "HUF", "SE": "SEK", "DK": "DKK", "NO": "NOK", "RO": "RON", "IS": "ISK", "RS": "RSD",
+    "BA": "BAM", "MK": "MKD", "AL": "ALL", "TR": "TRY", "UA": "UAH", "MD": "MDL", "BY": "BYN", "GE": "GEL", "US": "USD", "CA": "CAD", "MA": "MAD", "TN": "TND",
+    "EG": "EGP", "ZA": "ZAR", "AE": "AED", "JP": "JPY", "AU": "AUD", "NZ": "NZD", "CN": "CNY", "IN": "INR", "BR": "BRL", "MX": "MXN", "TH": "THB",
+}   # Länder mit eigener Währung; alle anderen Länder, die hier fehlen, gelten als Euro (Euroraum) und lösen keine Umrechnung aus
+EURO_COUNTRIES = {"DE", "AT", "BE", "BG", "CY", "EE", "ES", "FI", "FR", "GR", "HR", "IE", "IT", "LT", "LU", "LV", "MC", "ME", "MT", "NL", "PT", "SI", "SK", "SM", "VA", "XK", "AD"}
+_COUNTRY_CACHE: dict[tuple[float, float], str | None] = {}
+
+
+async def country_at(hass, lat: float, lon: float) -> str | None:
+    """Ländercode (ISO 3166-1 alpha-2) zu einer Position über die Rückwärtssuche von OpenStreetMap (Nominatim); nur die gerundete Position wird gesendet. None = nicht ermittelbar."""
+    key = (round(lat, 1), round(lon, 1))
+    if key in _COUNTRY_CACHE:
+        return _COUNTRY_CACHE[key]
+    import aiohttp
+    from homeassistant.helpers.aiohttp_client import async_get_clientsession
+
+    cc = None
+    try:
+        r = await async_get_clientsession(hass).get(
+            "https://nominatim.openstreetmap.org/reverse", params={"format": "jsonv2", "lat": key[0], "lon": key[1], "zoom": 3, "addressdetails": 1},
+            headers={"User-Agent": "drive-energy-doc-homeassistant"}, timeout=aiohttp.ClientTimeout(total=10))
+        if r.status == 200:
+            cc = str(((await r.json()).get("address") or {}).get("country_code") or "").upper() or None
+    except (aiohttp.ClientError, TimeoutError, ValueError) as err:
+        _LOGGER.warning("Land zur Position nicht ermittelbar: %r", err)
+    if cc:
+        _COUNTRY_CACHE[key] = cc
+    return cc
+
+
+async def assumed_currency(hass, pos: tuple[float, float] | None) -> tuple[str, str] | None:
+    """Landeswährung am Aufenthaltsort, wenn der Beleg keine Währung nennt: (Währung, Land). None = unbekannt."""
+    if not pos:
+        return None
+    cc = await country_at(hass, pos[0], pos[1])
+    if not cc:
+        return None
+    if cc in CURRENCY_BY_COUNTRY:
+        return CURRENCY_BY_COUNTRY[cc], cc
+    return ("EUR", cc) if cc in EURO_COUNTRIES else None
+
+
+def exif_gps(image: bytes) -> tuple[float, float] | None:
+    """Aufnahmeort aus den EXIF-Daten des Fotos (Breite, Länge) oder None. Messenger entfernen ihn meist; ein als Datei gesendetes oder im Panel hochgeladenes Foto behält ihn. Läuft im Executor."""
+    try:
+        from PIL import Image
+
+        gps = Image.open(io.BytesIO(image)).getexif().get_ifd(0x8825)
+        if not gps or 2 not in gps or 4 not in gps:
+            return None
+
+        def deg(v, ref) -> float:
+            d = float(v[0]) + float(v[1]) / 60 + float(v[2]) / 3600
+            return -d if str(ref).upper() in ("S", "W") else d
+
+        return deg(gps[2], gps.get(1)), deg(gps[4], gps.get(3))
+    except Exception:  # noqa: BLE001 - kein GPS im Foto ist der Normalfall
+        return None
+
+
+async def convert_to_eur(hass, out: dict[str, Any], pos: tuple[float, float] | None = None, exif: tuple[float, float] | None = None) -> None:
     """Betrag und Preis eines Belegs in Fremdwährung zum Tageskurs des Belegdatums in Euro umrechnen. Die Originalwerte stehen danach in ``out["orig"]`` (für die Notiz)."""
-    cur = out.get("currency")
-    if not cur or cur == "EUR" or not (out.get("total") or out.get("unit_price")):
+    cur = str(out.get("currency") or "").strip().upper().replace("€", "EUR").replace("£", "GBP")   # „eur“, „€“ usw. nicht als Fremdwährung behandeln
+    assumed = None
+    d = out.get("date")
+    amounts = bool(out.get("total") or out.get("unit_price"))
+    if not cur and amounts:
+        # keine Währung erkannt: das Land verrät sie. Erst die Position des Fahrzeugs (nur bei einem Beleg von heute, sonst wäre der Ort ein anderer), dann der Aufnahmeort in den Foto-Metadaten
+        got = None
+        for p, today_only in ((pos, True), (exif, False)):
+            if p and not got and (not today_only or d is None or abs((date.today() - d).days) <= 1):
+                got = await assumed_currency(hass, p)
+        if got and got[0] != "EUR":
+            cur, assumed = got
+        elif not got:
+            out["currency"] = ""
+            out["orig"] = {"currency": None, "total": out.get("total"), "unit_price": out.get("unit_price"), "rate": None, "date": None, "assumed": None, "unknown": True}   # Warnung in der Notiz, Währung von Hand wählbar
+            return
+    out["currency"] = cur
+    if not cur or cur == "EUR" or not amounts:
         return
-    orig = {"currency": cur, "total": out.get("total"), "unit_price": out.get("unit_price"), "rate": None, "date": None}
+    orig = {"currency": cur, "total": out.get("total"), "unit_price": out.get("unit_price"), "rate": None, "date": None, "assumed": assumed}
     out["orig"] = orig
     got = await eur_rate(hass, cur, out.get("date"))
     if not got:
@@ -255,7 +332,7 @@ INSTRUCTIONS = (
 )
 
 
-async def ai_read(hass, entity_id: str, image: bytes, media_dir: Path) -> dict[str, Any] | None:
+async def ai_read(hass, entity_id: str, image: bytes, media_dir: Path, pos: tuple[float, float] | None = None, exif: tuple[float, float] | None = None) -> dict[str, Any] | None:
     """Beleg per ai_task lesen. None = nicht verfügbar oder nichts Lesbares."""
     if not entity_id or not hass.services.has_service("ai_task", "generate_data"):
         return None
@@ -320,7 +397,7 @@ async def ai_read(hass, entity_id: str, image: bytes, media_dir: Path) -> dict[s
         return None   # ein Tacho-Foto hat nur den Kilometerstand
     if not plausible(out) and not out["odometer"]:
         _LOGGER.warning("Beleg-KI: Werte passen nicht zusammen: Menge %s, Preis %s, Betrag %s", out["quantity"], out["unit_price"], out["total"])
-    await convert_to_eur(hass, out)   # Fremdwährung: zum Tageskurs des Belegdatums in Euro
+    await convert_to_eur(hass, out, pos, exif)   # Fremdwährung: zum Tageskurs des Belegdatums in Euro
     return out
 
 

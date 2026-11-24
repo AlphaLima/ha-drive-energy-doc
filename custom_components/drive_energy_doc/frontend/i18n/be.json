@@ -199,5 +199,10 @@
  "Unplausibler Wert": "Няправдападобнае значэнне",
  "Angabe fehlt": "Даныя адсутнічаюць",
  "Auf dem Foto steht der Kilometerstand {0} km, das passt aber nicht zur Reihenfolge der Einträge. Schick den Stand als Text (z. B. „km {0}“), wenn er stimmt, oder lege das Foto nur zur Dokumentation ab, oder lösche es.": "На фота {0} км, але гэта не адпавядае парадку запісаў. Адпраўце значэнне тэкстам (напрыклад «km {0}»), калі яно правільнае, захавайце фота толькі як дакументацыю або выдаліце яго.",
- "Quittieren": "Пацвердзіць"
+ "Quittieren": "Пацвердзіць",
+ "Keine Währung erkannt, Landeswährung {0} angenommen ({1}).": "Валюта не распазнана, прынята мясцовая валюта {0} ({1}).",
+ "Währung des Belegs": "Валюта чэка",
+ "Umrechnen": "Пералічыць",
+ "Keine Währung erkannt, Land nicht ermittelbar: Werte als Euro angenommen. Bitte Währung prüfen.": "Валюта не распазнана, краіна невядомая: значэнні прынятыя ў еўра. Праверце валюту.",
+ "Währung manuell gesetzt: {0}.": "Валюта зададзена ўручную: {0}."
 }

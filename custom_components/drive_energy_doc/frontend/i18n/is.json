@@ -199,5 +199,10 @@
  "Unplausibler Wert": "Ólíklegt gildi",
  "Angabe fehlt": "Upplýsingar vantar",
  "Auf dem Foto steht der Kilometerstand {0} km, das passt aber nicht zur Reihenfolge der Einträge. Schick den Stand als Text (z. B. „km {0}“), wenn er stimmt, oder lege das Foto nur zur Dokumentation ab, oder lösche es.": "Myndin sýnir {0} km, en það passar ekki við röð færslna. Sendu gildið sem texta (t.d. „km {0}“) ef það er rétt, geymdu myndina aðeins sem skjölun eða eyddu henni.",
- "Quittieren": "Staðfesta"
+ "Quittieren": "Staðfesta",
+ "Keine Währung erkannt, Landeswährung {0} angenommen ({1}).": "Gjaldmiðill þekktist ekki, gert ráð fyrir staðbundnum gjaldmiðli {0} ({1}).",
+ "Währung des Belegs": "Gjaldmiðill kvittunar",
+ "Umrechnen": "Umreikna",
+ "Keine Währung erkannt, Land nicht ermittelbar: Werte als Euro angenommen. Bitte Währung prüfen.": "Gjaldmiðill þekktist ekki, land óþekkt: gert ráð fyrir evrum. Athugaðu gjaldmiðilinn.",
+ "Währung manuell gesetzt: {0}.": "Gjaldmiðill stilltur handvirkt: {0}."
 }
