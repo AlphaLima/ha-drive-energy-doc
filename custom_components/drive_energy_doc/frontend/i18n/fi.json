@@ -187,13 +187,17 @@
  "Beleg in {0}, Umrechnung nicht möglich, Werte nicht in Euro! Original: {1}": "Kuitti valuutassa {0}, muunnos ei onnistu, arvot eivät ole euroina! Alkuperäinen: {1}",
  "Ja": "Kyllä",
  "Nein": "Ei",
- "Die KI ist gerade überlastet (Google). Bitte in ein paar Minuten noch einmal versuchen.": "Tekoäly on tällä hetkellä ylikuormitettu (Google). Yritä uudelleen muutaman minuutin kuluttua.",
- "Die KI ist gerade überlastet (Google). Bitte schick das Foto in ein paar Minuten noch einmal.": "Tekoäly on tällä hetkellä ylikuormitettu (Google). Lähetä kuva uudelleen muutaman minuutin kuluttua.",
+ "Die KI ist gerade überlastet. Bitte in ein paar Minuten noch einmal versuchen.": "Tekoäly on tällä hetkellä ylikuormitettu. Yritä uudelleen muutaman minuutin kuluttua.",
+ "Die KI ist gerade überlastet. Bitte schick das Foto in ein paar Minuten noch einmal.": "Tekoäly on tällä hetkellä ylikuormitettu. Lähetä kuva uudelleen muutaman minuutin kuluttua.",
  "Es wurde nichts gespeichert.": "Mitään ei tallennettu.",
  "Original: {0} → {4} € · Kurs: 1 EUR = {1} {2} (EZB, {3})": "Alkuperäinen: {0} → {4} € · Kurssi: 1 EUR = {1} {2} (EKP, {3})",
  "Auf dem Foto konnte ich weder Beleg noch Kilometerstand lesen. Schick den Kilometerstand als Text (z. B. „km 61240“) oder lege das Foto nur zur Dokumentation ab, oder lösche es.": "Kuvasta ei voitu lukea kuittia eikä matkamittarin lukemaa. Lähetä lukema tekstinä (esim. ”km 61240”), säilytä kuva vain dokumentaationa tai poista se.",
  "Foto gelöscht.": "Kuva poistettu.",
  "Foto zur Dokumentation abgelegt.": "Kuva tallennettu dokumentaationa.",
  "kw.doc": "dokumentaatio|doc",
- "kw.del": "poista|poistaa"
+ "kw.del": "poista|poistaa",
+ "Unplausibler Wert": "Epäuskottava arvo",
+ "Angabe fehlt": "Tieto puuttuu",
+ "Auf dem Foto steht der Kilometerstand {0} km, das passt aber nicht zur Reihenfolge der Einträge. Schick den Stand als Text (z. B. „km {0}“), wenn er stimmt, oder lege das Foto nur zur Dokumentation ab, oder lösche es.": "Kuvassa on {0} km, mutta se ei sovi merkintöjen järjestykseen. Lähetä arvo tekstinä (esim. ”km {0}”), jos se on oikein, säilytä kuva vain dokumentaationa tai poista se.",
+ "Quittieren": "Kuittaa"
 }

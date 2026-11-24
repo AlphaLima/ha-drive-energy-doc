@@ -187,13 +187,17 @@
  "Beleg in {0}, Umrechnung nicht möglich, Werte nicht in Euro! Original: {1}": "Kvittering i {0}, omregning ikke mulig, værdierne er ikke i euro! Original: {1}",
  "Ja": "Ja",
  "Nein": "Nej",
- "Die KI ist gerade überlastet (Google). Bitte in ein paar Minuten noch einmal versuchen.": "AI'en er overbelastet lige nu (Google). Prøv igen om nogle minutter.",
- "Die KI ist gerade überlastet (Google). Bitte schick das Foto in ein paar Minuten noch einmal.": "AI'en er overbelastet lige nu (Google). Send fotoet igen om nogle minutter.",
+ "Die KI ist gerade überlastet. Bitte in ein paar Minuten noch einmal versuchen.": "AI'en er overbelastet lige nu. Prøv igen om nogle minutter.",
+ "Die KI ist gerade überlastet. Bitte schick das Foto in ein paar Minuten noch einmal.": "AI'en er overbelastet lige nu. Send fotoet igen om nogle minutter.",
  "Es wurde nichts gespeichert.": "Intet blev gemt.",
  "Original: {0} → {4} € · Kurs: 1 EUR = {1} {2} (EZB, {3})": "Original: {0} → {4} € · Kurs: 1 EUR = {1} {2} (ECB, {3})",
  "Auf dem Foto konnte ich weder Beleg noch Kilometerstand lesen. Schick den Kilometerstand als Text (z. B. „km 61240“) oder lege das Foto nur zur Dokumentation ab, oder lösche es.": "Jeg kunne hverken læse en kvittering eller en kilometerstand på fotoet. Send kilometerstanden som tekst (f.eks. ”km 61240”), gem fotoet kun som dokumentation, eller slet det.",
  "Foto gelöscht.": "Foto slettet.",
  "Foto zur Dokumentation abgelegt.": "Foto gemt som dokumentation.",
  "kw.doc": "dokumentation|doc",
- "kw.del": "slet|slette"
+ "kw.del": "slet|slette",
+ "Unplausibler Wert": "Usandsynlig værdi",
+ "Angabe fehlt": "Oplysning mangler",
+ "Auf dem Foto steht der Kilometerstand {0} km, das passt aber nicht zur Reihenfolge der Einträge. Schick den Stand als Text (z. B. „km {0}“), wenn er stimmt, oder lege das Foto nur zur Dokumentation ab, oder lösche es.": "Fotoet viser {0} km, men det passer ikke til rækkefølgen af posterne. Send værdien som tekst (f.eks. ”km {0}”), hvis den er rigtig, gem fotoet kun som dokumentation, eller slet det.",
+ "Quittieren": "Kvittér"
 }

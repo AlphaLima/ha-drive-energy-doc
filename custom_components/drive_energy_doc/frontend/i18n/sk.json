@@ -187,13 +187,17 @@
  "Beleg in {0}, Umrechnung nicht möglich, Werte nicht in Euro! Original: {1}": "Pokladničný doklad v {0}, prepočet nie je možný, hodnoty nie sú v eurách! Originál: {1}",
  "Ja": "Áno",
  "Nein": "Nie",
- "Die KI ist gerade überlastet (Google). Bitte in ein paar Minuten noch einmal versuchen.": "AI je práve preťažená (Google). Skúste to prosím o niekoľko minút znova.",
- "Die KI ist gerade überlastet (Google). Bitte schick das Foto in ein paar Minuten noch einmal.": "AI je práve preťažená (Google). Pošlite fotografiu prosím znova o niekoľko minút.",
+ "Die KI ist gerade überlastet. Bitte in ein paar Minuten noch einmal versuchen.": "AI je práve preťažená. Skúste to prosím o niekoľko minút znova.",
+ "Die KI ist gerade überlastet. Bitte schick das Foto in ein paar Minuten noch einmal.": "AI je práve preťažená. Pošlite fotografiu prosím znova o niekoľko minút.",
  "Es wurde nichts gespeichert.": "Nič sa neuložilo.",
  "Original: {0} → {4} € · Kurs: 1 EUR = {1} {2} (EZB, {3})": "Originál: {0} → {4} € · Kurz: 1 EUR = {1} {2} (ECB, {3})",
  "Auf dem Foto konnte ich weder Beleg noch Kilometerstand lesen. Schick den Kilometerstand als Text (z. B. „km 61240“) oder lege das Foto nur zur Dokumentation ab, oder lösche es.": "Na fotografii som neprečítal ani doklad, ani stav tachometra. Pošlite stav tachometra ako text (napr. „km 61240“), ponechajte fotografiu len ako dokumentáciu, alebo ju zmažte.",
  "Foto gelöscht.": "Fotografia zmazaná.",
  "Foto zur Dokumentation abgelegt.": "Fotografia uložená ako dokumentácia.",
  "kw.doc": "dokumentácia|dokumentacia|doc",
- "kw.del": "zmazať|zmazat|vymazať"
+ "kw.del": "zmazať|zmazat|vymazať",
+ "Unplausibler Wert": "Nepravdepodobná hodnota",
+ "Angabe fehlt": "Údaj chýba",
+ "Auf dem Foto steht der Kilometerstand {0} km, das passt aber nicht zur Reihenfolge der Einträge. Schick den Stand als Text (z. B. „km {0}“), wenn er stimmt, oder lege das Foto nur zur Dokumentation ab, oder lösche es.": "Na fotografii je {0} km, ale to nesedí s poradím záznamov. Pošlite hodnotu ako text (napr. „km {0}“), ak je správna, ponechajte fotografiu len ako dokumentáciu, alebo ju zmažte.",
+ "Quittieren": "Potvrdiť"
 }

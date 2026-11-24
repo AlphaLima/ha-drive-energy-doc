@@ -187,13 +187,17 @@
  "Beleg in {0}, Umrechnung nicht möglich, Werte nicht in Euro! Original: {1}": "Quittung a(n) {0}, Ëmrechnung net méiglech, Wäerter net an Euro! Original: {1}",
  "Ja": "Jo",
  "Nein": "Neen",
- "Die KI ist gerade überlastet (Google). Bitte in ein paar Minuten noch einmal versuchen.": "D'KI ass de Moment iwwerlaascht (Google). Probéier et w.e.g. an e puer Minutten nach eng Kéier.",
- "Die KI ist gerade überlastet (Google). Bitte schick das Foto in ein paar Minuten noch einmal.": "D'KI ass de Moment iwwerlaascht (Google). Schéck d'Foto w.e.g. an e puer Minutten nach eng Kéier.",
+ "Die KI ist gerade überlastet. Bitte in ein paar Minuten noch einmal versuchen.": "D'KI ass de Moment iwwerlaascht. Probéier et w.e.g. an e puer Minutten nach eng Kéier.",
+ "Die KI ist gerade überlastet. Bitte schick das Foto in ein paar Minuten noch einmal.": "D'KI ass de Moment iwwerlaascht. Schéck d'Foto w.e.g. an e puer Minutten nach eng Kéier.",
  "Es wurde nichts gespeichert.": "Et gouf näischt gespäichert.",
  "Original: {0} → {4} € · Kurs: 1 EUR = {1} {2} (EZB, {3})": "Original: {0} → {4} € · Cours: 1 EUR = {1} {2} (EZB, {3})",
  "Auf dem Foto konnte ich weder Beleg noch Kilometerstand lesen. Schick den Kilometerstand als Text (z. B. „km 61240“) oder lege das Foto nur zur Dokumentation ab, oder lösche es.": "Op dem Foto konnt ech weder eng Quittung nach de Kilometerstand liesen. Schéck de Kilometerstand als Text (z. B. „km 61240“), behal d'Foto just als Dokumentatioun oder läsch et.",
  "Foto gelöscht.": "Foto geläscht.",
  "Foto zur Dokumentation abgelegt.": "Foto als Dokumentatioun ofgeluecht.",
  "kw.doc": "dokumentatioun|doc",
- "kw.del": "läschen|laeschen|läsch"
+ "kw.del": "läschen|laeschen|läsch",
+ "Unplausibler Wert": "Onwahrscheinleche Wäert",
+ "Angabe fehlt": "Angab feelt",
+ "Auf dem Foto steht der Kilometerstand {0} km, das passt aber nicht zur Reihenfolge der Einträge. Schick den Stand als Text (z. B. „km {0}“), wenn er stimmt, oder lege das Foto nur zur Dokumentation ab, oder lösche es.": "Op dem Foto steet {0} km, dat passt awer net zur Reiefolleg vun den Androungen. Schéck de Wäert als Text (z. B. „km {0}“), wann en stëmmt, behal d'Foto just als Dokumentatioun oder läsch et.",
+ "Quittieren": "Quittéieren"
 }

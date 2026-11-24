@@ -111,6 +111,83 @@ def test_phev_check_consumption_uses_own_chain():
     assert chk and chk["energy"] == "fuel" and abs(chk["cons"] - 5.0) < 0.01 and chk["ok"]
 
 
+def test_plausibility_warnings_and_missing():
+    es = [
+        {"id": "a", "ts": 1, "odometer": 1000, "quantity": 40.0, "unit_price": 1.8, "total": 72.0, "consumption": None},
+        {"id": "b", "ts": 2, "odometer": 900, "quantity": 2.6, "unit_price": 1.789, "total": 38.64, "consumption": 7.0},        # km zurück, Menge x Preis passt nicht
+        {"id": "c", "ts": 3, "odometer": None, "quantity": None, "unit_price": None, "total": None, "consumption": None},           # unvollständig
+        {"id": "d", "ts": 4, "odometer": 7000, "quantity": 30.0, "unit_price": 5.0, "total": 150.0, "consumption": 40.0},          # Preis, Sprung, Verbrauch
+        {"id": "x", "ts": 5, "kind": "extra", "total": None},
+    ]
+    w = st.plausibility(es, capacity=50.0)
+    assert w["a"] == {}, w["a"]
+    assert w["b"]["km"]["k"] == "back" and w["b"]["total"]["k"] == "calc" and abs(w["b"]["total"]["calc"] - 4.65) < 0.01
+    assert {w["c"][k]["k"] for k in ("qty", "total", "km", "price")} == {"missing"}
+    assert w["d"]["price"]["k"] == "range" and w["d"]["km"]["k"] == "jump" and w["d"]["cons"]["k"] == "range"
+    assert w["x"] == {"total": {"k": "missing"}, "km": {"k": "missing"}}, w["x"]   # Zubehör: Betrag und Kilometerstand fehlen
+    ex2 = [{"id": "z", "ts": 1, "kind": "extra", "total": 9.5, "odometer": 12118.0, "odometer_source": "bekannt"}]
+    assert st.plausibility(ex2, 50.0)["z"] == {}, "Zubehör mit zuletzt bekanntem Stand ist vollständig"
+    # Plug-in-Hybrid: sehr niedriger Kraftstoffverbrauch ist erlaubt, beim Strom nicht
+    low = [{"id": "f", "ts": 1, "odometer": 1, "quantity": 5.0, "unit_price": 1.8, "total": 9.0, "consumption": 0.8}]
+    assert "cons" not in st.plausibility(low, 50.0, 12.0, phev=True)["f"] and "cons" in st.plausibility(low, 50.0)["f"]
+    elec = [{"id": "g", "ts": 1, "odometer": 1, "quantity": 10.0, "unit_price": 0.4, "total": 4.0, "consumption": 3.0, "energy": "electric"}]
+    assert "cons" in st.plausibility(elec, 50.0, 12.0, phev=True)["g"]
+
+
+def test_phev_mixed_plausibility():
+    """Plug-in-Hybrid im Wechsel Benzin/Strom: der Verbrauch je Energieart wird nicht einzeln geflaggt, nur der gemeinsame."""
+    def e(i, ts, km, q, p, en=None, cons=None):
+        d = {"id": i, "ts": ts, "odometer": km, "quantity": q, "unit_price": p, "total": round(q * p, 2), "consumption": cons}
+        if en:
+            d["energy"] = en
+        return d
+    ok = [e("a", 1, 1000, 40.0, 1.8, cons=None), e("b", 2, 1100, 10.0, 0.4, "electric"), e("c", 3, 1500, 12.0, 1.8, cons=0.5),
+          e("d", 4, 1800, 11.0, 0.4, "electric", cons=3.7), e("f", 5, 2200, 8.0, 1.8, cons=0.6)]
+    w = st.plausibility(ok, 50.0, 12.0, phev=True)
+    assert all("cons" not in w[k] for k in w), w      # 0,5 und 0,6 l/100 km allein wären auffällig, sind hier normal
+    bad = [e("a", 1, 1000, 40.0, 1.8), e("b", 2, 1100, 10.0, 0.4, "electric"), e("c", 3, 1500, 60.0, 1.8, cons=15.0),
+           e("d", 4, 1800, 11.0, 0.4, "electric", cons=3.7)]   # 60 l + 11 kWh auf 700 km = 85 kWh-Äq./100 km
+    wb = st.plausibility(bad, 70.0, 12.0, phev=True)
+    assert wb["d"]["cons"]["k"] == "combined" and wb["d"]["cons"]["v"] > 60, wb["d"]
+    # fast nur elektrisch gefahren, Benzin die Ausnahme, nicht jede Ladung erfasst: sehr niedriger gemeinsamer Verbrauch ist kein Fehler
+    little = [e("a", 1, 1000, 40.0, 1.8), e("b", 2, 1100, 10.0, 0.4, "electric"), e("c", 3, 3100, 2.0, 1.8), e("d", 4, 3600, 6.0, 0.4, "electric")]
+    assert all("cons" not in v for v in st.plausibility(little, 70.0, 12.0, phev=True).values())
+    # zu kurze Strecke (unter 300 km): keine Aussage
+    short = [e("a", 1, 1000, 40.0, 1.8), e("b", 2, 1100, 10.0, 0.4, "electric"), e("c", 3, 1200, 60.0, 1.8)]
+    assert "cons" not in st.plausibility(short, 70.0, 12.0, phev=True)["c"]
+    # nur Kraftstoff (kein Laden): normale Einzelprüfung mit weitem Bereich nach unten
+    only_fuel = [e("a", 1, 1000, 40.0, 1.8), e("b", 2, 1500, 5.0, 1.8, cons=0.5)]
+    assert "cons" not in st.plausibility(only_fuel, 50.0, 0.0, phev=True)["b"]
+
+
+def test_duplicates_flagged():
+    a = {"id": "a", "ts": 1, "quantity": 21.6, "unit_price": 1.789, "total": 38.64, "odometer": None, "consumption": None}
+    b = {"id": "b", "ts": 900, "quantity": 21.6, "unit_price": 1.789, "total": 38.64, "odometer": 12390, "consumption": None}
+    c = {"id": "c", "ts": 500, "quantity": 11.8, "unit_price": 0.52, "total": 6.14, "odometer": 12205, "consumption": None}
+    x = {"id": "x", "ts": 600, "kind": "extra", "total": 38.64, "quantity": 21.6}
+    w = st.plausibility([a, b, c, x], 50.0)
+    assert w["a"]["total"] == {"k": "dup", "other": "b"} and w["b"]["qty"] == {"k": "dup", "other": "a"}, (w["a"], w["b"])
+    assert "total" not in w["c"] and "qty" not in w["x"], "anderer Beleg und Zubehör: keine Meldung"
+
+
+def test_km_plausible_undated_entries_ignored():
+    """Ein Eintrag, dessen Datum nur der Upload-Zeitpunkt ist (ts = created), darf einen Tacho mit früherem Aufnahmedatum nicht ablehnen."""
+    es = [{"id": "a", "ts": 100.0, "created": 5000.0, "odometer": 12118.0},        # datiert (Beleg), Stand 12118
+          {"id": "b", "ts": 9000.0, "created": 9000.0, "odometer": 12205.0}]       # undatiert (Upload), Stand 12205
+    assert st.km_plausible(es, 12390.0, ts=500.0), "Stand 12390 nach dem datierten Eintrag: möglich"
+    es[1]["created"] = 9000.0 - 50000.0                                            # jetzt ein echt datierter, späterer Eintrag (Datum weit vom Upload entfernt)
+    assert not st.km_plausible(es, 12390.0, ts=500.0), "Stand 12390 vor einem späteren Eintrag mit 12205: unmöglich"
+
+
+def test_duplicate_same_km():
+    a = {"id": "a", "ts": 1, "quantity": 17.9, "unit_price": 1.769, "total": 31.67, "odometer": 12760.0, "consumption": None}
+    b = {"id": "b", "ts": 900, "quantity": 37.9, "unit_price": 1.769, "total": 67.07, "odometer": 12760.0, "consumption": None}   # Display falsch gelesen, gleicher Kilometerstand
+    w = st.plausibility([a, b], 50.0)
+    assert w["a"]["km"] == {"k": "dup", "other": "b"} and w["b"]["total"] == {"k": "dup", "other": "a"}, w
+    c = dict(b, id="c", energy="electric")
+    assert "km" not in st.plausibility([a, c], 50.0, 12.0, phev=True)["a"], "andere Energieart: kein Duplikat"
+
+
 for n, fn in list(globals().items()):
     if n.startswith("test_"):
         fn(); print("ok", n)

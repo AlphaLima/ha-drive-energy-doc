@@ -187,13 +187,17 @@
  "Beleg in {0}, Umrechnung nicht möglich, Werte nicht in Euro! Original: {1}": "Recibo en {0}, conversión no posible, ¡valores no en euros! Original: {1}",
  "Ja": "Sí",
  "Nein": "No",
- "Die KI ist gerade überlastet (Google). Bitte in ein paar Minuten noch einmal versuchen.": "La IA está sobrecargada ahora mismo (Google). Inténtalo de nuevo en unos minutos.",
- "Die KI ist gerade überlastet (Google). Bitte schick das Foto in ein paar Minuten noch einmal.": "La IA está sobrecargada ahora mismo (Google). Vuelve a enviar la foto en unos minutos.",
+ "Die KI ist gerade überlastet. Bitte in ein paar Minuten noch einmal versuchen.": "La IA está sobrecargada ahora mismo. Inténtalo de nuevo en unos minutos.",
+ "Die KI ist gerade überlastet. Bitte schick das Foto in ein paar Minuten noch einmal.": "La IA está sobrecargada ahora mismo. Vuelve a enviar la foto en unos minutos.",
  "Es wurde nichts gespeichert.": "No se guardó nada.",
  "Original: {0} → {4} € · Kurs: 1 EUR = {1} {2} (EZB, {3})": "Original: {0} → {4} € · Cambio: 1 EUR = {1} {2} (BCE, {3})",
  "Auf dem Foto konnte ich weder Beleg noch Kilometerstand lesen. Schick den Kilometerstand als Text (z. B. „km 61240“) oder lege das Foto nur zur Dokumentation ab, oder lösche es.": "No pude leer ni un recibo ni un kilometraje en la foto. Envía el kilometraje como texto (p. ej. «km 61240»), guarda la foto solo como documentación o elimínala.",
  "Foto gelöscht.": "Foto eliminada.",
  "Foto zur Dokumentation abgelegt.": "Foto guardada como documentación.",
  "kw.doc": "documentación|documentacion|doc",
- "kw.del": "eliminar|borrar"
+ "kw.del": "eliminar|borrar",
+ "Unplausibler Wert": "Valor poco plausible",
+ "Angabe fehlt": "Falta el dato",
+ "Auf dem Foto steht der Kilometerstand {0} km, das passt aber nicht zur Reihenfolge der Einträge. Schick den Stand als Text (z. B. „km {0}“), wenn er stimmt, oder lege das Foto nur zur Dokumentation ab, oder lösche es.": "La foto muestra {0} km, pero no encaja con el orden de las entradas. Envía el valor como texto (p. ej. «km {0}») si es correcto, guarda la foto solo como documentación o elimínala.",
+ "Quittieren": "Confirmar"
 }

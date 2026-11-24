@@ -187,13 +187,17 @@
  "Beleg in {0}, Umrechnung nicht möglich, Werte nicht in Euro! Original: {1}": "Scontrino in {0}, conversione non possibile, valori non in euro! Originale: {1}",
  "Ja": "Sì",
  "Nein": "No",
- "Die KI ist gerade überlastet (Google). Bitte in ein paar Minuten noch einmal versuchen.": "L'IA è attualmente sovraccarica (Google). Riprova tra qualche minuto.",
- "Die KI ist gerade überlastet (Google). Bitte schick das Foto in ein paar Minuten noch einmal.": "L'IA è attualmente sovraccarica (Google). Rimanda la foto tra qualche minuto.",
+ "Die KI ist gerade überlastet. Bitte in ein paar Minuten noch einmal versuchen.": "L'IA è attualmente sovraccarica. Riprova tra qualche minuto.",
+ "Die KI ist gerade überlastet. Bitte schick das Foto in ein paar Minuten noch einmal.": "L'IA è attualmente sovraccarica. Rimanda la foto tra qualche minuto.",
  "Es wurde nichts gespeichert.": "Non è stato salvato nulla.",
  "Original: {0} → {4} € · Kurs: 1 EUR = {1} {2} (EZB, {3})": "Originale: {0} → {4} € · Cambio: 1 EUR = {1} {2} (BCE, {3})",
  "Auf dem Foto konnte ich weder Beleg noch Kilometerstand lesen. Schick den Kilometerstand als Text (z. B. „km 61240“) oder lege das Foto nur zur Dokumentation ab, oder lösche es.": "Nella foto non ho letto né uno scontrino né i chilometri. Invia i chilometri come testo (es. «km 61240»), tieni la foto solo come documentazione o eliminala.",
  "Foto gelöscht.": "Foto eliminata.",
  "Foto zur Dokumentation abgelegt.": "Foto salvata come documentazione.",
  "kw.doc": "documentazione|doc",
- "kw.del": "elimina|cancella"
+ "kw.del": "elimina|cancella",
+ "Unplausibler Wert": "Valore poco plausibile",
+ "Angabe fehlt": "Dato mancante",
+ "Auf dem Foto steht der Kilometerstand {0} km, das passt aber nicht zur Reihenfolge der Einträge. Schick den Stand als Text (z. B. „km {0}“), wenn er stimmt, oder lege das Foto nur zur Dokumentation ab, oder lösche es.": "La foto mostra {0} km, ma non corrisponde all'ordine delle voci. Invia il valore come testo (es. «km {0}») se è giusto, tieni la foto solo come documentazione o eliminala.",
+ "Quittieren": "Conferma"
 }

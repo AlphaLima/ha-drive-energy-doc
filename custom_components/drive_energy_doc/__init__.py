@@ -16,14 +16,15 @@ from homeassistant.components import frontend, panel_custom, websocket_api
 from homeassistant.components.http import HomeAssistantView, StaticPathConfig
 from homeassistant.components.http.auth import async_sign_path
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.core import HomeAssistant, ServiceCall
+from homeassistant.core import HomeAssistant, ServiceCall, callback
+from homeassistant.helpers.dispatcher import async_dispatcher_connect
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers import config_validation as cv
 from homeassistant.loader import async_get_integration
 
 from .const import CONF_KIND, CONF_PLATE, CONF_PLATE_COUNTRY, DOMAIN, KIND_SETTINGS, PANEL_PATH, PANEL_URL, PLATE_CODES, PLATE_NAMES
 from . import messages, plate
-from .vehicle import Vehicle
+from .vehicle import PANEL_SIGNAL, Vehicle
 
 _LOGGER = logging.getLogger(__name__)
 PLATFORMS = ["sensor"]
@@ -105,7 +106,7 @@ async def _register_once(hass: HomeAssistant) -> None:
     from .whatsapp import WhatsAppView
 
     hass.http.register_view(WhatsAppView)
-    for cmd in (ws_list, ws_update, ws_delete, ws_add, ws_delete_photo, ws_discard_photo, ws_countries, ws_set_plate):
+    for cmd in (ws_subscribe, ws_ack, ws_list, ws_update, ws_delete, ws_add, ws_delete_photo, ws_discard_photo, ws_countries, ws_set_plate):
         websocket_api.async_register_command(hass, cmd)
 
     async def export_csv(call: ServiceCall) -> None:
@@ -238,6 +239,19 @@ class CsvView(HomeAssistantView):
         return web.Response(body=body.encode("utf-8"), content_type="text/csv", charset="utf-8", headers={"Content-Disposition": f'attachment; filename="drive_energy_doc_{v.name}.csv"'})
 
 
+@websocket_api.websocket_command({vol.Required("type"): "drive_energy_doc/subscribe"})
+@callback
+def ws_subscribe(hass, connection, msg) -> None:
+    """Live-Ereignisse für das Panel: Foto wird verarbeitet, Antwort des Bots, Daten geändert."""
+
+    @callback
+    def forward(payload: dict) -> None:
+        connection.send_message(websocket_api.event_message(msg["id"], payload))
+
+    connection.subscriptions[msg["id"]] = async_dispatcher_connect(hass, PANEL_SIGNAL, forward)
+    connection.send_result(msg["id"])
+
+
 @websocket_api.websocket_command({vol.Required("type"): "drive_energy_doc/list"})
 @websocket_api.async_response
 async def ws_list(hass, connection, msg) -> None:
@@ -254,6 +268,12 @@ async def ws_list(hass, connection, msg) -> None:
 @websocket_api.async_response
 async def ws_update(hass, connection, msg) -> None:
     connection.send_result(msg["id"], _vehicle(hass, msg["vehicle"]).update_entry(msg["entry"], msg["fields"]))
+
+
+@websocket_api.websocket_command({vol.Required("type"): "drive_energy_doc/ack", vol.Required("vehicle"): str, vol.Required("entry"): str, vol.Required("column"): str})
+@websocket_api.async_response
+async def ws_ack(hass, connection, msg) -> None:
+    connection.send_result(msg["id"], _vehicle(hass, msg["vehicle"]).ack_warning(msg["entry"], msg["column"]))
 
 
 @websocket_api.websocket_command({vol.Required("type"): "drive_energy_doc/delete", vol.Required("vehicle"): str, vol.Required("entry"): str})

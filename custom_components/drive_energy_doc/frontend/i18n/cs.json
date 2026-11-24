@@ -187,13 +187,17 @@
  "Beleg in {0}, Umrechnung nicht möglich, Werte nicht in Euro! Original: {1}": "Účtenka v {0}, převod není možný, hodnoty nejsou v eurech! Originál: {1}",
  "Ja": "Ano",
  "Nein": "Ne",
- "Die KI ist gerade überlastet (Google). Bitte in ein paar Minuten noch einmal versuchen.": "AI je právě přetížená (Google). Zkuste to prosím za několik minut znovu.",
- "Die KI ist gerade überlastet (Google). Bitte schick das Foto in ein paar Minuten noch einmal.": "AI je právě přetížená (Google). Pošlete fotografii prosím znovu za několik minut.",
+ "Die KI ist gerade überlastet. Bitte in ein paar Minuten noch einmal versuchen.": "AI je právě přetížená. Zkuste to prosím za několik minut znovu.",
+ "Die KI ist gerade überlastet. Bitte schick das Foto in ein paar Minuten noch einmal.": "AI je právě přetížená. Pošlete fotografii prosím znovu za několik minut.",
  "Es wurde nichts gespeichert.": "Nic nebylo uloženo.",
  "Original: {0} → {4} € · Kurs: 1 EUR = {1} {2} (EZB, {3})": "Originál: {0} → {4} € · Kurz: 1 EUR = {1} {2} (ECB, {3})",
  "Auf dem Foto konnte ich weder Beleg noch Kilometerstand lesen. Schick den Kilometerstand als Text (z. B. „km 61240“) oder lege das Foto nur zur Dokumentation ab, oder lösche es.": "Na fotografii jsem nepřečetl ani účtenku, ani stav tachometru. Pošlete stav tachometru jako text (např. „km 61240“), ponechte fotografii jen jako dokumentaci, nebo ji smažte.",
  "Foto gelöscht.": "Fotografie smazána.",
  "Foto zur Dokumentation abgelegt.": "Fotografie uložena jako dokumentace.",
  "kw.doc": "dokumentace|doc",
- "kw.del": "smazat|vymazat"
+ "kw.del": "smazat|vymazat",
+ "Unplausibler Wert": "Nepravděpodobná hodnota",
+ "Angabe fehlt": "Údaj chybí",
+ "Auf dem Foto steht der Kilometerstand {0} km, das passt aber nicht zur Reihenfolge der Einträge. Schick den Stand als Text (z. B. „km {0}“), wenn er stimmt, oder lege das Foto nur zur Dokumentation ab, oder lösche es.": "Na fotografii je {0} km, ale to nesedí s pořadím záznamů. Pošlete hodnotu jako text (např. „km {0}“), pokud je správná, ponechte fotografii jen jako dokumentaci, nebo ji smažte.",
+ "Quittieren": "Potvrdit"
 }

@@ -189,13 +189,17 @@
  "Beleg in {0}, Umrechnung nicht möglich, Werte nicht in Euro! Original: {1}": "Касова бележка в {0}, преобразуването не е възможно, стойностите не са в евро! Оригинал: {1}",
  "Ja": "Да",
  "Nein": "Не",
- "Die KI ist gerade überlastet (Google). Bitte in ein paar Minuten noch einmal versuchen.": "Изкуственият интелект е претоварен в момента (Google). Опитайте отново след няколко минути.",
- "Die KI ist gerade überlastet (Google). Bitte schick das Foto in ein paar Minuten noch einmal.": "Изкуственият интелект е претоварен в момента (Google). Изпратете снимката отново след няколко минути.",
+ "Die KI ist gerade überlastet. Bitte in ein paar Minuten noch einmal versuchen.": "Изкуственият интелект е претоварен в момента. Опитайте отново след няколко минути.",
+ "Die KI ist gerade überlastet. Bitte schick das Foto in ein paar Minuten noch einmal.": "Изкуственият интелект е претоварен в момента. Изпратете снимката отново след няколко минути.",
  "Es wurde nichts gespeichert.": "Нищо не беше запазено.",
  "Original: {0} → {4} € · Kurs: 1 EUR = {1} {2} (EZB, {3})": "Оригинал: {0} → {4} € · Курс: 1 EUR = {1} {2} (ЕЦБ, {3})",
  "Auf dem Foto konnte ich weder Beleg noch Kilometerstand lesen. Schick den Kilometerstand als Text (z. B. „km 61240“) oder lege das Foto nur zur Dokumentation ab, oder lösche es.": "На снимката не можах да прочета нито бележка, нито километраж. Изпратете километража като текст (напр. „km 61240“), запазете снимката само като документация или я изтрийте.",
  "Foto gelöscht.": "Снимката е изтрита.",
  "Foto zur Dokumentation abgelegt.": "Снимката е запазена като документация.",
  "kw.doc": "документация|doc",
- "kw.del": "изтрий|изтрии|delete"
+ "kw.del": "изтрий|изтрии|delete",
+ "Unplausibler Wert": "Неправдоподобна стойност",
+ "Angabe fehlt": "Липсва информация",
+ "Auf dem Foto steht der Kilometerstand {0} km, das passt aber nicht zur Reihenfolge der Einträge. Schick den Stand als Text (z. B. „km {0}“), wenn er stimmt, oder lege das Foto nur zur Dokumentation ab, oder lösche es.": "На снимката е {0} km, което не съответства на реда на записите. Изпратете стойността като текст (напр. „km {0}“), ако е вярна, запазете снимката само като документация или я изтрийте.",
+ "Quittieren": "Потвърди"
 }

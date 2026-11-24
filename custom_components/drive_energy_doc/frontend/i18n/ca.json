@@ -187,13 +187,17 @@
  "Beleg in {0}, Umrechnung nicht möglich, Werte nicht in Euro! Original: {1}": "Tiquet en {0}, conversió no possible, valors no en euros! Original: {1}",
  "Ja": "Sí",
  "Nein": "No",
- "Die KI ist gerade überlastet (Google). Bitte in ein paar Minuten noch einmal versuchen.": "La IA està sobrecarregada ara mateix (Google). Torna-ho a provar d'aquí a uns minuts.",
- "Die KI ist gerade überlastet (Google). Bitte schick das Foto in ein paar Minuten noch einmal.": "La IA està sobrecarregada ara mateix (Google). Torna a enviar la foto d'aquí a uns minuts.",
+ "Die KI ist gerade überlastet. Bitte in ein paar Minuten noch einmal versuchen.": "La IA està sobrecarregada ara mateix. Torna-ho a provar d'aquí a uns minuts.",
+ "Die KI ist gerade überlastet. Bitte schick das Foto in ein paar Minuten noch einmal.": "La IA està sobrecarregada ara mateix. Torna a enviar la foto d'aquí a uns minuts.",
  "Es wurde nichts gespeichert.": "No s'ha desat res.",
  "Original: {0} → {4} € · Kurs: 1 EUR = {1} {2} (EZB, {3})": "Original: {0} → {4} € · Canvi: 1 EUR = {1} {2} (BCE, {3})",
  "Auf dem Foto konnte ich weder Beleg noch Kilometerstand lesen. Schick den Kilometerstand als Text (z. B. „km 61240“) oder lege das Foto nur zur Dokumentation ab, oder lösche es.": "No he pogut llegir ni un tiquet ni un quilometratge a la foto. Envia el quilometratge com a text (p. ex. «km 61240»), conserva la foto només com a documentació o elimina-la.",
  "Foto gelöscht.": "Foto eliminada.",
  "Foto zur Dokumentation abgelegt.": "Foto desada com a documentació.",
  "kw.doc": "documentació|documentacio|doc",
- "kw.del": "eliminar|esborrar"
+ "kw.del": "eliminar|esborrar",
+ "Unplausibler Wert": "Valor poc plausible",
+ "Angabe fehlt": "Falta la dada",
+ "Auf dem Foto steht der Kilometerstand {0} km, das passt aber nicht zur Reihenfolge der Einträge. Schick den Stand als Text (z. B. „km {0}“), wenn er stimmt, oder lege das Foto nur zur Dokumentation ab, oder lösche es.": "La foto mostra {0} km, però no encaixa amb l'ordre de les entrades. Envia el valor com a text (p. ex. «km {0}») si és correcte, conserva la foto només com a documentació o elimina-la.",
+ "Quittieren": "Confirma"
 }

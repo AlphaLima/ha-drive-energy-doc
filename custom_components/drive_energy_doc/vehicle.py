@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import csv
+import json
 import re
 import io
 import logging
@@ -56,6 +57,9 @@ def get_settings(hass: HomeAssistant) -> dict:
 
 def signal(entry_id: str) -> str:
     return f"{DOMAIN}_update_{entry_id}"
+
+
+PANEL_SIGNAL = f"{DOMAIN}_panel"   # Ereignisse für die offene Panel-Seite (Websocket drive_energy_doc/subscribe)
 
 
 class Vehicle:
@@ -350,7 +354,14 @@ class Vehicle:
 
     def _ai_entity(self) -> str | None:
         """Gewählte KI-Aufgabe, sonst automatisch Gemini, sonst die erste vorhandene ai_task-Entität."""
-        return get_settings(self.hass).get(CONF_AI_TASK) or default_ai_entity(self.hass)
+        cfg = get_settings(self.hass).get(CONF_AI_TASK)
+        if cfg:
+            from homeassistant.helpers import entity_registry as er
+
+            if er.async_get(self.hass).async_get(cfg) is None:   # die gewählte KI-Aufgabe gibt es nicht mehr (z. B. nach dem Wechsel von Gemini zu Claude)
+                _LOGGER.warning("Die gewählte KI-Aufgabe %s existiert nicht mehr, es wird %s verwendet", cfg, default_ai_entity(self.hass))
+                cfg = None
+        return cfg or default_ai_entity(self.hass)
 
     # ---------------------------------------------------------------- Preis
     async def _fetch_price(self, pending: dict | None = None, det: FuelDetector | None = None) -> dict[str, Any]:
@@ -465,7 +476,7 @@ class Vehicle:
         ids, self._batch = self._batch or set(), None
         out = []
         for e in sorted((x for x in (self.get_entry(i) for i in ids) if x), key=lambda x: x["ts"]):
-            chk = stats.check_consumption(self.data["entries"], e, e["odometer"]) if e.get("odometer") is not None else None
+            chk = self._check_cons(self.data["entries"], e, e["odometer"]) if e.get("odometer") is not None else None
             if chk and not chk["ok"]:
                 when = dt_util.as_local(dt_util.utc_from_timestamp(e["ts"])).strftime("%d.%m.%Y")
                 out.append(f"{when}: " + self.tr("⚠️ Verbrauch ungewöhnlich: {0} bei {1} km seit dem letzten Tanken (Durchschnitt {2}), bitte Kilometerstand prüfen.", self._cons_txt(chk["cons"], chk.get("energy")), self._fmt_km(chk["driven"]), self._cons_txt(chk["avg"], chk.get("energy"))))
@@ -554,6 +565,7 @@ class Vehicle:
         if self._capture is not None:
             self._capture.append(text)
             return
+        self._panel("reply", text=text, entry=self.last_entry_id)   # das Panel zeigt dieselbe Meldung wie der Bot im Chat
         for ch in self.channels():
             await self.send_channel(ch, text)
 
@@ -585,15 +597,68 @@ class Vehicle:
             file_id = msg["photo"][-1]["file_id"]
         elif (msg.get("document") or {}).get("mime_type", "").startswith("image/"):
             file_id = msg["document"]["file_id"]
+        if file_id and msg.get("media_group_id"):
+            self._album_add(str(msg["media_group_id"]), file_id, text, msg.get("message_id") or 0)   # Album: alle Fotos sammeln, dann als ein Vorgang verarbeiten
+            return
         if file_id:
-            image = await get_bot(self.hass, self.o[CONF_TG_TOKEN]).download(file_id)
-            if image:
-                await self.receive_photo(image, text)
-            else:
-                await self._say(self.tr("Das Foto konnte ich nicht laden."))
+            self.last_entry_id = None
+            self._panel("processing", state="start")   # das Panel zeigt „Foto wird gelesen …“
+            try:
+                image = await get_bot(self.hass, self.o[CONF_TG_TOKEN]).download(file_id)
+                if image:
+                    await self.receive_photo(image, text)
+                else:
+                    await self._say(self.tr("Das Foto konnte ich nicht laden."))
+            finally:
+                self._panel("processing", state="done", entry=self.last_entry_id)
             return
         if text:
             await self.receive_text(text, sent_ts=msg.get("date"))
+
+    ALBUM_WAIT = 3.0   # Sekunden Ruhe nach dem letzten Foto, bis das Album als vollständig gilt
+
+    def _album_add(self, gid: str, file_id: str, caption: str, mid: int) -> None:
+        albums = self.__dict__.setdefault("_albums", {})
+        a = albums.setdefault(gid, {"items": [], "cancel": None})
+        a["items"].append((mid, file_id, caption))
+        if a["cancel"]:
+            a["cancel"]()
+        self._panel("processing", state="start")
+
+        @callback
+        def _go(_now) -> None:
+            albums.pop(gid, None)
+            self.hass.async_create_background_task(self._process_album(sorted(a["items"])), "drive_energy_doc_album")
+
+        a["cancel"] = async_call_later(self.hass, self.ALBUM_WAIT, _go)
+
+    async def _process_album(self, items: list[tuple[int, str, str]]) -> None:
+        """Mehrere Fotos aus einer Telegram-Nachricht (z. B. Säule, Tacho, Beleg) sind ein Vorgang: der Reihe nach einlesen, dazwischen nicht nachfragen,
+        am Ende die Plausibilität prüfen und eine gemeinsame Antwort schicken."""
+        replies: list[str] = []
+        try:
+            async with self._upload_lock:
+                self._batch = set()
+                self._capture = []
+                self.last_entry_id = None
+                try:
+                    bot = get_bot(self.hass, self.o[CONF_TG_TOKEN])
+                    for _mid, file_id, caption in items:
+                        image = await bot.download(file_id)
+                        if image:
+                            await self.receive_photo(image, caption)
+                        else:
+                            self._capture.append(self.tr("Das Foto konnte ich nicht laden."))
+                    replies = list(self._capture)
+                finally:
+                    self._capture = None
+                replies += self.batch_finish()
+            if replies:
+                await self._say("\n\n".join(dict.fromkeys(replies)))   # gleiche Meldungen nur einmal
+        except Exception:  # noqa: BLE001
+            _LOGGER.exception("Album (%s) fehlgeschlagen", self.name)
+        finally:
+            self._panel("processing", state="done", entry=self.last_entry_id)
 
     async def _extra(self, item: str, rest: str, photo: str | None, values: dict | None = None) -> None:
         """Zubehör erfassen (AdBlue, Öl, Scheibenwischer …): Bezeichnung, optional Menge, Preis, Betrag, Foto.
@@ -613,6 +678,7 @@ class Vehicle:
         elif photo:
             entry["photos"].append(photo)
             entry["receipt"] = True
+        self._stamp_km(entry)
         self.data["entries"].append(entry)
         self.data["entries"].sort(key=lambda x: x["ts"])
         self._save()
@@ -786,18 +852,22 @@ class Vehicle:
         km = None if (extra or values) else receipt.parse_km(caption)   # Tacho-Foto mit Bildtext „km 54210“
         box = None
         ai = None
+        rejected_km = None   # von der KI gelesen, aber unplausibel (Reihenfolge der Einträge): dem Nutzer sagen statt nur „nichts lesbar“
         if not extra and not values and km is None:
             t0 = time.time()
             ai = await receipt.ai_read(self.hass, self._ai_entity(), image, self.media_dir)
             if not ai and time.time() - t0 < 60:   # schneller Fehlschlag (z. B. Überlastung des KI-Dienstes): einmal wiederholen
                 await asyncio.sleep(3)
                 ai = await receipt.ai_read(self.hass, self._ai_entity(), image, self.media_dir)
-            if ai and ai.get("busy"):   # Google überlastet: nichts ablegen, kein Eintrag
-                return await self._say("⚠ " + self.tr("Die KI ist gerade überlastet (Google). Bitte schick das Foto in ein paar Minuten noch einmal.") + " " + self.tr("Es wurde nichts gespeichert."))
+            if ai and ai.get("busy"):   # KI überlastet: nichts ablegen, kein Eintrag
+                return await self._say("⚠ " + self.tr("Die KI ist gerade überlastet. Bitte schick das Foto in ein paar Minuten noch einmal.") + " " + self.tr("Es wurde nichts gespeichert."))
             if ai and receipt.plausible(ai):
                 values, box = ai, ai.get("crop")
             elif ai and ai.get("odometer") and self._km_sane(ai["odometer"], ts=sent_ts):   # mit bekannter Aufnahme-/Sendezeit gegen die Reihenfolge der Einträge prüfen
                 km, box = float(ai["odometer"]), ai.get("crop")           # nur Kilometerstand erkannt: Foto vom Tacho
+            elif ai and ai.get("odometer"):
+                rejected_km = float(ai["odometer"])
+                _LOGGER.warning("Kilometerstand %s vom Foto passt nicht zur Reihenfolge der Einträge (%s)", rejected_km, self.name)
         info = values if isinstance(values, dict) and values else (ai if isinstance(ai, dict) and not ai.get("busy") else None)
         name = receipt.new_photo_name(info, sent_ts, "Tacho" if (km is not None and not values) else ("Zusatzfoto" if extra else None), self.photo_dir)
         await self.hass.async_add_executor_job(receipt.crop_and_save, image, box, self.photo_dir, name, self.orig_dir)
@@ -824,7 +894,10 @@ class Vehicle:
             else:   # nichts lesbar und noch kein Eintrag: Foto merken, der Kilometerstand kommt als Text
                 self.data["unread_photo"] = {"name": name, "ts": time.time()}
                 self._save()
-                await self._say(self.tr("Auf dem Foto konnte ich weder Beleg noch Kilometerstand lesen. Schick den Kilometerstand als Text (z. B. „km 61240“) oder lege das Foto nur zur Dokumentation ab, oder lösche es."))
+                if rejected_km is not None:
+                    await self._say(self.tr("Auf dem Foto steht der Kilometerstand {0} km, das passt aber nicht zur Reihenfolge der Einträge. Schick den Stand als Text (z. B. „km {0}“), wenn er stimmt, oder lege das Foto nur zur Dokumentation ab, oder lösche es.", self._fmt_km(rejected_km)))
+                else:
+                    await self._say(self.tr("Auf dem Foto konnte ich weder Beleg noch Kilometerstand lesen. Schick den Kilometerstand als Text (z. B. „km 61240“) oder lege das Foto nur zur Dokumentation ab, oder lösche es."))
             return
         await self._route(values, name)
 
@@ -842,12 +915,22 @@ class Vehicle:
             self._save()
             await self._say(self.tr("Kilometerstand {0} km vorgemerkt, er wird beim Abschluss des laufenden Tankvorgangs übernommen.", self._fmt_km(km)))
             return
+        recent = max(self.data["entries"], key=lambda x: x.get("created", 0), default=None)
+        if recent and recent.get("kind") == "extra" and recent.get("odometer_source") in (None, "bekannt") and time.time() - recent.get("created", 0) <= OPEN_WINDOW:
+            # der zuletzt angelegte Eintrag ist Zubehör ohne echten Kilometerstand: der Tacho gehört dazu (statt nur der zuletzt bekannte Stand)
+            return await self._apply_odometer(recent, km, photo, 0)
         photo_only = not self.o.get(CONF_LEVEL)
         open_e = self._open_entry("odometer") if photo_only else None
         if open_e:
             sent = open_e["ts"]   # Beleg kam zuerst: der Kilometerstand gehört zu diesem Eintrag
         m = stats.match_odometer(self.data["entries"], km, sent)
         from_photo = photo is not None   # von der KI aus einem Foto gelesen (nicht getippt): im Zweifel weglassen statt nachfragen
+        if photo_only and m["status"] == "ok" and not m.get("backwards") and not open_e:
+            # Der zeitlich nächste Eintrag hat schon einen eigenen Kilometerstand und der neue liegt deutlich darüber (mehr als 50 km):
+            # das ist der Tacho zu einem neuen Tank- oder Ladevorgang, nicht ein weiteres Foto zum vorigen Eintrag
+            od = m["entry"].get("odometer")
+            if od is not None and km - float(od) > 50:
+                m = {"status": "none"}
         if photo_only and m["status"] in ("none", "too_old"):
             # reiner Foto-Betrieb: der Tacho kommt zuerst, der Beleg wird danach (bis 48 h) diesem Eintrag zugeordnet
             e = self._new_manual_entry()
@@ -876,7 +959,7 @@ class Vehicle:
             why = self.tr("liegt unter dem Stand beim vorigen Tanken ({0} km)", self._fmt_km(m["prev_odo"])) if m.get("backwards") else self.tr("weicht stark vom gespeicherten Stand ({0} km) ab", self._fmt_km(e["odometer"]))
             await self._say(self.tr("Der Kilometerstand {0} km {1}. Tankvorgang: {2}. Antworte „ja“, um ihn trotzdem zu übernehmen, oder „nein“.", self._fmt_km(km), why, when))
             return
-        chk = stats.check_consumption(self.data["entries"], e, km)
+        chk = self._check_cons(self.data["entries"], e, km)
         if chk and not chk["ok"] and from_photo:
             return await self._skip_km(e, km, photo, "Verbrauch unplausibel")
         if chk and not chk["ok"]:   # getippter Stand, Verbrauch passt nicht zu Tankmenge und Durchschnitt: nachfragen
@@ -953,6 +1036,22 @@ class Vehicle:
             "price_source": None, "total": None, "photos": [], "receipt": False, "note": "",
         }
 
+    def _check_cons(self, entries: list[dict], entry: dict, km: float):
+        """Verbrauchsprüfung eines Kilometerstands. Beim Plug-in-Hybrid entfällt sie: Benzin und Strom werden im Wechsel verbraucht, der Verbrauch je Energieart ist dafür zu unterschiedlich."""
+        return None if self.phev else stats.check_consumption(entries, entry, km)
+
+    def _last_known_km(self, ts: float) -> float | None:
+        """Zuletzt bekannter Kilometerstand bis zum Zeitpunkt ``ts`` (Tacho-Foto, Beleg, Sensor oder von Hand), geschätzte Stände zählen nicht."""
+        km = [e for e in self.data["entries"] if e.get("odometer") is not None and e.get("odometer_source") != "bekannt" and e["ts"] <= ts + 60]
+        return float(max(km, key=lambda x: x["ts"])["odometer"]) if km else None
+
+    def _stamp_km(self, entry: dict) -> None:
+        """Zubehör ohne eigenen Kilometerstand bekommt den zuletzt bekannten (wie beim Tanken); ein Tacho-Foto oder ein getippter Stand ersetzt ihn später."""
+        if entry.get("odometer") is None:
+            km = self._last_known_km(entry["ts"])
+            if km is not None:
+                entry["odometer"], entry["odometer_source"] = km, "bekannt"
+
     def _km_sane(self, km, exclude: str | None = None, ts: float | None = None) -> bool:
         """Von der KI gelesener Kilometerstand möglich? Siehe stats.km_plausible (mit Datum vom Beleg: Reihenfolge der Einträge, sonst Abstand zum Mittelwert)."""
         return stats.km_plausible(self.data["entries"], km, ts, exclude)
@@ -998,6 +1097,53 @@ class Vehicle:
 
         self._unsubs.append(async_call_later(self.hass, delay, _cb))
 
+    def _same_event(self, values: dict, energy: str | None) -> tuple[dict, str] | None:
+        """Gehören Säulen-Display und Beleg zum selben Vorgang? Ein gerade erst angelegter Eintrag (letzte 6 Stunden) mit gleichem Preis je Einheit, der eine ohne Station (aus dem Display),
+        der andere mit Station (vom Beleg). Menge und Betrag dürfen abweichen: auf einem unscharfen Display werden Ziffern oft falsch gelesen. Rückgabe: (Eintrag, "receipt" | "display"),
+        „receipt“ = der neue Beleg gehört zum Display-Eintrag und gilt als genauer, „display“ = das neue Display-Foto gehört zum Beleg-Eintrag."""
+        p = values.get("unit_price")
+        if not p:
+            return None
+        has_station = bool(values.get("station"))
+        for e in reversed(self.data["entries"]):
+            if e.get("kind") == "extra" or not e.get("receipt") or not self._fits_energy(e, energy):
+                continue
+            if time.time() - e.get("created", 0) > OPEN_WINDOW or not e.get("unit_price") or abs(e["unit_price"] - p) > 0.0005:
+                continue
+            if has_station and not e.get("station"):
+                return e, "receipt"
+            if not has_station and e.get("station"):
+                return e, "display"
+        return None
+
+    def _duplicate_of(self, values: dict, energy: str | None) -> dict | None:
+        """Ist dieser Beleg (gleiche Menge und gleicher Betrag) schon als Eintrag vorhanden? Mit Datum vom Beleg: am selben Tag, ohne Datum (Säulen-Display): in den letzten 3 Tagen.
+        Zubehör zählt nicht (gleiche Preise kommen dort öfter vor, z. B. Autowäsche)."""
+        q, tot = values.get("quantity"), values.get("total")
+        if not (q and tot):
+            return None
+        d = values.get("date")
+        for e in reversed(self.data["entries"]):
+            if e.get("kind") == "extra" or not e.get("receipt") or not self._fits_energy(e, energy):
+                continue
+            if abs((e.get("quantity") or 0) - q) >= 0.011 or abs((e.get("total") or 0) - tot) >= 0.011:
+                continue
+            recent = time.time() - e.get("created", 0) <= OPEN_WINDOW   # gerade erst angelegt (z. B. aus Säulen-Foto und Tacho): dessen Datum ist nur der Zeitpunkt des Uploads
+            if d is not None:
+                if recent or dt_util.as_local(dt_util.utc_from_timestamp(e["ts"])).date() == d:
+                    return e
+            elif time.time() - max(e.get("ts", 0), e.get("created", 0)) <= 3 * 86400:
+                return e
+        return None
+
+    async def _ask_duplicate(self, target: dict, values: dict, photo: str | None) -> None:
+        """Gleicher Beleg noch einmal geschickt: ja = dem vorhandenen Eintrag zuordnen (Foto kommt dazu), nein = verwerfen. Es entsteht kein zweiter Eintrag."""
+        when = dt_util.as_local(dt_util.utc_from_timestamp(target["ts"])).strftime("%d.%m.%Y %H:%M")
+        have = ", ".join(x for x in (self._dec(f"{target['quantity']:.2f}") + f" {self.unit_of(target)}" if target.get("quantity") else "", self._dec(f"{target['total']:.2f}") + " €" if target.get("total") else "") if x)
+        self.data["awaiting_overwrite"] = {"id": target["id"], "values": {k: (v if k != "date" else None) for k, v in values.items()}, "photo": photo, "ts": time.time()}
+        self._save()
+        await self._say(self.tr("Dieser Beleg ist schon eingetragen (Eintrag vom {0}: {1}). Antworte „ja“, um ihn trotzdem zu überschreiben, oder „nein“.", when, have))
+
     async def _route(self, values: dict, photo: str | None) -> None:
         d = values.get("date")
         if values.get("odometer"):   # Kilometerstand vom Beleg gegen die Reihenfolge der Einträge prüfen (Datum/Uhrzeit vom Beleg), unmöglicher Stand: ignorieren
@@ -1007,6 +1153,35 @@ class Vehicle:
                 _LOGGER.info("Kilometerstand %s vom Beleg unplausibel, ignoriert (%s)", values["odometer"], self.name)
                 values = {**values, "odometer": None}
         en = self._energy_of(values)   # Plug-in-Hybrid: Tanken und Laden sind getrennte Einträge
+        se = self._same_event(values, en)
+        if se is not None:   # Display und Beleg desselben Vorgangs: ein Eintrag, die Werte vom Beleg gelten
+            ev, mode = se
+            if mode == "receipt":
+                if d:
+                    hm = values.get("time")
+                    self._retime(ev, dt_util.start_of_local_day(d).timestamp() + ((hm[0] * 3600 + hm[1] * 60) if hm else 12 * 3600))
+                    self.data["entries"].sort(key=lambda x: x["ts"])
+                await self._apply_and_report(ev, values, photo)
+            else:
+                if photo:
+                    ev["photos"].append(photo)
+                self.last_entry_id = ev["id"]
+                self._save()
+                self._notify_entities()
+                await self._say(self.tr("Zusatzfoto gespeichert."))
+            return
+        dup = self._duplicate_of(values, en)
+        if dup is not None:   # derselbe Beleg ist schon eingetragen: nicht noch einmal anlegen
+            if time.time() - dup.get("created", 0) <= OPEN_WINDOW:
+                # gerade erst angelegt (Säule und Tacho zuerst, dann der Beleg): der Beleg gehört zu diesem Eintrag, Datum, Uhrzeit, Station und Preis vom Beleg gelten
+                if d:
+                    hm = values.get("time")
+                    self._retime(dup, dt_util.start_of_local_day(d).timestamp() + ((hm[0] * 3600 + hm[1] * 60) if hm else 12 * 3600))
+                    self.data["entries"].sort(key=lambda x: x["ts"])
+                await self._apply_and_report(dup, values, photo)
+            else:
+                await self._ask_duplicate(dup, values, photo)   # älterer Eintrag: nachfragen
+            return
         photo_only = not (self.detector_el if en == "electric" else self.o.get(CONF_LEVEL))  # ohne Füllstandssensor (Tank bzw. Akku): jeder Beleg ohne passenden Eintrag legt einen neuen an
         open_e = ((self._entry_by_km(values["odometer"]) if values.get("odometer") else None) or self._open_entry("receipt", en)) if photo_only else None
         if open_e:   # das Tacho-Foto kam zuerst und hat schon eine neue Zeile angelegt: der Beleg gehört dazu (Datum und Uhrzeit vom Beleg gelten)
@@ -1065,7 +1240,7 @@ class Vehicle:
             if not stats.km_better(entry, "beleg"):
                 _LOGGER.info("Kilometerstand %s vom Beleg ignoriert: der Eintrag hat schon einen besseren (%s)", rkm, self.name)
             else:
-                chk = stats.check_consumption(self.data["entries"], entry, float(rkm))
+                chk = self._check_cons(self.data["entries"], entry, float(rkm))
                 if chk and not chk["ok"]:
                     _LOGGER.info("Kilometerstand %s vom Beleg ausgelassen (Verbrauch unplausibel, %s)", rkm, self.name)
                 else:
@@ -1075,7 +1250,7 @@ class Vehicle:
         self._save()
         self._notify_entities()
         warn = "" if receipt.plausible(entry) else "\n" + self.tr("⚠️ Menge × Preis passt nicht zum Betrag, bitte prüfen.")
-        chk = stats.check_consumption(self.data["entries"], entry, entry["odometer"]) if entry.get("odometer") is not None and not batch else None
+        chk = self._check_cons(self.data["entries"], entry, entry["odometer"]) if entry.get("odometer") is not None and not batch else None
         if chk and not chk["ok"]:
             warn += "\n" + self.tr("⚠️ Verbrauch ungewöhnlich: {0} bei {1} km seit dem letzten Tanken (Durchschnitt {2}), bitte Kilometerstand prüfen.", self._cons_txt(chk["cons"], chk.get("energy")), self._fmt_km(chk["driven"]), self._cons_txt(chk["avg"], chk.get("energy")))
         await self._say(self._summary(entry, self.tr("Beleg übernommen")) + warn)
@@ -1220,6 +1395,9 @@ class Vehicle:
         self.data["entries"].append(e)
         self.data["entries"].sort(key=lambda x: x["ts"])
         self.update_entry(e["id"], fields)
+        if e.get("kind") == "extra":
+            self._stamp_km(e)   # ohne eigenen Stand: der zuletzt bekannte
+            self._save()
         return e
 
     async def _remove_files(self, names: list[str]) -> None:
@@ -1258,8 +1436,34 @@ class Vehicle:
     # ---------------------------------------------------------------- Auswertung
     def entries_with_stats(self) -> list[dict]:
         """Einträge mit Verbrauch je 100 km (Voll-zu-Voll, ab 30 % Zuwachs gilt eine Betankung als voll, siehe stats.py)."""
-        return stats.add_consumption(self.data["entries"])
+        es = stats.add_consumption(self.data["entries"])
+        flags = stats.plausibility(es, self.capacity, self.capacity_el, self.phev, self.electric)
+        for e in es:
+            ack = e.get("ack") or {}   # quittierte Warnungen: nur ausgeblendet, solange der Hinweis genau derselbe ist (ändert sich ein Wert, erscheint er wieder)
+            e["warn"] = {c: h for c, h in (flags.get(e["id"]) or {}).items() if ack.get(c) != self._warn_sig(h)}   # Warndreiecke in der Liste
+        return es
 
+    @staticmethod
+    def _warn_sig(hint: dict) -> str:
+        return json.dumps(hint, sort_keys=True, default=str)
+
+    def ack_warning(self, entry_id: str, col: str) -> bool:
+        """Warnung (Dreieck oder Fragezeichen) eines Eintrags quittieren. Alle Spalten mit demselben Hinweis werden mit quittiert (z. B. Menge, Preis und Betrag bei „doppelt“)."""
+        e = self.get_entry(entry_id)
+        if e is None:
+            return False
+        es = stats.add_consumption(self.data["entries"])
+        raw = stats.plausibility(es, self.capacity, self.capacity_el, self.phev, self.electric).get(entry_id) or {}
+        if col not in raw:
+            return False
+        sig = self._warn_sig(raw[col])
+        ack = e.setdefault("ack", {})
+        for c, h in raw.items():
+            if self._warn_sig(h) == sig:
+                ack[c] = sig
+        self._save()
+        self._notify_entities()
+        return True
     def summary(self) -> dict[str, Any]:
         es = self.entries_with_stats()
         cons = [e["consumption"] for e in es if e["consumption"] and stats.energy_of(e) != "electric"][-5:]
@@ -1297,9 +1501,14 @@ class Vehicle:
 
     # ---------------------------------------------------------------- Speichern
     def _save(self) -> None:
+        self._panel("changed")
         self.data["pending"] = self.detector.dump()
         self.data["pending_el"] = self.detector_el.dump() if self.detector_el else None
         self.store.async_delay_save(lambda: self.data, 2)
 
     def _notify_entities(self) -> None:
         async_dispatcher_send(self.hass, signal(self.entry.entry_id))
+
+    def _panel(self, event: str, **data: Any) -> None:
+        """Dem offenen Panel melden, was gerade passiert (processing, reply, changed). Ohne offenes Panel kostet das nichts."""
+        async_dispatcher_send(self.hass, PANEL_SIGNAL, {"event": event, "vehicle": self.entry.entry_id, **data})

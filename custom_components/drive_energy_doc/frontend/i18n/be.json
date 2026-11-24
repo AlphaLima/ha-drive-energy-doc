@@ -187,13 +187,17 @@
  "Beleg in {0}, Umrechnung nicht möglich, Werte nicht in Euro! Original: {1}": "Чэк у {0}, пералік немагчымы, значэнні не ў еўра! Арыгінал: {1}",
  "Ja": "Так",
  "Nein": "Не",
- "Die KI ist gerade überlastet (Google). Bitte in ein paar Minuten noch einmal versuchen.": "ШІ зараз перагружаны (Google). Паўтарыце спробу праз некалькі хвілін.",
- "Die KI ist gerade überlastet (Google). Bitte schick das Foto in ein paar Minuten noch einmal.": "ШІ зараз перагружаны (Google). Адпраўце фота яшчэ раз праз некалькі хвілін.",
+ "Die KI ist gerade überlastet. Bitte in ein paar Minuten noch einmal versuchen.": "ШІ зараз перагружаны. Паўтарыце спробу праз некалькі хвілін.",
+ "Die KI ist gerade überlastet. Bitte schick das Foto in ein paar Minuten noch einmal.": "ШІ зараз перагружаны. Адпраўце фота яшчэ раз праз некалькі хвілін.",
  "Es wurde nichts gespeichert.": "Нічога не захавана.",
  "Original: {0} → {4} € · Kurs: 1 EUR = {1} {2} (EZB, {3})": "Арыгінал: {0} → {4} € · Курс: 1 EUR = {1} {2} (ЭЦБ, {3})",
  "Auf dem Foto konnte ich weder Beleg noch Kilometerstand lesen. Schick den Kilometerstand als Text (z. B. „km 61240“) oder lege das Foto nur zur Dokumentation ab, oder lösche es.": "На фота я не прачытаў ні чэк, ні прабег. Адпраўце прабег тэкстам (напрыклад «km 61240»), захавайце фота толькі як дакументацыю або выдаліце яго.",
  "Foto gelöscht.": "Фота выдалена.",
  "Foto zur Dokumentation abgelegt.": "Фота захавана як дакументацыя.",
  "kw.doc": "дакументацыя|doc",
- "kw.del": "выдаліць|выдалі"
+ "kw.del": "выдаліць|выдалі",
+ "Unplausibler Wert": "Няправдападобнае значэнне",
+ "Angabe fehlt": "Даныя адсутнічаюць",
+ "Auf dem Foto steht der Kilometerstand {0} km, das passt aber nicht zur Reihenfolge der Einträge. Schick den Stand als Text (z. B. „km {0}“), wenn er stimmt, oder lege das Foto nur zur Dokumentation ab, oder lösche es.": "На фота {0} км, але гэта не адпавядае парадку запісаў. Адпраўце значэнне тэкстам (напрыклад «km {0}»), калі яно правільнае, захавайце фота толькі як дакументацыю або выдаліце яго.",
+ "Quittieren": "Пацвердзіць"
 }

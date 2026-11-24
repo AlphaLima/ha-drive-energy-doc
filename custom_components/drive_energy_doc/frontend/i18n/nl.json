@@ -187,13 +187,17 @@
  "Beleg in {0}, Umrechnung nicht möglich, Werte nicht in Euro! Original: {1}": "Bon in {0}, omrekening niet mogelijk, waarden niet in euro! Origineel: {1}",
  "Ja": "Ja",
  "Nein": "Nee",
- "Die KI ist gerade überlastet (Google). Bitte in ein paar Minuten noch einmal versuchen.": "De AI is op dit moment overbelast (Google). Probeer het over een paar minuten opnieuw.",
- "Die KI ist gerade überlastet (Google). Bitte schick das Foto in ein paar Minuten noch einmal.": "De AI is op dit moment overbelast (Google). Stuur de foto over een paar minuten opnieuw.",
+ "Die KI ist gerade überlastet. Bitte in ein paar Minuten noch einmal versuchen.": "De AI is op dit moment overbelast. Probeer het over een paar minuten opnieuw.",
+ "Die KI ist gerade überlastet. Bitte schick das Foto in ein paar Minuten noch einmal.": "De AI is op dit moment overbelast. Stuur de foto over een paar minuten opnieuw.",
  "Es wurde nichts gespeichert.": "Er is niets opgeslagen.",
  "Original: {0} → {4} € · Kurs: 1 EUR = {1} {2} (EZB, {3})": "Origineel: {0} → {4} € · Koers: 1 EUR = {1} {2} (ECB, {3})",
  "Auf dem Foto konnte ich weder Beleg noch Kilometerstand lesen. Schick den Kilometerstand als Text (z. B. „km 61240“) oder lege das Foto nur zur Dokumentation ab, oder lösche es.": "Ik kon op de foto geen bon en geen kilometerstand lezen. Stuur de kilometerstand als tekst (bijv. “km 61240”), bewaar de foto alleen als documentatie of verwijder hem.",
  "Foto gelöscht.": "Foto verwijderd.",
  "Foto zur Dokumentation abgelegt.": "Foto bewaard als documentatie.",
  "kw.doc": "documentatie|doc",
- "kw.del": "verwijderen|wissen"
+ "kw.del": "verwijderen|wissen",
+ "Unplausibler Wert": "Onwaarschijnlijke waarde",
+ "Angabe fehlt": "Gegeven ontbreekt",
+ "Auf dem Foto steht der Kilometerstand {0} km, das passt aber nicht zur Reihenfolge der Einträge. Schick den Stand als Text (z. B. „km {0}“), wenn er stimmt, oder lege das Foto nur zur Dokumentation ab, oder lösche es.": "Op de foto staat {0} km, maar dat past niet bij de volgorde van de invoeren. Stuur de stand als tekst (bijv. “km {0}”) als hij klopt, bewaar de foto alleen als documentatie of verwijder hem.",
+ "Quittieren": "Bevestigen"
 }

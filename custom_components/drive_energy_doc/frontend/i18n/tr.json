@@ -187,13 +187,17 @@
  "Beleg in {0}, Umrechnung nicht möglich, Werte nicht in Euro! Original: {1}": "Fiş {0} cinsinden, dönüştürme mümkün değil, değerler euro değil! Orijinal: {1}",
  "Ja": "Evet",
  "Nein": "Hayır",
- "Die KI ist gerade überlastet (Google). Bitte in ein paar Minuten noch einmal versuchen.": "Yapay zekâ şu anda aşırı yüklü (Google). Lütfen birkaç dakika sonra tekrar deneyin.",
- "Die KI ist gerade überlastet (Google). Bitte schick das Foto in ein paar Minuten noch einmal.": "Yapay zekâ şu anda aşırı yüklü (Google). Lütfen fotoğrafı birkaç dakika sonra tekrar gönderin.",
+ "Die KI ist gerade überlastet. Bitte in ein paar Minuten noch einmal versuchen.": "Yapay zekâ şu anda aşırı yüklü. Lütfen birkaç dakika sonra tekrar deneyin.",
+ "Die KI ist gerade überlastet. Bitte schick das Foto in ein paar Minuten noch einmal.": "Yapay zekâ şu anda aşırı yüklü. Lütfen fotoğrafı birkaç dakika sonra tekrar gönderin.",
  "Es wurde nichts gespeichert.": "Hiçbir şey kaydedilmedi.",
  "Original: {0} → {4} € · Kurs: 1 EUR = {1} {2} (EZB, {3})": "Orijinal: {0} → {4} € · Kur: 1 EUR = {1} {2} (AMB, {3})",
  "Auf dem Foto konnte ich weder Beleg noch Kilometerstand lesen. Schick den Kilometerstand als Text (z. B. „km 61240“) oder lege das Foto nur zur Dokumentation ab, oder lösche es.": "Fotoğrafta ne fiş ne de kilometre okuyabildim. Kilometreyi metin olarak gönderin (örn. “km 61240”), fotoğrafı yalnızca belgeleme için saklayın veya silin.",
  "Foto gelöscht.": "Fotoğraf silindi.",
  "Foto zur Dokumentation abgelegt.": "Fotoğraf belgeleme için saklandı.",
  "kw.doc": "belgeleme|doc",
- "kw.del": "sil|silmek"
+ "kw.del": "sil|silmek",
+ "Unplausibler Wert": "Olası olmayan değer",
+ "Angabe fehlt": "Bilgi eksik",
+ "Auf dem Foto steht der Kilometerstand {0} km, das passt aber nicht zur Reihenfolge der Einträge. Schick den Stand als Text (z. B. „km {0}“), wenn er stimmt, oder lege das Foto nur zur Dokumentation ab, oder lösche es.": "Fotoğrafta {0} km yazıyor, ancak bu kayıtların sırasına uymuyor. Doğruysa değeri metin olarak gönderin (örn. “km {0}”), fotoğrafı yalnızca belgeleme için saklayın veya silin.",
+ "Quittieren": "Onayla"
 }

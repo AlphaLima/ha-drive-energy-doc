@@ -187,13 +187,17 @@
  "Beleg in {0}, Umrechnung nicht möglich, Werte nicht in Euro! Original: {1}": "Рачун у {0}, претварање није могуће, вредности нису у еврима! Оригинал: {1}",
  "Ja": "Да",
  "Nein": "Не",
- "Die KI ist gerade überlastet (Google). Bitte in ein paar Minuten noch einmal versuchen.": "Вештачка интелигенција је тренутно преоптерећена (Google). Покушајте поново за неколико минута.",
- "Die KI ist gerade überlastet (Google). Bitte schick das Foto in ein paar Minuten noch einmal.": "Вештачка интелигенција је тренутно преоптерећена (Google). Пошаљите фотографију поново за неколико минута.",
+ "Die KI ist gerade überlastet. Bitte in ein paar Minuten noch einmal versuchen.": "Вештачка интелигенција је тренутно преоптерећена. Покушајте поново за неколико минута.",
+ "Die KI ist gerade überlastet. Bitte schick das Foto in ein paar Minuten noch einmal.": "Вештачка интелигенција је тренутно преоптерећена. Пошаљите фотографију поново за неколико минута.",
  "Es wurde nichts gespeichert.": "Ништа није сачувано.",
  "Original: {0} → {4} € · Kurs: 1 EUR = {1} {2} (EZB, {3})": "Оригинал: {0} → {4} € · Курс: 1 EUR = {1} {2} (ЕЦБ, {3})",
  "Auf dem Foto konnte ich weder Beleg noch Kilometerstand lesen. Schick den Kilometerstand als Text (z. B. „km 61240“) oder lege das Foto nur zur Dokumentation ab, oder lösche es.": "На фотографији нисам прочитао ни рачун ни километражу. Пошаљите километражу као текст (нпр. „km 61240“), фотографију задржите само као документацију или је обришите.",
  "Foto gelöscht.": "Фотографија обрисана.",
  "Foto zur Dokumentation abgelegt.": "Фотографија сачувана као документација.",
  "kw.doc": "документација|dokumentacija|doc",
- "kw.del": "обриши|obriši|obrisi"
+ "kw.del": "обриши|obriši|obrisi",
+ "Unplausibler Wert": "Невероватна вредност",
+ "Angabe fehlt": "Податак недостаје",
+ "Auf dem Foto steht der Kilometerstand {0} km, das passt aber nicht zur Reihenfolge der Einträge. Schick den Stand als Text (z. B. „km {0}“), wenn er stimmt, oder lege das Foto nur zur Dokumentation ab, oder lösche es.": "На фотографији је {0} km, што не одговара редоследу уноса. Пошаљите вредност као текст (нпр. „km {0}“) ако је тачна, фотографију задржите само као документацију или је обришите.",
+ "Quittieren": "Потврди"
 }

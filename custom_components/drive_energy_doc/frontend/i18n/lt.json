@@ -187,13 +187,17 @@
  "Beleg in {0}, Umrechnung nicht möglich, Werte nicht in Euro! Original: {1}": "Čekis valiuta {0}, konvertuoti neįmanoma, reikšmės ne eurais! Originalas: {1}",
  "Ja": "Taip",
  "Nein": "Ne",
- "Die KI ist gerade überlastet (Google). Bitte in ein paar Minuten noch einmal versuchen.": "Dirbtinis intelektas šiuo metu perkrautas (Google). Pabandykite dar kartą po kelių minučių.",
- "Die KI ist gerade überlastet (Google). Bitte schick das Foto in ein paar Minuten noch einmal.": "Dirbtinis intelektas šiuo metu perkrautas (Google). Nusiųskite nuotrauką dar kartą po kelių minučių.",
+ "Die KI ist gerade überlastet. Bitte in ein paar Minuten noch einmal versuchen.": "Dirbtinis intelektas šiuo metu perkrautas. Pabandykite dar kartą po kelių minučių.",
+ "Die KI ist gerade überlastet. Bitte schick das Foto in ein paar Minuten noch einmal.": "Dirbtinis intelektas šiuo metu perkrautas. Nusiųskite nuotrauką dar kartą po kelių minučių.",
  "Es wurde nichts gespeichert.": "Niekas nebuvo išsaugota.",
  "Original: {0} → {4} € · Kurs: 1 EUR = {1} {2} (EZB, {3})": "Originalas: {0} → {4} € · Kursas: 1 EUR = {1} {2} (ECB, {3})",
  "Auf dem Foto konnte ich weder Beleg noch Kilometerstand lesen. Schick den Kilometerstand als Text (z. B. „km 61240“) oder lege das Foto nur zur Dokumentation ab, oder lösche es.": "Nuotraukoje nepavyko nuskaityti nei čekio, nei ridos. Atsiųskite ridą tekstu (pvz., „km 61240“), nuotrauką palikite tik kaip dokumentaciją arba ją ištrinkite.",
  "Foto gelöscht.": "Nuotrauka ištrinta.",
  "Foto zur Dokumentation abgelegt.": "Nuotrauka išsaugota kaip dokumentacija.",
  "kw.doc": "dokumentacija|doc",
- "kw.del": "ištrinti|istrinti"
+ "kw.del": "ištrinti|istrinti",
+ "Unplausibler Wert": "Neįtikėtina reikšmė",
+ "Angabe fehlt": "Trūksta duomenų",
+ "Auf dem Foto steht der Kilometerstand {0} km, das passt aber nicht zur Reihenfolge der Einträge. Schick den Stand als Text (z. B. „km {0}“), wenn er stimmt, oder lege das Foto nur zur Dokumentation ab, oder lösche es.": "Nuotraukoje yra {0} km, bet tai neatitinka įrašų eiliškumo. Atsiųskite reikšmę tekstu (pvz., „km {0}“), jei ji teisinga, nuotrauką palikite tik kaip dokumentaciją arba ją ištrinkite.",
+ "Quittieren": "Patvirtinti"
 }

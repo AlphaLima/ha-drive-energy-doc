@@ -187,13 +187,17 @@
  "Beleg in {0}, Umrechnung nicht möglich, Werte nicht in Euro! Original: {1}": "Kvittering i {0}, omregning er ikke mulig, verdiene er ikke i euro! Original: {1}",
  "Ja": "Ja",
  "Nein": "Nei",
- "Die KI ist gerade überlastet (Google). Bitte in ein paar Minuten noch einmal versuchen.": "KI-en er overbelastet akkurat nå (Google). Prøv igjen om noen minutter.",
- "Die KI ist gerade überlastet (Google). Bitte schick das Foto in ein paar Minuten noch einmal.": "KI-en er overbelastet akkurat nå (Google). Send bildet på nytt om noen minutter.",
+ "Die KI ist gerade überlastet. Bitte in ein paar Minuten noch einmal versuchen.": "KI-en er overbelastet akkurat nå. Prøv igjen om noen minutter.",
+ "Die KI ist gerade überlastet. Bitte schick das Foto in ein paar Minuten noch einmal.": "KI-en er overbelastet akkurat nå. Send bildet på nytt om noen minutter.",
  "Es wurde nichts gespeichert.": "Ingenting ble lagret.",
  "Original: {0} → {4} € · Kurs: 1 EUR = {1} {2} (EZB, {3})": "Original: {0} → {4} € · Kurs: 1 EUR = {1} {2} (ECB, {3})",
  "Auf dem Foto konnte ich weder Beleg noch Kilometerstand lesen. Schick den Kilometerstand als Text (z. B. „km 61240“) oder lege das Foto nur zur Dokumentation ab, oder lösche es.": "Jeg kunne verken lese en kvittering eller en kilometerstand på bildet. Send kilometerstanden som tekst (f.eks. «km 61240»), behold bildet bare som dokumentasjon, eller slett det.",
  "Foto gelöscht.": "Bilde slettet.",
  "Foto zur Dokumentation abgelegt.": "Bilde lagret som dokumentasjon.",
  "kw.doc": "dokumentasjon|doc",
- "kw.del": "slett|slette"
+ "kw.del": "slett|slette",
+ "Unplausibler Wert": "Usannsynlig verdi",
+ "Angabe fehlt": "Opplysning mangler",
+ "Auf dem Foto steht der Kilometerstand {0} km, das passt aber nicht zur Reihenfolge der Einträge. Schick den Stand als Text (z. B. „km {0}“), wenn er stimmt, oder lege das Foto nur zur Dokumentation ab, oder lösche es.": "Bildet viser {0} km, men det passer ikke med rekkefølgen på postene. Send verdien som tekst (f.eks. «km {0}») hvis den stemmer, behold bildet bare som dokumentasjon, eller slett det.",
+ "Quittieren": "Kvitter"
 }

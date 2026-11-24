@@ -123,8 +123,10 @@ def km_plausible(entries: list[dict[str, Any]], km: float | None, ts: float | No
         return False
     fuel = sorted((e for e in entries if e.get("kind") != "extra" and e.get("odometer") and (exclude is None or e.get("id") != exclude)), key=lambda x: x["ts"])
     if ts is not None:
+        # Ein Eintrag, dessen Datum nur der Zeitpunkt des Uploads ist (angelegt aus Säulen-Foto und Tacho, ts nahe created), sagt nichts über die Reihenfolge: nicht als „späterer“ Eintrag zählen
+        undated = lambda e: e.get("created") is not None and abs(e["ts"] - e["created"]) < 3 * 3600   # noqa: E731
         prev = [e for e in fuel if e["ts"] <= ts]
-        nxt = [e for e in fuel if e["ts"] > ts]
+        nxt = [e for e in fuel if e["ts"] > ts and not undated(e)]
         if prev and (km < prev[-1]["odometer"] - back_tol or km > prev[-1]["odometer"] + max_jump):
             return False
         if nxt and km > nxt[0]["odometer"] + back_tol:
@@ -136,7 +138,7 @@ def km_plausible(entries: list[dict[str, Any]], km: float | None, ts: float | No
 
 # Rangfolge der Quellen eines Kilometerstands: die Entität des Autos ist immer die beste, dann das Foto vom Tacho, erst dann der Stand auf der Quittung
 # (der wird oft von Hand eingegeben und kann falsch sein). Ein von Hand eingetragener Stand (Panel oder getippt) gilt als bewusste Entscheidung und gewinnt immer.
-KM_RANK = {"beleg": 1, "foto": 2, "sensor": 3, "manuell": 4}
+KM_RANK = {"bekannt": 0.5, "beleg": 1, "foto": 2, "sensor": 3, "manuell": 4}   # „bekannt“ = nur der zuletzt bekannte Stand (bei Zubehör), jede echte Quelle ersetzt ihn
 
 
 def km_rank(entry: dict[str, Any]) -> int:
@@ -149,3 +151,120 @@ def km_rank(entry: dict[str, Any]) -> int:
 def km_better(entry: dict[str, Any], source: str) -> bool:
     """Darf ein Kilometerstand aus ``source`` den vorhandenen des Eintrags ersetzen (oder setzen)?"""
     return KM_RANK[source] > km_rank(entry)
+
+
+def plausibility(entries: list[dict[str, Any]], capacity: float = 0.0, capacity_el: float = 0.0, phev: bool = False, ev: bool = False) -> dict[str, dict[str, dict[str, Any]]]:
+    """Unplausible Werte je Eintrag, für die Warndreiecke in der Liste. Rückgabe: ``{Eintrags-ID: {Spalte: Hinweis}}`` mit den Spalten qty, price, total, km, cons.
+    Fehlende Angaben (Menge, Betrag, Kilometerstand, bei Zubehör der Betrag) werden als ``missing`` gemeldet. Geprüft werden: Menge x Preis gegen Betrag, ein ungewöhnlicher Preis je Einheit, eine Menge über dem Tank bzw. Akku, ein Kilometerstand unter dem vorigen oder
+    mehr als 5000 km darüber, ein ungewöhnlicher Verbrauch (Plug-in-Hybrid: der Kraftstoff darf sehr niedrig sein). ``entries`` mit Feld ``consumption`` (add_consumption)."""
+    out: dict[str, dict[str, dict[str, Any]]] = {}
+    last_km: float | None = None
+    # Plug-in-Hybrid mit Tanken UND Laden: gefahren wird im Wechsel mit Benzin und Strom, der Verbrauch je Energieart schwankt daher stark und sagt allein nichts.
+    # Dann wird nur der gemeinsame Verbrauch geprüft (siehe unten), nicht der einzelner Einträge.
+    mixed = phev and len({energy_of(x) for x in entries if x.get("kind") != "extra"}) > 1
+    for e in sorted(entries, key=lambda x: x["ts"]):
+        w: dict[str, dict[str, Any]] = {}
+        out[e["id"]] = w
+        if e.get("kind") == "extra":
+            if not e.get("total"):
+                w["total"] = {"k": "missing"}   # Zubehör ohne Betrag
+            if e.get("odometer") is None:
+                w["km"] = {"k": "missing"}
+            continue
+        electric = ev or energy_of(e) == "electric"
+        q, p, tot = e.get("quantity"), e.get("unit_price"), e.get("total")
+        for col, val in (("qty", q), ("total", tot), ("km", e.get("odometer"))):   # unvollständig: Angabe fehlt (Fragezeichen)
+            if not val:
+                w[col] = {"k": "missing"}
+        if not p and not (q and tot):
+            w["price"] = {"k": "missing"}
+        if q and p and tot and abs(q * p - tot) > 0.05 + 0.0005 * q:
+            hint = {"k": "calc", "q": q, "p": p, "calc": round(q * p, 2), "t": tot}
+            w["qty"] = w["price"] = w["total"] = hint
+        lo, hi = (0.05, 1.5) if electric else (0.8, 3.5)
+        if p and not lo <= p <= hi and "price" not in w:
+            w["price"] = {"k": "range", "v": p, "lo": lo, "hi": hi}
+        cap = capacity_el if (phev and energy_of(e) == "electric") else capacity
+        if q and cap and q > cap * 1.15 and "qty" not in w:
+            w["qty"] = {"k": "cap", "v": q, "cap": cap}
+        od = e.get("odometer") if e.get("odometer_source") != "bekannt" else None   # geschätzte Stände nicht prüfen
+        if od is not None:
+            if last_km is not None:
+                if od < last_km - 1:
+                    w["km"] = {"k": "back", "prev": last_km}
+                elif od - last_km > 5000:
+                    w["km"] = {"k": "jump", "d": od - last_km}
+            last_km = od if last_km is None else max(last_km, od)
+        c = e.get("consumption")
+        if c and not mixed:
+            lo, hi = (6.0, 45.0) if electric else ((0.1, 25.0) if phev else (1.5, 25.0))
+            if not lo <= c <= hi:
+                w["cons"] = {"k": "range", "v": c, "lo": lo, "hi": hi}
+    if mixed:
+        _combined_consumption(entries, out)
+    _flag_duplicates(entries, out)
+    return out
+
+
+KWH_PER_LITRE = 9.7   # Energiegehalt von Benzin, um Liter und kWh in einem gemeinsamen Verbrauch zu rechnen
+COMBINED_RANGE = (0.0, 60.0)   # kWh-Äquivalent je 100 km; ein Plug-in-Hybrid liegt je nach Fahrweise grob zwischen 15 und 40. Nur zu HOHE Werte werden gemeldet: ein niedriger Wert ist
+# normal, weil Benzin oft die Ausnahme ist und nicht jede Ladung (z. B. zu Hause) erfasst wird
+
+
+def _combined_consumption(entries: list[dict[str, Any]], out: dict[str, dict[str, dict[str, Any]]]) -> None:
+    """Gemeinsamer Verbrauch aus Kraftstoff und Strom seit dem Punkt, ab dem beide Energiearten bekannt sind (Voll-zu-Voll je Art), umgerechnet in kWh je 100 km.
+    Gemeldet wird erst ab 300 km Strecke; der Hinweis steht am Eintrag, bei dem der gemeinsame Wert unplausibel wird."""
+    seen: set[str] = set()
+    base_km: float | None = None
+    energy = 0.0
+    armed = False
+    for e in sorted((x for x in entries if x.get("kind") != "extra"), key=lambda x: x["ts"]):
+        en = energy_of(e)
+        od = e.get("odometer") if e.get("odometer_source") != "bekannt" else None
+        if not armed:
+            seen.add(en)
+            if len(seen) == 2:
+                armed = True       # ab hier zählt die Menge der folgenden Einträge; Grundlinie ist der nächste bekannte Kilometerstand
+                base_km = od
+            continue
+        if base_km is None:
+            if od is not None:
+                base_km = od
+            continue
+        energy += (e.get("quantity") or 0) * (KWH_PER_LITRE if en == "fuel" else 1.0)
+        if od is not None and od - base_km >= 300 and energy > 0:
+            c = energy / (od - base_km) * 100
+            if not COMBINED_RANGE[0] <= c <= COMBINED_RANGE[1]:
+                out[e["id"]]["cons"] = {"k": "combined", "v": round(c, 1), "lo": COMBINED_RANGE[0], "hi": COMBINED_RANGE[1]}
+
+
+def _flag_duplicates(entries: list[dict[str, Any]], out: dict[str, dict[str, dict[str, Any]]]) -> None:
+    """Zwei Einträge derselben Energieart mit gleicher Menge und gleichem Betrag sind sehr wahrscheinlich derselbe Beleg zweimal: beide bekommen ein Warndreieck in Menge, Preis und Betrag
+    (Hinweis auf den jeweils zeitlich nächsten anderen). Zubehör zählt nicht."""
+    groups: dict[tuple, list[dict[str, Any]]] = {}
+    for e in sorted(entries, key=lambda x: x["ts"]):
+        q, tot = e.get("quantity"), e.get("total")
+        if e.get("kind") == "extra" or not (q and tot):
+            continue
+        groups.setdefault((energy_of(e), round(q, 2), round(tot, 2)), []).append(e)
+    for grp in groups.values():
+        if len(grp) < 2:
+            continue
+        for e in grp:
+            other = min((x for x in grp if x is not e), key=lambda x: abs(x["ts"] - e["ts"]))
+            hint = {"k": "dup", "other": other["id"]}
+            for col in ("qty", "price", "total"):
+                out[e["id"]].setdefault(col, hint)
+    # Derselbe Kilometerstand bei zwei Tank-/Ladevorgängen derselben Energieart: unmöglich, ein Vorgang ist doppelt (auch wenn Menge und Betrag wegen eines falsch gelesenen Displays abweichen)
+    by_km: dict[tuple, list[dict[str, Any]]] = {}
+    for e in sorted(entries, key=lambda x: x["ts"]):
+        if e.get("kind") != "extra" and e.get("odometer") and e.get("odometer_source") != "bekannt":
+            by_km.setdefault((energy_of(e), round(float(e["odometer"]))), []).append(e)
+    for grp in by_km.values():
+        if len(grp) < 2:
+            continue
+        for e in grp:
+            other = min((x for x in grp if x is not e), key=lambda x: abs(x["ts"] - e["ts"]))
+            hint = {"k": "dup", "other": other["id"]}
+            for col in ("km", "qty", "price", "total"):
+                out[e["id"]].setdefault(col, hint)

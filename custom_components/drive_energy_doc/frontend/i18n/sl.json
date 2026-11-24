@@ -187,13 +187,17 @@
  "Beleg in {0}, Umrechnung nicht möglich, Werte nicht in Euro! Original: {1}": "Račun v {0}, pretvorba ni mogoča, vrednosti niso v evrih! Izvirnik: {1}",
  "Ja": "Da",
  "Nein": "Ne",
- "Die KI ist gerade überlastet (Google). Bitte in ein paar Minuten noch einmal versuchen.": "Umetna inteligenca je trenutno preobremenjena (Google). Poskusite znova čez nekaj minut.",
- "Die KI ist gerade überlastet (Google). Bitte schick das Foto in ein paar Minuten noch einmal.": "Umetna inteligenca je trenutno preobremenjena (Google). Fotografijo pošljite znova čez nekaj minut.",
+ "Die KI ist gerade überlastet. Bitte in ein paar Minuten noch einmal versuchen.": "Umetna inteligenca je trenutno preobremenjena. Poskusite znova čez nekaj minut.",
+ "Die KI ist gerade überlastet. Bitte schick das Foto in ein paar Minuten noch einmal.": "Umetna inteligenca je trenutno preobremenjena. Fotografijo pošljite znova čez nekaj minut.",
  "Es wurde nichts gespeichert.": "Nič ni bilo shranjeno.",
  "Original: {0} → {4} € · Kurs: 1 EUR = {1} {2} (EZB, {3})": "Izvirnik: {0} → {4} € · Tečaj: 1 EUR = {1} {2} (ECB, {3})",
  "Auf dem Foto konnte ich weder Beleg noch Kilometerstand lesen. Schick den Kilometerstand als Text (z. B. „km 61240“) oder lege das Foto nur zur Dokumentation ab, oder lösche es.": "Na fotografiji nisem prebral ne računa ne stanja kilometrov. Pošljite stanje kilometrov kot besedilo (npr. »km 61240«), fotografijo obdržite samo kot dokumentacijo ali jo izbrišite.",
  "Foto gelöscht.": "Fotografija izbrisana.",
  "Foto zur Dokumentation abgelegt.": "Fotografija shranjena kot dokumentacija.",
  "kw.doc": "dokumentacija|doc",
- "kw.del": "izbriši|izbrisi"
+ "kw.del": "izbriši|izbrisi",
+ "Unplausibler Wert": "Neverjetna vrednost",
+ "Angabe fehlt": "Podatek manjka",
+ "Auf dem Foto steht der Kilometerstand {0} km, das passt aber nicht zur Reihenfolge der Einträge. Schick den Stand als Text (z. B. „km {0}“), wenn er stimmt, oder lege das Foto nur zur Dokumentation ab, oder lösche es.": "Na fotografiji je {0} km, kar ne ustreza vrstnemu redu vnosov. Pošljite vrednost kot besedilo (npr. »km {0}«), če je pravilna, fotografijo obdržite samo kot dokumentacijo ali jo izbrišite.",
+ "Quittieren": "Potrdi"
 }

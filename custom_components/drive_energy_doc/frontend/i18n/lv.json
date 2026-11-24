@@ -187,13 +187,17 @@
  "Beleg in {0}, Umrechnung nicht möglich, Werte nicht in Euro! Original: {1}": "Čeks valūtā {0}, pārrēķins nav iespējams, vērtības nav eiro! Oriģināls: {1}",
  "Ja": "Jā",
  "Nein": "Nē",
- "Die KI ist gerade überlastet (Google). Bitte in ein paar Minuten noch einmal versuchen.": "Mākslīgais intelekts pašlaik ir pārslogots (Google). Mēģiniet vēlreiz pēc dažām minūtēm.",
- "Die KI ist gerade überlastet (Google). Bitte schick das Foto in ein paar Minuten noch einmal.": "Mākslīgais intelekts pašlaik ir pārslogots (Google). Nosūtiet fotoattēlu vēlreiz pēc dažām minūtēm.",
+ "Die KI ist gerade überlastet. Bitte in ein paar Minuten noch einmal versuchen.": "Mākslīgais intelekts pašlaik ir pārslogots. Mēģiniet vēlreiz pēc dažām minūtēm.",
+ "Die KI ist gerade überlastet. Bitte schick das Foto in ein paar Minuten noch einmal.": "Mākslīgais intelekts pašlaik ir pārslogots. Nosūtiet fotoattēlu vēlreiz pēc dažām minūtēm.",
  "Es wurde nichts gespeichert.": "Nekas netika saglabāts.",
  "Original: {0} → {4} € · Kurs: 1 EUR = {1} {2} (EZB, {3})": "Oriģināls: {0} → {4} € · Kurss: 1 EUR = {1} {2} (ECB, {3})",
  "Auf dem Foto konnte ich weder Beleg noch Kilometerstand lesen. Schick den Kilometerstand als Text (z. B. „km 61240“) oder lege das Foto nur zur Dokumentation ab, oder lösche es.": "Fotoattēlā neizdevās nolasīt ne čeku, ne nobraukumu. Nosūtiet nobraukumu kā tekstu (piem., „km 61240”), saglabājiet fotoattēlu tikai kā dokumentāciju vai dzēsiet to.",
  "Foto gelöscht.": "Fotoattēls izdzēsts.",
  "Foto zur Dokumentation abgelegt.": "Fotoattēls saglabāts kā dokumentācija.",
  "kw.doc": "dokumentācija|dokumentacija|doc",
- "kw.del": "dzēst|dzest"
+ "kw.del": "dzēst|dzest",
+ "Unplausibler Wert": "Neticama vērtība",
+ "Angabe fehlt": "Trūkst datu",
+ "Auf dem Foto steht der Kilometerstand {0} km, das passt aber nicht zur Reihenfolge der Einträge. Schick den Stand als Text (z. B. „km {0}“), wenn er stimmt, oder lege das Foto nur zur Dokumentation ab, oder lösche es.": "Fotoattēlā ir {0} km, bet tas neatbilst ierakstu secībai. Nosūtiet vērtību kā tekstu (piem., „km {0}”), ja tā ir pareiza, saglabājiet fotoattēlu tikai kā dokumentāciju vai dzēsiet to.",
+ "Quittieren": "Apstiprināt"
 }

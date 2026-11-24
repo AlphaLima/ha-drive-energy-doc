@@ -189,13 +189,17 @@
  "Beleg in {0}, Umrechnung nicht möglich, Werte nicht in Euro! Original: {1}": "Чек у {0}, перерахунок неможливий, значення не в євро! Оригінал: {1}",
  "Ja": "Так",
  "Nein": "Ні",
- "Die KI ist gerade überlastet (Google). Bitte in ein paar Minuten noch einmal versuchen.": "ШІ зараз перевантажений (Google). Спробуйте ще раз за кілька хвилин.",
- "Die KI ist gerade überlastet (Google). Bitte schick das Foto in ein paar Minuten noch einmal.": "ШІ зараз перевантажений (Google). Надішліть фото ще раз за кілька хвилин.",
+ "Die KI ist gerade überlastet. Bitte in ein paar Minuten noch einmal versuchen.": "ШІ зараз перевантажений. Спробуйте ще раз за кілька хвилин.",
+ "Die KI ist gerade überlastet. Bitte schick das Foto in ein paar Minuten noch einmal.": "ШІ зараз перевантажений. Надішліть фото ще раз за кілька хвилин.",
  "Es wurde nichts gespeichert.": "Нічого не збережено.",
  "Original: {0} → {4} € · Kurs: 1 EUR = {1} {2} (EZB, {3})": "Оригінал: {0} → {4} € · Курс: 1 EUR = {1} {2} (ЄЦБ, {3})",
  "Auf dem Foto konnte ich weder Beleg noch Kilometerstand lesen. Schick den Kilometerstand als Text (z. B. „km 61240“) oder lege das Foto nur zur Dokumentation ab, oder lösche es.": "На фото я не прочитав ні чек, ні пробіг. Надішліть пробіг текстом (наприклад «km 61240»), збережіть фото лише як документацію або видаліть його.",
  "Foto gelöscht.": "Фото видалено.",
  "Foto zur Dokumentation abgelegt.": "Фото збережено як документацію.",
  "kw.doc": "документація|doc",
- "kw.del": "видалити|видали"
+ "kw.del": "видалити|видали",
+ "Unplausibler Wert": "Неправдоподібне значення",
+ "Angabe fehlt": "Дані відсутні",
+ "Auf dem Foto steht der Kilometerstand {0} km, das passt aber nicht zur Reihenfolge der Einträge. Schick den Stand als Text (z. B. „km {0}“), wenn er stimmt, oder lege das Foto nur zur Dokumentation ab, oder lösche es.": "На фото {0} км, але це не відповідає порядку записів. Надішліть значення текстом (наприклад «km {0}»), якщо воно правильне, збережіть фото лише як документацію або видаліть його.",
+ "Quittieren": "Підтвердити"
 }

@@ -132,6 +132,30 @@ def test_recompress():
     assert r.recompress(b"kein bild", 1800, 82) == b"kein bild"
 
 
+def test_rescale_decimals():
+    """Säulen-Display ohne erkannten Dezimalpunkt: 3842 l x 1759 = 6758 wird zu 38,42 l x 1,759 = 67,58."""
+    v = {"quantity": 3842.0, "unit_price": 1759.0, "total": 6758.0}
+    assert r.rescale_decimals(v) and v == {"quantity": 38.42, "unit_price": 1.759, "total": 67.58}, v
+    ok = {"quantity": 38.42, "unit_price": 1.759, "total": 67.58}
+    assert not r.rescale_decimals(ok) and ok["total"] == 67.58, "plausible Werte bleiben unverändert"
+    bad = {"quantity": 40.0, "unit_price": 2.0, "total": 99.0}
+    assert not r.rescale_decimals(bad) and bad["total"] == 99.0, "nicht eindeutig rettbar: nichts ändern"
+    kwh = {"quantity": 142.0, "unit_price": 49.0, "total": 696.0}   # 14,2 kWh x 0,49 = 6,96
+    assert r.rescale_decimals(kwh) and kwh == {"quantity": 14.2, "unit_price": 0.49, "total": 6.96}, kwh
+
+
+def test_repair_value():
+    """Der Fall vom Handyfoto: Menge als 2,6 statt 21,60 gelesen, Preis 1,789 und Betrag 38,64 stimmen."""
+    v = {"quantity": 2.6, "unit_price": 1.789, "total": 38.64}
+    assert r.repair_value(v) and v["quantity"] == 21.6 and v["unit_price"] == 1.789 and v["total"] == 38.64, v
+    ok = {"quantity": 21.6, "unit_price": 1.789, "total": 38.64}
+    assert not r.repair_value(ok), "plausibel: nichts ändern"
+    amb = {"quantity": 40.0, "unit_price": 2.0, "total": 99.0}
+    assert not r.repair_value(amb) and amb == {"quantity": 40.0, "unit_price": 2.0, "total": 99.0}, "mehrdeutig: nichts ändern"
+    price = {"quantity": 38.42, "unit_price": 7.759, "total": 67.58}   # Preis falsch gelesen: mehrere Erklärungen möglich, also nichts raten
+    assert not r.repair_value(price) and price["unit_price"] == 7.759
+
+
 for n, f in list(globals().items()):
     if n.startswith("test_"):
         f(); print("ok", n)

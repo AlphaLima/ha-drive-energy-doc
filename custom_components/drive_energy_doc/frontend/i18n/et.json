@@ -187,13 +187,17 @@
  "Beleg in {0}, Umrechnung nicht möglich, Werte nicht in Euro! Original: {1}": "Tšekk vääringus {0}, ümberarvestus pole võimalik, väärtused ei ole eurodes! Originaal: {1}",
  "Ja": "Jah",
  "Nein": "Ei",
- "Die KI ist gerade überlastet (Google). Bitte in ein paar Minuten noch einmal versuchen.": "Tehisintellekt on praegu ülekoormatud (Google). Proovi mõne minuti pärast uuesti.",
- "Die KI ist gerade überlastet (Google). Bitte schick das Foto in ein paar Minuten noch einmal.": "Tehisintellekt on praegu ülekoormatud (Google). Saada foto mõne minuti pärast uuesti.",
+ "Die KI ist gerade überlastet. Bitte in ein paar Minuten noch einmal versuchen.": "Tehisintellekt on praegu ülekoormatud. Proovi mõne minuti pärast uuesti.",
+ "Die KI ist gerade überlastet. Bitte schick das Foto in ein paar Minuten noch einmal.": "Tehisintellekt on praegu ülekoormatud. Saada foto mõne minuti pärast uuesti.",
  "Es wurde nichts gespeichert.": "Midagi ei salvestatud.",
  "Original: {0} → {4} € · Kurs: 1 EUR = {1} {2} (EZB, {3})": "Originaal: {0} → {4} € · Kurss: 1 EUR = {1} {2} (EKP, {3})",
  "Auf dem Foto konnte ich weder Beleg noch Kilometerstand lesen. Schick den Kilometerstand als Text (z. B. „km 61240“) oder lege das Foto nur zur Dokumentation ab, oder lösche es.": "Fotolt ei õnnestunud lugeda ei tšekki ega läbisõitu. Saada läbisõit tekstina (nt „km 61240”), säilita foto ainult dokumentatsioonina või kustuta see.",
  "Foto gelöscht.": "Foto kustutatud.",
  "Foto zur Dokumentation abgelegt.": "Foto salvestatud dokumentatsioonina.",
  "kw.doc": "dokumentatsioon|doc",
- "kw.del": "kustuta|kustutada"
+ "kw.del": "kustuta|kustutada",
+ "Unplausibler Wert": "Ebatõenäoline väärtus",
+ "Angabe fehlt": "Andmed puuduvad",
+ "Auf dem Foto steht der Kilometerstand {0} km, das passt aber nicht zur Reihenfolge der Einträge. Schick den Stand als Text (z. B. „km {0}“), wenn er stimmt, oder lege das Foto nur zur Dokumentation ab, oder lösche es.": "Fotol on {0} km, kuid see ei sobi kirjete järjekorraga. Saada väärtus tekstina (nt „km {0}”), kui see on õige, säilita foto ainult dokumentatsioonina või kustuta see.",
+ "Quittieren": "Kinnita"
 }

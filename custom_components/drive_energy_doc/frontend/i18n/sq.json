@@ -187,13 +187,17 @@
  "Beleg in {0}, Umrechnung nicht möglich, Werte nicht in Euro! Original: {1}": "Faturë në {0}, konvertimi nuk është i mundur, vlerat nuk janë në euro! Origjinali: {1}",
  "Ja": "Po",
  "Nein": "Jo",
- "Die KI ist gerade überlastet (Google). Bitte in ein paar Minuten noch einmal versuchen.": "Inteligjenca artificiale është aktualisht e mbingarkuar (Google). Provoni përsëri pas pak minutash.",
- "Die KI ist gerade überlastet (Google). Bitte schick das Foto in ein paar Minuten noch einmal.": "Inteligjenca artificiale është aktualisht e mbingarkuar (Google). Dërgojeni foton përsëri pas pak minutash.",
+ "Die KI ist gerade überlastet. Bitte in ein paar Minuten noch einmal versuchen.": "Inteligjenca artificiale është aktualisht e mbingarkuar. Provoni përsëri pas pak minutash.",
+ "Die KI ist gerade überlastet. Bitte schick das Foto in ein paar Minuten noch einmal.": "Inteligjenca artificiale është aktualisht e mbingarkuar. Dërgojeni foton përsëri pas pak minutash.",
  "Es wurde nichts gespeichert.": "Asgjë nuk u ruajt.",
  "Original: {0} → {4} € · Kurs: 1 EUR = {1} {2} (EZB, {3})": "Origjinali: {0} → {4} € · Kursi: 1 EUR = {1} {2} (BQE, {3})",
  "Auf dem Foto konnte ich weder Beleg noch Kilometerstand lesen. Schick den Kilometerstand als Text (z. B. „km 61240“) oder lege das Foto nur zur Dokumentation ab, oder lösche es.": "Në foto nuk lexova as faturë as kilometra. Dërgo kilometrat si tekst (p.sh. «km 61240»), ruaje fotot vetëm si dokumentim ose fshije.",
  "Foto gelöscht.": "Fotoja u fshi.",
  "Foto zur Dokumentation abgelegt.": "Fotoja u ruajt si dokumentim.",
  "kw.doc": "dokumentim|doc",
- "kw.del": "fshi|fshij"
+ "kw.del": "fshi|fshij",
+ "Unplausibler Wert": "Vlerë jo e besueshme",
+ "Angabe fehlt": "Mungon informacioni",
+ "Auf dem Foto steht der Kilometerstand {0} km, das passt aber nicht zur Reihenfolge der Einträge. Schick den Stand als Text (z. B. „km {0}“), wenn er stimmt, oder lege das Foto nur zur Dokumentation ab, oder lösche es.": "Fotoja tregon {0} km, por kjo nuk përputhet me rendin e regjistrimeve. Dërgo vlerën si tekst (p.sh. «km {0}») nëse është e saktë, ruaje fotot vetëm si dokumentim ose fshije.",
+ "Quittieren": "Konfirmo"
 }

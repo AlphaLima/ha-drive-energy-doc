@@ -187,13 +187,17 @@
  "Beleg in {0}, Umrechnung nicht möglich, Werte nicht in Euro! Original: {1}": "Račun u {0}, pretvorba nije moguća, vrijednosti nisu u eurima! Izvornik: {1}",
  "Ja": "Da",
  "Nein": "Ne",
- "Die KI ist gerade überlastet (Google). Bitte in ein paar Minuten noch einmal versuchen.": "Umjetna inteligencija je trenutačno preopterećena (Google). Pokušajte ponovno za nekoliko minuta.",
- "Die KI ist gerade überlastet (Google). Bitte schick das Foto in ein paar Minuten noch einmal.": "Umjetna inteligencija je trenutačno preopterećena (Google). Pošaljite fotografiju ponovno za nekoliko minuta.",
+ "Die KI ist gerade überlastet. Bitte in ein paar Minuten noch einmal versuchen.": "Umjetna inteligencija je trenutačno preopterećena. Pokušajte ponovno za nekoliko minuta.",
+ "Die KI ist gerade überlastet. Bitte schick das Foto in ein paar Minuten noch einmal.": "Umjetna inteligencija je trenutačno preopterećena. Pošaljite fotografiju ponovno za nekoliko minuta.",
  "Es wurde nichts gespeichert.": "Ništa nije spremljeno.",
  "Original: {0} → {4} € · Kurs: 1 EUR = {1} {2} (EZB, {3})": "Izvornik: {0} → {4} € · Tečaj: 1 EUR = {1} {2} (ESB, {3})",
  "Auf dem Foto konnte ich weder Beleg noch Kilometerstand lesen. Schick den Kilometerstand als Text (z. B. „km 61240“) oder lege das Foto nur zur Dokumentation ab, oder lösche es.": "Na fotografiji nisam pročitao ni račun ni kilometražu. Pošaljite kilometražu kao tekst (npr. „km 61240”), fotografiju zadržite samo kao dokumentaciju ili je izbrišite.",
  "Foto gelöscht.": "Fotografija izbrisana.",
  "Foto zur Dokumentation abgelegt.": "Fotografija spremljena kao dokumentacija.",
  "kw.doc": "dokumentacija|doc",
- "kw.del": "izbriši|izbrisi|obriši"
+ "kw.del": "izbriši|izbrisi|obriši",
+ "Unplausibler Wert": "Nevjerojatna vrijednost",
+ "Angabe fehlt": "Podatak nedostaje",
+ "Auf dem Foto steht der Kilometerstand {0} km, das passt aber nicht zur Reihenfolge der Einträge. Schick den Stand als Text (z. B. „km {0}“), wenn er stimmt, oder lege das Foto nur zur Dokumentation ab, oder lösche es.": "Na fotografiji je {0} km, što ne odgovara redoslijedu unosa. Pošaljite vrijednost kao tekst (npr. „km {0}”) ako je točna, fotografiju zadržite samo kao dokumentaciju ili je izbrišite.",
+ "Quittieren": "Potvrdi"
 }

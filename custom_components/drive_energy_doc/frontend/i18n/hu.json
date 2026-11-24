@@ -187,13 +187,17 @@
  "Beleg in {0}, Umrechnung nicht möglich, Werte nicht in Euro! Original: {1}": "Nyugta {0} pénznemben, az átváltás nem lehetséges, az értékek nem euróban vannak! Eredeti: {1}",
  "Ja": "Igen",
  "Nein": "Nem",
- "Die KI ist gerade überlastet (Google). Bitte in ein paar Minuten noch einmal versuchen.": "Az MI jelenleg túlterhelt (Google). Próbálja újra néhány perc múlva.",
- "Die KI ist gerade überlastet (Google). Bitte schick das Foto in ein paar Minuten noch einmal.": "Az MI jelenleg túlterhelt (Google). Küldje el újra a fotót néhány perc múlva.",
+ "Die KI ist gerade überlastet. Bitte in ein paar Minuten noch einmal versuchen.": "Az MI jelenleg túlterhelt. Próbálja újra néhány perc múlva.",
+ "Die KI ist gerade überlastet. Bitte schick das Foto in ein paar Minuten noch einmal.": "Az MI jelenleg túlterhelt. Küldje el újra a fotót néhány perc múlva.",
  "Es wurde nichts gespeichert.": "Semmi nem lett mentve.",
  "Original: {0} → {4} € · Kurs: 1 EUR = {1} {2} (EZB, {3})": "Eredeti: {0} → {4} € · Árfolyam: 1 EUR = {1} {2} (EKB, {3})",
  "Auf dem Foto konnte ich weder Beleg noch Kilometerstand lesen. Schick den Kilometerstand als Text (z. B. „km 61240“) oder lege das Foto nur zur Dokumentation ab, oder lösche es.": "A fotón sem nyugtát, sem kilométeróra-állást nem tudtam kiolvasni. Küldje el a kilométerállást szövegként (pl. „km 61240”), tartsa meg a fotót csak dokumentációként, vagy törölje.",
  "Foto gelöscht.": "Fotó törölve.",
  "Foto zur Dokumentation abgelegt.": "Fotó dokumentációként mentve.",
  "kw.doc": "dokumentáció|dokumentacio|doc",
- "kw.del": "törlés|torles|töröl"
+ "kw.del": "törlés|torles|töröl",
+ "Unplausibler Wert": "Valószínűtlen érték",
+ "Angabe fehlt": "Hiányzó adat",
+ "Auf dem Foto steht der Kilometerstand {0} km, das passt aber nicht zur Reihenfolge der Einträge. Schick den Stand als Text (z. B. „km {0}“), wenn er stimmt, oder lege das Foto nur zur Dokumentation ab, oder lösche es.": "A fotón {0} km szerepel, de ez nem illik a bejegyzések sorrendjéhez. Küldje el az értéket szövegként (pl. „km {0}”), ha helyes, tartsa meg a fotót csak dokumentációként, vagy törölje.",
+ "Quittieren": "Nyugtázás"
 }

@@ -187,13 +187,17 @@
  "Beleg in {0}, Umrechnung nicht möglich, Werte nicht in Euro! Original: {1}": "Bon în {0}, conversie imposibilă, valorile nu sunt în euro! Original: {1}",
  "Ja": "Da",
  "Nein": "Nu",
- "Die KI ist gerade überlastet (Google). Bitte in ein paar Minuten noch einmal versuchen.": "IA-ul este momentan supraîncărcat (Google). Încearcă din nou peste câteva minute.",
- "Die KI ist gerade überlastet (Google). Bitte schick das Foto in ein paar Minuten noch einmal.": "IA-ul este momentan supraîncărcat (Google). Trimite fotografia din nou peste câteva minute.",
+ "Die KI ist gerade überlastet. Bitte in ein paar Minuten noch einmal versuchen.": "IA-ul este momentan supraîncărcat. Încearcă din nou peste câteva minute.",
+ "Die KI ist gerade überlastet. Bitte schick das Foto in ein paar Minuten noch einmal.": "IA-ul este momentan supraîncărcat. Trimite fotografia din nou peste câteva minute.",
  "Es wurde nichts gespeichert.": "Nu s-a salvat nimic.",
  "Original: {0} → {4} € · Kurs: 1 EUR = {1} {2} (EZB, {3})": "Original: {0} → {4} € · Curs: 1 EUR = {1} {2} (BCE, {3})",
  "Auf dem Foto konnte ich weder Beleg noch Kilometerstand lesen. Schick den Kilometerstand als Text (z. B. „km 61240“) oder lege das Foto nur zur Dokumentation ab, oder lösche es.": "Pe fotografie nu am citit nici bonul, nici kilometrajul. Trimite kilometrajul ca text (de ex. „km 61240”), păstrează fotografia doar ca documentație sau șterge-o.",
  "Foto gelöscht.": "Fotografie ștearsă.",
  "Foto zur Dokumentation abgelegt.": "Fotografie păstrată ca documentație.",
  "kw.doc": "documentație|documentatie|doc",
- "kw.del": "șterge|sterge"
+ "kw.del": "șterge|sterge",
+ "Unplausibler Wert": "Valoare puțin plauzibilă",
+ "Angabe fehlt": "Informație lipsă",
+ "Auf dem Foto steht der Kilometerstand {0} km, das passt aber nicht zur Reihenfolge der Einträge. Schick den Stand als Text (z. B. „km {0}“), wenn er stimmt, oder lege das Foto nur zur Dokumentation ab, oder lösche es.": "Fotografia arată {0} km, dar nu se potrivește cu ordinea înregistrărilor. Trimite valoarea ca text (de ex. „km {0}”) dacă este corectă, păstrează fotografia doar ca documentație sau șterge-o.",
+ "Quittieren": "Confirmă"
 }

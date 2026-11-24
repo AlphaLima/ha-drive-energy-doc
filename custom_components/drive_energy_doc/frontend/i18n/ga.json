@@ -187,13 +187,17 @@
  "Beleg in {0}, Umrechnung nicht möglich, Werte nicht in Euro! Original: {1}": "Admháil in {0}, ní féidir a thiontú, níl na luachanna in euro! Bunaidh: {1}",
  "Ja": "Tá",
  "Nein": "Níl",
- "Die KI ist gerade überlastet (Google). Bitte in ein paar Minuten noch einmal versuchen.": "Tá an AI ró-ualaithe faoi láthair (Google). Bain triail eile as i gceann cúpla nóiméad.",
- "Die KI ist gerade überlastet (Google). Bitte schick das Foto in ein paar Minuten noch einmal.": "Tá an AI ró-ualaithe faoi láthair (Google). Seol an grianghraf arís i gceann cúpla nóiméad.",
+ "Die KI ist gerade überlastet. Bitte in ein paar Minuten noch einmal versuchen.": "Tá an AI ró-ualaithe faoi láthair. Bain triail eile as i gceann cúpla nóiméad.",
+ "Die KI ist gerade überlastet. Bitte schick das Foto in ein paar Minuten noch einmal.": "Tá an AI ró-ualaithe faoi láthair. Seol an grianghraf arís i gceann cúpla nóiméad.",
  "Es wurde nichts gespeichert.": "Níor sábháladh aon rud.",
  "Original: {0} → {4} € · Kurs: 1 EUR = {1} {2} (EZB, {3})": "Bunaidh: {0} → {4} € · Ráta: 1 EUR = {1} {2} (BCE, {3})",
  "Auf dem Foto konnte ich weder Beleg noch Kilometerstand lesen. Schick den Kilometerstand als Text (z. B. „km 61240“) oder lege das Foto nur zur Dokumentation ab, oder lösche es.": "Níor léadh admháil ná míleáiste ar an ngrianghraf. Seol an míleáiste mar théacs (m.sh. “km 61240”), coinnigh an grianghraf mar dhoiciméadú amháin, nó scrios é.",
  "Foto gelöscht.": "Scriosadh an grianghraf.",
  "Foto zur Dokumentation abgelegt.": "Sábháladh an grianghraf mar dhoiciméadú.",
  "kw.doc": "doiciméadú|doicimeadu|doc",
- "kw.del": "scrios"
+ "kw.del": "scrios",
+ "Unplausibler Wert": "Luach dochreidte",
+ "Angabe fehlt": "Faisnéis ar iarraidh",
+ "Auf dem Foto steht der Kilometerstand {0} km, das passt aber nicht zur Reihenfolge der Einträge. Schick den Stand als Text (z. B. „km {0}“), wenn er stimmt, oder lege das Foto nur zur Dokumentation ab, oder lösche es.": "Taispeánann an grianghraf {0} km, ach ní oireann sé d'ord na dtaifead. Seol an luach mar théacs (m.sh. “km {0}”) má tá sé ceart, coinnigh an grianghraf mar dhoiciméadú amháin, nó scrios é.",
+ "Quittieren": "Admhaigh"
 }

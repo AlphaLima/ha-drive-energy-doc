@@ -187,13 +187,17 @@
  "Beleg in {0}, Umrechnung nicht möglich, Werte nicht in Euro! Original: {1}": "Ticket en {0}, conversion impossible, valeurs pas en euros ! Original : {1}",
  "Ja": "Oui",
  "Nein": "Non",
- "Die KI ist gerade überlastet (Google). Bitte in ein paar Minuten noch einmal versuchen.": "L'IA est actuellement surchargée (Google). Réessayez dans quelques minutes.",
- "Die KI ist gerade überlastet (Google). Bitte schick das Foto in ein paar Minuten noch einmal.": "L'IA est actuellement surchargée (Google). Renvoyez la photo dans quelques minutes.",
+ "Die KI ist gerade überlastet. Bitte in ein paar Minuten noch einmal versuchen.": "L'IA est actuellement surchargée. Réessayez dans quelques minutes.",
+ "Die KI ist gerade überlastet. Bitte schick das Foto in ein paar Minuten noch einmal.": "L'IA est actuellement surchargée. Renvoyez la photo dans quelques minutes.",
  "Es wurde nichts gespeichert.": "Rien n'a été enregistré.",
  "Original: {0} → {4} € · Kurs: 1 EUR = {1} {2} (EZB, {3})": "Original : {0} → {4} € · Taux : 1 EUR = {1} {2} (BCE, {3})",
  "Auf dem Foto konnte ich weder Beleg noch Kilometerstand lesen. Schick den Kilometerstand als Text (z. B. „km 61240“) oder lege das Foto nur zur Dokumentation ab, oder lösche es.": "Je n'ai lu ni ticket ni kilométrage sur la photo. Envoie le kilométrage en texte (p. ex. « km 61240 »), garde la photo uniquement pour la documentation ou supprime-la.",
  "Foto gelöscht.": "Photo supprimée.",
  "Foto zur Dokumentation abgelegt.": "Photo conservée pour la documentation.",
  "kw.doc": "documentation|doc",
- "kw.del": "supprimer|effacer|suppr"
+ "kw.del": "supprimer|effacer|suppr",
+ "Unplausibler Wert": "Valeur peu plausible",
+ "Angabe fehlt": "Information manquante",
+ "Auf dem Foto steht der Kilometerstand {0} km, das passt aber nicht zur Reihenfolge der Einträge. Schick den Stand als Text (z. B. „km {0}“), wenn er stimmt, oder lege das Foto nur zur Dokumentation ab, oder lösche es.": "La photo indique {0} km, mais cela ne correspond pas à l'ordre des entrées. Envoie la valeur en texte (p. ex. « km {0} ») si elle est correcte, ou garde la photo uniquement pour la documentation, ou supprime-la.",
+ "Quittieren": "Acquitter"
 }

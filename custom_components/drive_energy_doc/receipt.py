@@ -122,6 +122,63 @@ def plausible(values: dict[str, Any]) -> bool:
     return bool(q or t)  # Menge allein (oder Betrag allein) reicht, z. B. Kundenbeleg ohne Preis
 
 
+def rescale_decimals(values: dict[str, Any]) -> bool:
+    """Ein Säulen-Display wird oft ohne den winzigen Dezimalpunkt gelesen (z. B. 3842 l, 1759 €/l, 6758 €). Passt Menge x Preis nicht zum Betrag, aber nach dem Verschieben
+    des Kommas um 0 bis 3 Stellen je Wert eindeutig und mit möglichst wenig Verschiebung, werden die Werte korrigiert. Gibt True zurück, wenn korrigiert wurde."""
+    q, p, t = values.get("quantity"), values.get("unit_price"), values.get("total")
+    if not (q and p and t) or plausible(values):
+        return False
+    def fits(a, b, c):
+        qq, pp, tt = q / 10 ** a, p / 10 ** b, t / 10 ** c
+        return 1 <= qq <= 250 and 0.05 <= pp <= 60 and 1 <= tt <= 3000 and abs(qq * pp - tt) <= 0.05 + 0.0005 * qq
+
+    for a, b, c in ((2, 3, 2), (2, 2, 2), (1, 3, 2), (1, 2, 2), (2, 3, 1), (1, 2, 1), (1, 3, 1), (2, 2, 1)):   # übliche Anzeigeformate zuerst (Menge, Preis je Einheit, Betrag)
+        if fits(a, b, c):
+            values["quantity"], values["unit_price"], values["total"] = round(q / 10 ** a, 2), round(p / 10 ** b, 3), round(t / 10 ** c, 2)
+            return True
+    best, tie = None, False
+    for a in range(4):
+        for b in range(4):
+            for c in range(4):
+                qq, pp, tt = q / 10 ** a, p / 10 ** b, t / 10 ** c
+                if not (1 <= qq <= 250 and 0.05 <= pp <= 60 and 1 <= tt <= 3000):
+                    continue
+                if abs(qq * pp - tt) <= 0.05 + 0.0005 * qq:
+                    cost = a + b + c
+                    if best is None or cost < best[0]:
+                        best, tie = (cost, qq, pp, tt), False
+                    elif cost == best[0] and (qq, pp, tt) != best[1:]:
+                        tie = True
+    if best is None or tie:
+        return False
+    values["quantity"], values["unit_price"], values["total"] = round(best[1], 2), round(best[2], 3), round(best[3], 2)
+    return True
+
+
+def repair_value(values: dict[str, Any]) -> bool:
+    """Passen Menge, Preis und Betrag nicht zusammen, kann genau ein Wert falsch gelesen sein (z. B. 2,6 statt 21,60). Der falsche wird aus den beiden anderen berechnet, aber nur,
+    wenn genau eine der drei Möglichkeiten ein übliches Ergebnis liefert (Menge 3 bis 150, Betrag 3 bis 400, Preis je Einheit 0,05 bis 60). Sonst bleibt alles unverändert."""
+    q, p, t = values.get("quantity"), values.get("unit_price"), values.get("total")
+    if not (q and p and t) or plausible(values):
+        return False
+    ok_q = lambda x: 3 <= x <= 150   # noqa: E731
+    ok_t = lambda x: 3 <= x <= 400   # noqa: E731
+    cands = []
+    qa = round(t / p, 2)             # Menge falsch gelesen
+    if ok_q(qa) and ok_t(t) and abs(qa * p - t) <= 0.05 + 0.0005 * qa:
+        cands.append(("quantity", qa))
+    pb = round(t / q, 3)             # Preis falsch gelesen
+    if ok_q(q) and ok_t(t) and 0.05 <= pb <= 60:
+        cands.append(("unit_price", pb))
+    tc = round(q * p, 2)             # Betrag falsch gelesen
+    if ok_q(q) and ok_t(tc) and 0.05 <= p <= 60:
+        cands.append(("total", tc))
+    if len(cands) != 1:
+        return False
+    values[cands[0][0]] = cands[0][1]
+    return True
+
+
 _RATES: dict[tuple[str, str], tuple[float, str]] = {}
 
 
@@ -190,6 +247,8 @@ INSTRUCTIONS = (
     "the price per unit; the total amount paid (Summe, Betrag, Total, Montant); the date and time; and the name and address of the filling station or merchant (usually at the top of the receipt). "
     "On a receipt the odometer is returned ONLY if a line is explicitly labelled as such (Kilometerstand, km-Stand, Odometer, Mileage, Compteur); receipt numbers, pump numbers, card numbers, "
     "customer numbers and phone numbers are NOT the odometer, and most receipts have no odometer line, so leave it empty then. "
+    "A pump or charger display (seven-segment LCD) usually shows three lines: the amount to pay, the volume (litres) or energy (kWh) and the price per litre or kWh. Read all three; "
+    "ignore dim, unlit segments, and look closely for the small decimal point: amounts and volumes normally have two decimals, the price per litre three decimals (for example 67.58, 38.42 and 1.759). "
     "Numbers: dot as decimal separator, no thousands separators, no currency symbols. "
     "Only return values you can read with certainty, otherwise leave the field empty. Never guess and never calculate missing values. "
     "Always return the crop box that contains only the receipt or the display."
@@ -210,7 +269,7 @@ async def ai_read(hass, entity_id: str, image: bytes, media_dir: Path) -> dict[s
     await hass.async_add_executor_job(_write)
     resp = None
     try:
-        for attempt, wait in enumerate((5, 12, 25, None)):   # Google meldet bei Überlastung 503: ein paar Mal mit Pause wiederholen
+        for attempt, wait in enumerate((5, 12, 25, None)):   # Die KI-Anbieter melden Überlastung mit 503 (Gemini) bzw. 529 (Claude): ein paar Mal mit Pause wiederholen
             try:
                 resp = await asyncio.wait_for(
                     hass.services.async_call(
@@ -230,7 +289,7 @@ async def ai_read(hass, entity_id: str, image: bytes, media_dir: Path) -> dict[s
                 )
                 break
             except Exception as err:  # noqa: BLE001 - KI-Fehler dürfen nie den Ablauf stoppen
-                busy = isinstance(err, asyncio.TimeoutError) or any(s in repr(err) for s in ("503", "UNAVAILABLE", "429", "high demand", "overloaded", "RESOURCE_EXHAUSTED"))
+                busy = isinstance(err, asyncio.TimeoutError) or any(s in repr(err) for s in ("503", "UNAVAILABLE", "429", "high demand", "overloaded", "RESOURCE_EXHAUSTED", "entity_not_found", "529", "overloaded_error", "rate_limit"))   # entity_not_found: die KI ist kurz nach dem HA-Start noch nicht geladen
                 _LOGGER.warning("Beleg-KI fehlgeschlagen (Versuch %d): %r", attempt + 1, err)
                 if not busy:
                     return None
@@ -252,8 +311,15 @@ async def ai_read(hass, entity_id: str, image: bytes, media_dir: Path) -> dict[s
     box = [int(float(x)) for x in re.findall(r"\d+(?:\.\d+)?", str(data.get("crop") or ""))]
     if len(box) == 4 and box[2] > box[0] and box[3] > box[1] and all(0 <= b <= 1000 for b in box):
         out["crop"] = box
+    if rescale_decimals(out):
+        _LOGGER.info("Beleg-KI: Dezimalpunkt am Säulen-Display korrigiert (Menge %s, Preis %s, Betrag %s)", out["quantity"], out["unit_price"], out["total"])
+    elif repair_value(out):
+        _LOGGER.info("Beleg-KI: einen falsch gelesenen Wert aus den beiden anderen berechnet (Menge %s, Preis %s, Betrag %s)", out["quantity"], out["unit_price"], out["total"])
     if not (out["quantity"] or out["total"] or out["odometer"]):
+        _LOGGER.warning("Beleg-KI: keine Zahlen im Ergebnis gelesen (Kategorie %s)", out.get("category"))
         return None   # ein Tacho-Foto hat nur den Kilometerstand
+    if not plausible(out) and not out["odometer"]:
+        _LOGGER.warning("Beleg-KI: Werte passen nicht zusammen: Menge %s, Preis %s, Betrag %s", out["quantity"], out["unit_price"], out["total"])
     await convert_to_eur(hass, out)   # Fremdwährung: zum Tageskurs des Belegdatums in Euro
     return out
 

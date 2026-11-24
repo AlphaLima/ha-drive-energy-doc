@@ -187,13 +187,17 @@
  "Beleg in {0}, Umrechnung nicht möglich, Werte nicht in Euro! Original: {1}": "Talão em {0}, conversão impossível, valores não em euros! Original: {1}",
  "Ja": "Sim",
  "Nein": "Não",
- "Die KI ist gerade überlastet (Google). Bitte in ein paar Minuten noch einmal versuchen.": "A IA está sobrecarregada neste momento (Google). Tente novamente dentro de alguns minutos.",
- "Die KI ist gerade überlastet (Google). Bitte schick das Foto in ein paar Minuten noch einmal.": "A IA está sobrecarregada neste momento (Google). Envie a foto novamente dentro de alguns minutos.",
+ "Die KI ist gerade überlastet. Bitte in ein paar Minuten noch einmal versuchen.": "A IA está sobrecarregada neste momento. Tente novamente dentro de alguns minutos.",
+ "Die KI ist gerade überlastet. Bitte schick das Foto in ein paar Minuten noch einmal.": "A IA está sobrecarregada neste momento. Envie a foto novamente dentro de alguns minutos.",
  "Es wurde nichts gespeichert.": "Nada foi guardado.",
  "Original: {0} → {4} € · Kurs: 1 EUR = {1} {2} (EZB, {3})": "Original: {0} → {4} € · Câmbio: 1 EUR = {1} {2} (BCE, {3})",
  "Auf dem Foto konnte ich weder Beleg noch Kilometerstand lesen. Schick den Kilometerstand als Text (z. B. „km 61240“) oder lege das Foto nur zur Dokumentation ab, oder lösche es.": "Não consegui ler nem talão nem quilometragem na foto. Envie a quilometragem como texto (p. ex. «km 61240»), guarde a foto apenas como documentação ou elimine-a.",
  "Foto gelöscht.": "Foto eliminada.",
  "Foto zur Dokumentation abgelegt.": "Foto guardada como documentação.",
  "kw.doc": "documentação|documentacao|doc",
- "kw.del": "eliminar|apagar"
+ "kw.del": "eliminar|apagar",
+ "Unplausibler Wert": "Valor pouco plausível",
+ "Angabe fehlt": "Informação em falta",
+ "Auf dem Foto steht der Kilometerstand {0} km, das passt aber nicht zur Reihenfolge der Einträge. Schick den Stand als Text (z. B. „km {0}“), wenn er stimmt, oder lege das Foto nur zur Dokumentation ab, oder lösche es.": "A foto mostra {0} km, mas não encaixa na ordem das entradas. Envie o valor como texto (p. ex. «km {0}») se estiver certo, guarde a foto apenas como documentação ou elimine-a.",
+ "Quittieren": "Confirmar"
 }

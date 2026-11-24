@@ -187,13 +187,17 @@
  "Beleg in {0}, Umrechnung nicht möglich, Werte nicht in Euro! Original: {1}": "Απόδειξη σε {0}, η μετατροπή δεν είναι δυνατή, οι τιμές δεν είναι σε ευρώ! Πρωτότυπο: {1}",
  "Ja": "Ναι",
  "Nein": "Όχι",
- "Die KI ist gerade überlastet (Google). Bitte in ein paar Minuten noch einmal versuchen.": "Η τεχνητή νοημοσύνη είναι προσωρινά υπερφορτωμένη (Google). Δοκιμάστε ξανά σε λίγα λεπτά.",
- "Die KI ist gerade überlastet (Google). Bitte schick das Foto in ein paar Minuten noch einmal.": "Η τεχνητή νοημοσύνη είναι προσωρινά υπερφορτωμένη (Google). Στείλτε ξανά τη φωτογραφία σε λίγα λεπτά.",
+ "Die KI ist gerade überlastet. Bitte in ein paar Minuten noch einmal versuchen.": "Η τεχνητή νοημοσύνη είναι προσωρινά υπερφορτωμένη. Δοκιμάστε ξανά σε λίγα λεπτά.",
+ "Die KI ist gerade überlastet. Bitte schick das Foto in ein paar Minuten noch einmal.": "Η τεχνητή νοημοσύνη είναι προσωρινά υπερφορτωμένη. Στείλτε ξανά τη φωτογραφία σε λίγα λεπτά.",
  "Es wurde nichts gespeichert.": "Δεν αποθηκεύτηκε τίποτα.",
  "Original: {0} → {4} € · Kurs: 1 EUR = {1} {2} (EZB, {3})": "Πρωτότυπο: {0} → {4} € · Ισοτιμία: 1 EUR = {1} {2} (ΕΚΤ, {3})",
  "Auf dem Foto konnte ich weder Beleg noch Kilometerstand lesen. Schick den Kilometerstand als Text (z. B. „km 61240“) oder lege das Foto nur zur Dokumentation ab, oder lösche es.": "Δεν διάβασα ούτε απόδειξη ούτε χιλιόμετρα στη φωτογραφία. Στείλτε τα χιλιόμετρα ως κείμενο (π.χ. «km 61240»), κρατήστε τη φωτογραφία μόνο ως τεκμηρίωση ή διαγράψτε την.",
  "Foto gelöscht.": "Η φωτογραφία διαγράφηκε.",
  "Foto zur Dokumentation abgelegt.": "Η φωτογραφία αποθηκεύτηκε ως τεκμηρίωση.",
  "kw.doc": "τεκμηρίωση|doc",
- "kw.del": "διαγραφή|διαγραφη"
+ "kw.del": "διαγραφή|διαγραφη",
+ "Unplausibler Wert": "Μη εύλογη τιμή",
+ "Angabe fehlt": "Λείπει η τιμή",
+ "Auf dem Foto steht der Kilometerstand {0} km, das passt aber nicht zur Reihenfolge der Einträge. Schick den Stand als Text (z. B. „km {0}“), wenn er stimmt, oder lege das Foto nur zur Dokumentation ab, oder lösche es.": "Η φωτογραφία δείχνει {0} km, αλλά δεν ταιριάζει με τη σειρά των εγγραφών. Στείλτε την τιμή ως κείμενο (π.χ. «km {0}») αν είναι σωστή, κρατήστε τη φωτογραφία μόνο ως τεκμηρίωση ή διαγράψτε την.",
+ "Quittieren": "Επιβεβαίωση"
 }

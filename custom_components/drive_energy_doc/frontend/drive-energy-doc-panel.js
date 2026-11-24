@@ -2,13 +2,70 @@
 const DEFW = { nr: 46 };   // Standardbreite einzelner Spalten in px (sonst 120 bei fester Breite)
 const COLS = ["nr", "date", "km", "station", "qty", "price", "total", "cons", "receipt", "note", "act"];
 
-const VERSION = "0.1.81b39";
+const VERSION = "0.1.81b55";
 
 class DriveEnergyDocPanel extends HTMLElement {
   set hass(h) {
     const first = !this._hass;
     this._hass = h;
     if (first) this._loadLang().then(() => this._load());
+    this._subscribe();
+  }
+
+  _subscribe() {
+    // Live-Ereignisse vom Server: ein Foto aus Telegram/WhatsApp wird verarbeitet (Hinweis), die Antwort kommt (Meldung), die Liste wird neu geladen
+    if (this._sub || this._subBusy || !this._hass || !this._hass.connection || !this.isConnected) return;
+    this._subBusy = true;
+    this._hass.connection.subscribeMessage(ev => this._onEvent(ev), { type: "drive_energy_doc/subscribe" }).then(u => { this._sub = u; this._subBusy = false; }, () => { this._subBusy = false; });
+  }
+
+  _onEvent(ev) {
+    if (!ev) return;
+    if (ev.event === "processing") {
+      if (ev.state === "start") this._liveBanner(true);
+      else {
+        this._liveBanner(false);
+        if (ev.entry) this._jumpId = ev.entry;   // zur neuen Zeile springen und sie markieren
+        this._load();
+      }
+    } else if (ev.event === "reply") {
+      this._liveToast(ev.text || "");
+    } else if (ev.event === "changed") {
+      clearTimeout(this._chgT);
+      this._chgT = setTimeout(() => this._load(), 600);   // mehrere Änderungen auf einmal: nur einmal neu laden
+    }
+  }
+
+  _liveWrap() {
+    // eigener Container für Hinweis und Meldung: ein Neuzeichnen der Liste (innerHTML) darf sie nicht löschen
+    if (!this._liveEl) { this._liveEl = document.createElement("div"); this._liveEl.className = "livewrap"; }
+    if (this.shadowRoot && this._liveEl.parentNode !== this.shadowRoot) this.shadowRoot.appendChild(this._liveEl);
+    return this._liveEl;
+  }
+
+  _liveBanner(on) {
+    const old = this._liveEl && this._liveEl.querySelector(".livebn");
+    clearTimeout(this._bnT);
+    if (!on) { if (old) old.remove(); return; }
+    if (old || !this.shadowRoot) return;
+    const b = document.createElement("div");
+    b.className = "livebn";
+    b.innerHTML = `<div class="spin"></div><div>${this.T("Foto wird gelesen …")}</div>`;
+    this._liveWrap().appendChild(b);
+    this._bnT = setTimeout(() => b.remove(), 240000);   // Sicherung, falls das Ende nie kommt
+  }
+
+  _liveToast(text) {
+    if (!this.shadowRoot || !text) return;
+    this._liveWrap().querySelectorAll(".livetoast").forEach(x => x.remove());
+    const lines = String(text).split(/\n/).map(s => s.trim()).filter(Boolean);
+    const t = document.createElement("div");
+    t.className = "livetoast";
+    t.innerHTML = `<button class="x" aria-label="OK">×</button>${lines.map((s, i) => `<div${i ? "" : ' class="h"'}>${this._esc(s)}</div>`).join("")}`;
+    t.querySelector(".x").onclick = () => t.remove();
+    this._liveWrap().appendChild(t);
+    clearTimeout(this._toT);
+    this._toT = setTimeout(() => t.remove(), 20000);
   }
   set narrow(v) { this._narrow = v; }
   connectedCallback() {
@@ -89,8 +146,12 @@ class DriveEnergyDocPanel extends HTMLElement {
     try { if (localStorage.getItem("deOri") === "landscape") this._ori = "landscape"; } catch (e) { /* ignore */ }
     this._render();
     this._timer = setInterval(() => this._load(), 60000);
+    this._subscribe();   // beim Wiederöffnen der Seite
   }
-  disconnectedCallback() { clearInterval(this._timer); }
+  disconnectedCallback() {
+    clearInterval(this._timer);
+    if (this._sub) { try { this._sub(); } catch (e) { /* ignore */ } this._sub = null; }
+  }
 
   async _loadLang() {
     // Oberflächensprache = Sprache des HA-Benutzers; Wörterbuch i18n/<sprache>.json (Schlüssel = deutscher Text), Deutsch braucht keines
@@ -122,6 +183,9 @@ class DriveEnergyDocPanel extends HTMLElement {
       if (!this._dlg && !this.shadowRoot.querySelector(".busy, .dlg")) {   // nicht neu zeichnen, solange der Fortschritts- oder ein anderer Dialog offen ist
         this._render();
         if (this._jumpId) { const id = this._jumpId; this._jumpId = null; setTimeout(() => { const r = [...this.shadowRoot.querySelectorAll("tr[data-id]")].find(x => x.dataset.id === id); if (r) { this._selId = id; r.classList.add("rsel"); r.scrollIntoView({ block: "center", behavior: "smooth" }); } }, 50); }   // zur Zeile des gerade erfassten Belegs springen
+      } else {   // ein Dialog ist offen: die neuen Daten liegen schon vor, gezeichnet wird nach dem Schließen (nicht verlieren)
+        clearTimeout(this._retryT);
+        this._retryT = setTimeout(() => this._load(), 2000);
       }
     } catch (e) { this._err = String(e.message || e); this._render(); }
   }
@@ -286,6 +350,48 @@ class DriveEnergyDocPanel extends HTMLElement {
     const src = `/api/drive_energy_doc/plate.svg?cc=${encodeURIComponent(v.plate_country || "DE")}&t=${encodeURIComponent(v.plate)}`;
     return `<img class="plateimg${small ? " tabplate" : ""}" src="${src}" alt="${this._esc(v.plate)}" title="${this._esc(v.plate)}">`;
   }
+  _warnText(w, col) {
+    if (w.k === "missing") return this.T("Angabe fehlt");
+    const f = (x, d = 2) => this._fmt(x, d);
+    let d = "";
+    if (w.k === "calc") d = `${f(w.q)} × ${f(w.p, 3)} = ${f(w.calc)} ≠ ${f(w.t)} €`;
+    else if (w.k === "combined") d = `${f(w.v, 1)} kWh/100 km (> ${f(w.hi, 0)})`;
+    else if (w.k === "dup") d = `= ${this.T("Nr.")} ${(this._nums && this._nums[w.other]) || "?"}`;
+    else if (w.k === "range") d = `${f(w.v, col === "price" ? 3 : 2)} (${f(w.lo)} – ${f(w.hi)})`;
+    else if (w.k === "cap") d = `${f(w.v)} > ${f(w.cap, 0)}`;
+    else if (w.k === "back") d = `< ${f(w.prev, 0)} km`;
+    else if (w.k === "jump") d = `+${f(w.d, 0)} km`;
+    return this.T("Unplausibler Wert") + ": " + d;
+  }
+
+  _warn(e, col, v) {
+    // Warndreieck mit Erklärung (Zahlen, sprachneutral) bei einem unplausiblen Wert, Fragezeichen bei einer fehlenden Angabe; die Prüfung macht der Server (stats.plausibility).
+    // Ein Klick öffnet die Erklärung mit „Quittieren“.
+    const w = e.warn && e.warn[col];
+    if (!w) return "";
+    const txt = this._esc(this._warnText(w, col)), at = `data-wid="${e.id}" data-wcol="${col}" role="button" tabindex="0"`;
+    if (w.k === "missing") return ` <span class="wq" ${at} title="${txt}" aria-label="${txt}">${this._ico("help")}</span>`;
+    return ` <span class="wtri" ${at} title="${txt}" aria-label="${txt}">${this._ico("warn")}</span>`;
+  }
+
+  _ackDlg(v, id, col) {
+    const e = v.entries.find(x => x.id === id), w = e && e.warn && e.warn[col];
+    if (!w) return;
+    const dlg = document.createElement("div");
+    dlg.className = "dlg";
+    dlg.style.zIndex = 110;
+    dlg.innerHTML = `<div class="card"><div class="dh">${this._ico(w.k === "missing" ? "help" : "warn")} ${this._esc(this._warnText(w, col))}</div><div class="df"><button data-d="x">${this.T("Abbrechen")}</button><button data-d="ok" class="pri">${this.T("Quittieren")}</button></div></div>`;
+    this.shadowRoot.appendChild(dlg);
+    dlg.onclick = async ev => {
+      ev.stopPropagation();
+      const b = ev.target.closest("[data-d]");
+      if (!b && ev.target !== dlg) return;
+      if (b && b.dataset.d === "ok") { try { await this._hass.callWS({ type: "drive_energy_doc/ack", vehicle: v.id, entry: id, column: col }); } catch (err) { alert(this.T("Fehler") + ": " + (err.message || err)); } this._load(); }
+      dlg.remove();
+    };
+    dlg.querySelector("[data-d=ok]").focus();
+  }
+
   _ico(n) {
     // Einfarbige Linien-Symbole (currentColor): schwarz im hellen, weiß im dunklen Design
     const P = {
@@ -302,6 +408,8 @@ class DriveEnergyDocPanel extends HTMLElement {
       trash: '<path d="M5 7h14M9 7V4h6v3M7 7l1 13h8l1-13M10 11v6M14 11v6"/>',
       cols: '<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M9 4v16M15 4v16"/>',
       note: '<path d="M5 4h14v12h-9l-5 4zM8.5 8.5h7M8.5 12h5"/>',
+      warn: '<path d="M12 3.5 2.5 20h19z"/><path d="M12 10v5M12 17.6v.4"/>',
+      help: '<circle cx="12" cy="12" r="9"/><path d="M9.5 9.6a2.6 2.6 0 1 1 3.7 2.3c-.8.4-1.2 1-1.2 2M12 17v.4"/>',
       close: '<path d="M6 6l12 12M18 6L6 18"/>',
       warn: '<path d="M12 4l9 16H3zM12 10v5M12 17.2v.3"/>',
     };
@@ -310,6 +418,11 @@ class DriveEnergyDocPanel extends HTMLElement {
   _esc(s) { return String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c])); }
 
   _render() {
+    this._render0();
+    if (this._liveEl && this._liveEl.childElementCount) this._liveWrap();   // Hinweis/Meldung nach dem Neuzeichnen wieder einhängen
+  }
+
+  _render0() {
     if (!this.shadowRoot) return;
     const d = this._data || [];
     const v = d[this._tab] || d[0];
@@ -417,6 +530,13 @@ class DriveEnergyDocPanel extends HTMLElement {
       tbody tr.ex,tbody tr.ex:hover{background:color-mix(in srgb,var(--warning-color,#ff9800) 20%,var(--card-background-color))}
       tbody tr.rsel,tbody tr.rsel:hover{background:color-mix(in srgb,var(--primary-color) 30%,var(--card-background-color));outline:2px solid var(--primary-color);outline-offset:-2px}
       tbody tr.rsel td:first-child{box-shadow:inset 5px 0 0 var(--primary-color)}
+      .livebn{position:fixed;top:14px;left:50%;transform:translateX(-50%);z-index:130;display:flex;align-items:center;gap:12px;padding:12px 18px;border-radius:12px;background:var(--card-background-color,#fff);color:var(--primary-text-color);box-shadow:0 4px 18px rgba(0,0,0,.35);font-size:16px}
+      .livetoast{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);z-index:130;width:min(560px,92vw);padding:14px 38px 14px 16px;border-radius:12px;background:var(--card-background-color,#fff);color:var(--primary-text-color);box-shadow:0 4px 18px rgba(0,0,0,.4);border-left:6px solid var(--primary-color);font-size:15px;line-height:1.4;box-sizing:border-box}
+      .livebn .spin{width:26px;height:26px;border-width:4px}
+      .livetoast .h{font-weight:600;margin-bottom:4px}.livetoast .x{position:absolute;top:6px;right:8px;border:0;background:none;color:inherit;font-size:24px;cursor:pointer;line-height:1}
+      .wq{display:inline-flex;vertical-align:middle;color:var(--secondary-text-color);cursor:help}.wq .ico{width:16px;height:16px;stroke-width:2}
+      td.est{color:var(--secondary-text-color);font-style:italic}
+      .wtri{display:inline-flex;vertical-align:middle;color:var(--warning-color,#e67e22);cursor:help}.wtri .ico{width:16px;height:16px;stroke-width:2.2}
       .bar{display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap}
       .bar button[data-act=add]{background:var(--primary-color);color:var(--text-primary-color,#fff);border-color:var(--primary-color);padding:8px 14px}.bar button[data-act=add] .ico{width:30px;height:30px;stroke-width:2.6}
       td.nr{color:var(--secondary-text-color);font-size:12px}
@@ -462,7 +582,8 @@ class DriveEnergyDocPanel extends HTMLElement {
     const order = this._order().filter(c => c === "act" || !this._hide.includes(c));   // ausgeblendete Spalten weglassen
     const sumW = order.reduce((t, c) => t + (cw[c] || DEFW[c] || 120), 0);
     const nums = {};
-    [...v.entries].filter(x => x.kind !== "extra").sort((a, b) => a.ts - b.ts).forEach((x, i) => { nums[x.id] = i + 1; });   // laufende Nummer der Tankvorgänge, ältester = 1
+    [...v.entries].filter(x => x.kind !== "extra").sort((a, b) => a.ts - b.ts).forEach((x, i) => { nums[x.id] = i + 1; });
+    this._nums = nums;   // für die Hinweise der Warndreiecke (z. B. „doppelt zu Nr. 4“)   // laufende Nummer der Tankvorgänge, ältester = 1
     const sk = this._sort && COLS.includes(this._sort.c) ? this._sort : { c: "nr", dir: -1 };   // Standard: nach Nummer absteigend (neueste oben)
     const nrKey = {};   // Zubehör hat keine Nummer: es steht direkt hinter dem davor liegenden Tankvorgang, damit die Reihenfolge zeitlich stimmt
     { let last = 0; [...v.entries].sort((a, b) => a.ts - b.ts).forEach(x => { if (nums[x.id]) last = nums[x.id]; nrKey[x.id] = nums[x.id] || last + 0.5; }); }
@@ -479,12 +600,12 @@ class DriveEnergyDocPanel extends HTMLElement {
       const cell = {
         nr: `<td class="n nr">${nums[e.id] || ""}</td>`,
         date: `<td data-nr="${nums[e.id] ? "#" + nums[e.id] : ""}"><span>${this._d(e.ts)}</span><span class="tm">${this._tm(e.ts)}</span></td>`,
-        km: `<td class="n">${e.odometer != null ? this._fmt(e.odometer, 0) : "–"}</td>`,
+        km: `<td class="n${e.odometer_source === "bekannt" ? " est" : ""}"${e.odometer_source === "bekannt" ? ` title="${this._esc(this.T("Kilometerstand"))} (≈)"` : ""}>${e.odometer != null ? this._fmt(e.odometer, 0) : "–"}${this._warn(e, "km", v)}</td>`,
         station: `<td><div>${this._esc(e.station || "")}</div><div class="src">${this._esc(e.address || "")}</div><div class="src gps">${this._gps(e)}</div></td>`,
         qty: `<td class="n">${e.quantity != null ? this._fmt(e.quantity) + " " + (e.kind === "extra" ? (e.unit || "") : (v.phev && e.energy === "electric" ? "kWh" : u)) : "–"}<div class="src">${e.level_from != null && e.level_to != null ? Math.round(e.level_from) + "→" + Math.round(e.level_to) + " %" : (e.increase != null ? "+" + Math.round(e.increase) + " %" : "")} ${this._esc(this.T(e.quantity_source || ""))}</div></td>`,
-        price: `<td class="n">${this._fmt(e.unit_price, 3)}<div class="src">${this._esc(this.T(e.price_source || ""))}</div></td>`,
-        total: `<td class="n">${this._fmt(e.total)} €</td>`,
-        cons: `<td class="n">${e.consumption != null ? this._fmt(e.consumption) + (v.phev ? `<div class="src">${e.energy === "electric" ? "kWh" : u}/100 ${this.T("km")}</div>` : "") : "–"}</td>`,
+        price: `<td class="n">${this._fmt(e.unit_price, 3)}${this._warn(e, "price", v)}<div class="src">${this._esc(this.T(e.price_source || ""))}</div></td>`,
+        total: `<td class="n">${this._fmt(e.total)} €${this._warn(e, "total", v)}</td>`,
+        cons: `<td class="n">${e.consumption != null ? this._fmt(e.consumption) + (v.phev ? `<div class="src">${e.energy === "electric" ? "kWh" : u}/100 ${this.T("km")}</div>` : "") : "–"}${this._warn(e, "cons", v)}</td>`,
         receipt: (() => { const ph = e.photo_urls || [], im = (p, k) => `<img class="${k}" src="${p}" data-p="${p}" data-entry="${e.id}" data-name="${this._esc((e.photos || [])[ph.indexOf(p)] || "")}"${ph.length > 1 && k === "thumb" ? ` data-multi="${e.id}"` : ""} alt="${ph.indexOf(p) === 0 && e.receipt ? this.T("Beleg") : this.T("Zusatzfoto")}">`; return `<td>${ph.length ? im(ph[0], "thumb") : ""}${e.receipt ? "" : `<span class="no" title="${this.T("Beleg fehlt")}">${this._ico("warn")}</span>`}</td>`; })(),
         note: (() => { const full = [e.kind === "extra" ? (e.item || this.T("Zubehör")) : "", e.note || ""].filter(Boolean).join("\n"); return `<td>${full ? `<span class="notec" data-note="${this._esc(full)}">` : ""}${e.kind === "extra" ? `<span class="tag">${this._esc(e.item || this.T("Zubehör"))}</span> ` : ""}${e.note ? `<span class="notei" tabindex="0" role="button" aria-label="${this.T("Notiz anzeigen")}">${this._ico("note")}</span>` : ""}${full ? "</span>" : ""}</td>`; })(),
         act: `<td><button data-act="edit" title="${this.T("Bearbeiten")}" aria-label="${this.T("Bearbeiten")}">${this._ico("edit")}</button> <button data-act="del" title="${this.T("Eintrag löschen")}" aria-label="${this.T("Eintrag löschen")}">${this._ico("trash")}</button></td>`,
@@ -527,6 +648,8 @@ class DriveEnergyDocPanel extends HTMLElement {
   async _click(ev, v) {
     const rowEl = ev.target.closest ? ev.target.closest("tr[data-id]") : null;
     if (rowEl && rowEl.closest("tbody")) this._select(rowEl.dataset.id);   // Klick setzt den Zeilen-Cursor
+    const wb = ev.target.closest ? ev.target.closest("[data-wcol]") : null;
+    if (wb) { this._ackDlg(v, wb.dataset.wid, wb.dataset.wcol); return; }   // Warnung antippen: Erklärung und Quittieren
     const hth = ev.target.closest ? ev.target.closest("th[data-c]") : null;
     if (hth && hth.dataset.c !== "act" && !ev.target.closest(".rs")) {
       const c = hth.dataset.c, cur = this._sort || { c: "date", dir: -1 };   // ohne Wahl gilt: Datum absteigend, neueste oben
@@ -795,7 +918,7 @@ class DriveEnergyDocPanel extends HTMLElement {
               await this._upload(v, null, "löschen", "", ctl.signal);
               pre = (await this._upload(v, file, "", "keep", ctl.signal)).scan;
             } catch (err) { /* dann eben die normale Rückfrage */ }
-            if (pre && pre.photo) { busy.remove(); this._load(); return this._form(v, null, pre); }
+            if (pre && pre.photo) { pre.hint = (j.replies || []).join(" "); busy.remove(); this._load(); return this._form(v, null, pre); }
           }
           const ans = await this._result(v, j.replies || [], shot, true, j.answers || []);
           busy.style.display = "";
@@ -936,7 +1059,7 @@ class DriveEnergyDocPanel extends HTMLElement {
       busy.remove();
       btn.disabled = false;
       if (!r) { ph(""); return; }
-      if (r.busy) { ph(""); alert(this.T("Die KI ist gerade überlastet (Google). Bitte in ein paar Minuten noch einmal versuchen.")); return; }
+      if (r.busy) { ph(""); alert(this.T("Die KI ist gerade überlastet. Bitte in ein paar Minuten noch einmal versuchen.")); return; }
       if (!r.found) {
         ph("");
         const keep = await ask(this.T("Auf dem Foto konnte ich keine Daten lesen. Soll es trotzdem zur Dokumentation behalten werden?"), this.T("Behalten"), this.T("Verwerfen"));
@@ -999,7 +1122,7 @@ class DriveEnergyDocPanel extends HTMLElement {
       photos.push(pre.photo);
       if (!$("f_item").value.trim()) $("f_item").value = this.T("Dokumentation");
       if (pre.ts) { const d = new Date(pre.ts * 1000); if (!isNaN(d)) $("f_when").value = local(d); }
-      ph(this.T("Auf dem Foto konnte ich keine Daten lesen. Soll es trotzdem zur Dokumentation behalten werden?").split(".")[0] + ". " + this.T("{0} Foto(s) angehängt", photos.length));
+      ph(pre.hint || (this.T("Auf dem Foto konnte ich keine Daten lesen. Soll es trotzdem zur Dokumentation behalten werden?").split(".")[0] + ". " + this.T("{0} Foto(s) angehängt", photos.length)));
     }
     if (!coarse) (e ? $("f_q") : $("f_kind")).focus();   // am Handy nicht: sonst springt gleich die Tastatur auf
   }

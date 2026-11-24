@@ -189,13 +189,17 @@
  "Beleg in {0}, Umrechnung nicht möglich, Werte nicht in Euro! Original: {1}": "Чек в {0}, пересчёт невозможен, значения не в евро! Оригинал: {1}",
  "Ja": "Да",
  "Nein": "Нет",
- "Die KI ist gerade überlastet (Google). Bitte in ein paar Minuten noch einmal versuchen.": "ИИ сейчас перегружен (Google). Повторите попытку через несколько минут.",
- "Die KI ist gerade überlastet (Google). Bitte schick das Foto in ein paar Minuten noch einmal.": "ИИ сейчас перегружен (Google). Отправьте фото ещё раз через несколько минут.",
+ "Die KI ist gerade überlastet. Bitte in ein paar Minuten noch einmal versuchen.": "ИИ сейчас перегружен. Повторите попытку через несколько минут.",
+ "Die KI ist gerade überlastet. Bitte schick das Foto in ein paar Minuten noch einmal.": "ИИ сейчас перегружен. Отправьте фото ещё раз через несколько минут.",
  "Es wurde nichts gespeichert.": "Ничего не сохранено.",
  "Original: {0} → {4} € · Kurs: 1 EUR = {1} {2} (EZB, {3})": "Оригинал: {0} → {4} € · Курс: 1 EUR = {1} {2} (ЕЦБ, {3})",
  "Auf dem Foto konnte ich weder Beleg noch Kilometerstand lesen. Schick den Kilometerstand als Text (z. B. „km 61240“) oder lege das Foto nur zur Dokumentation ab, oder lösche es.": "На фото я не прочитал ни чек, ни пробег. Отправьте пробег текстом (например «km 61240»), сохраните фото только как документацию или удалите его.",
  "Foto gelöscht.": "Фото удалено.",
  "Foto zur Dokumentation abgelegt.": "Фото сохранено как документация.",
  "kw.doc": "документация|doc",
- "kw.del": "удалить|удали"
+ "kw.del": "удалить|удали",
+ "Unplausibler Wert": "Неправдоподобное значение",
+ "Angabe fehlt": "Данные отсутствуют",
+ "Auf dem Foto steht der Kilometerstand {0} km, das passt aber nicht zur Reihenfolge der Einträge. Schick den Stand als Text (z. B. „km {0}“), wenn er stimmt, oder lege das Foto nur zur Dokumentation ab, oder lösche es.": "На фото {0} км, но это не подходит к порядку записей. Отправьте значение текстом (например «km {0}»), если оно верно, сохраните фото только как документацию или удалите его.",
+ "Quittieren": "Подтвердить"
 }
