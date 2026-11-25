@@ -32,7 +32,7 @@ Everything ends up in one list in the sidebar (with CSV and PDF printing).
 6. [Which position and which price is used](#which-position-and-which-price-is-used) · [Countries with price portals: supported and not supported](#countries-with-price-portals-supported-and-not-supported)
 7. [Receipt, accessories and odometer by message](#receipt-accessories-and-odometer-by-message) · [Receipt for refuelling](#receipt-for-refuelling) · [Accessories (AdBlue, oil, wipers …)](#accessories-adblue-oil-wipers-) · [Odometer reading](#odometer-reading)
 8. [How consumption is calculated](#how-consumption-is-calculated)
-9. [Electric vehicles](#electric-vehicles)
+9. [Electric vehicles](#electric-vehicles) · [Home charging with a home wallbox](#home-charging-with-a-home-wallbox-optional-experimental)
 10. [The panel](#the-panel) · [Example printout](#example-printout)
 11. [Sensors, event and services](#sensors-event-and-services)
 12. [Installation and setup](#installation-and-setup)
@@ -227,7 +227,7 @@ Electric cars work just like combustion cars; the differences at a glance:
 
 **Setup:** Choose the energy type **Electric** at the vehicle and enter the **usable battery capacity in kWh** as the capacity (e.g. 58). The level sensor is the **state of charge (SoC) in %**; odometer and GPS are optional as for combustion cars. Without sensors the [photo mode](#photo-mode-without-a-car-connection-fleet-management) works here too (e.g. a photo of the charger or of the app invoice).
 
-**Detection:** If the state of charge rises by at least **5 %**, a charging session is detected. It ends when the state of charge has **not risen further for 10 minutes** (default, adjustable under *Configure → Refuel detection (fine tuning)*). The **distance condition does not apply** (the car stays put while charging) but can be switched on. Many small charges per day are recorded as separate sessions as soon as they reach 5 %.
+**Detection:** If the state of charge rises by at least **5 %**, a charging session is detected. It ends when the state of charge has **not risen further for 10 minutes** (default, adjustable under *Configure → Refuel detection (fine tuning)*). The **distance condition does not apply** (the car stays put while charging) but can be switched on. With a known position, odometer or plug sensor a charge is not ended by this time at all, see [Home charging](#home-charging-with-a-home-wallbox-optional-experimental). Many small charges per day are recorded as separate sessions as soon as they reach 5 %.
 
 **Quantity:** kWh = increase in % × battery capacity. This is the energy **in the battery**; at the socket or wallbox somewhat more is usually consumed because of charging losses. If you want it exact, send the value from the receipt or the charger (e.g. `38,2 0,39 14,90`); the receipt always wins.
 
@@ -235,7 +235,13 @@ Electric cars work just like combustion cars; the differences at a glance:
 
 **Consumption:** Calculated full-to-full like for combustion cars, result in **kWh/100 km**. A charging session counts as "full" from **30 %** increase; smaller charges are added up until the next larger one. This needs mileages (sensor, odometer photo or `km 54210`).
 
-**Known limits:** The wallbox meter is not read (yet); the quantity is battery-side. If the car reports the state of charge only every few minutes, a session starts and ends with the same delay. If the state of charge shows whole percent only, very small charges are imprecise.
+**Known limits:** Without a home wallbox (see [Home charging](#home-charging-with-a-home-wallbox-optional-experimental)) the quantity is battery-side. If the car reports the state of charge only every few minutes, a session starts and ends with the same delay. If the state of charge shows whole percent only, very small charges are imprecise.
+
+### Estimate, receipt and charging losses; AC and DC
+
+The estimate (increase in % × capacity) stays on the entry even when a receipt replaces the quantity. From both values the integration learns a **correction factor** (receipt ÷ estimate; it contains charging losses and any error in the capacity you entered) per vehicle and energy type. From **three entries with receipt** on, charges **without** a receipt are corrected with the median factor and marked *calculated (corrected)*; the factor is shown in the bar above the list. The edit dialog shows the estimate and the deviation.
+
+**AC or DC** is only a guess and is saved with its source: a *charge type sensor* of the car's integration (optional) takes priority, then the AC/DC reading on the receipt or charger display, then the *peak power* of an optional *charging power* sensor against the car's maximum AC power (default 11 kW, adjustable), and last the *average power* of the session. The average power can only prove DC (e.g. 80 kW); slow DC looks like AC, so a session can also stay *unknown*. Factors are learned per type once there are three entries of that type, otherwise together. The type can be changed by hand in the edit dialog. The three optional fields are in the *Sensors* group of the vehicle.
 
 ### Plug-in hybrids
 
@@ -246,6 +252,43 @@ Tick **Plug-in hybrid** in the vehicle settings (next to the fuel type, e.g. pet
 - **Automatic detection of both:** besides the fuel level sensor you can enter the **battery charge level (%)** and the **battery capacity (kWh)**. Refuelling and charging are then detected independently (two sensors, two detections); charging uses the electricity price from the global settings. **Regenerative braking is ignored:** while driving, the battery level rises without charging. If the vehicle moves more than 200 m from where the rise began (GPS) or more than 1 km (odometer), the rise is not counted as charging; a candidate is discarded, and after a real charge the rises while driving away are ignored. Without a battery sensor, charging is captured by receipt, photo, message or by hand.
 - Mixed driving makes the two single values less exact than for a pure combustion or electric car: the fuel consumption of a plug-in hybrid depends on how much was driven electrically. The values are meant as a trend, the cost total is exact.
 - **Plausibility check for hybrids:** because petrol and electricity are used alternately (petrol is often the exception), the list does **not** flag a single low or high consumption per energy type, and the mileage check on photos is skipped. Instead the **combined** consumption of both (litres converted to kWh) is checked from 300 km on, and only a value that is **too high** (above about 60 kWh/100 km) gets a warning triangle; a low value is normal because not every charge (for example at home) is recorded.
+
+### Home charging with a home wallbox (optional, experimental)
+
+For cars that charge at home, a wallbox can be added. What you really pay is the energy that went through the wallbox meter, not the estimate from the state of charge. The feature is **optional and experimental** and is kept apart from the car's own sensors in a sub-menu at the very bottom of the vehicle options: *Configure → Home wallbox (optional, experimental)*. It is only offered for electric cars and plug-in hybrids (with a battery sensor).
+
+**Fields (all optional)**
+
+| Field | Meaning |
+|---|---|
+| Wallbox meter (kWh) | Total counter of the wallbox, only grows while charging (Wh counters are converted). Without it, nothing below applies. |
+| Wallbox power | Current charging power. Gives a more exact start (the last idle reading before the charge) and the kW in the live row. |
+| Price per kWh of the charge | An entity (sensor, input number), e.g. a mixed price of grid and solar power. Empty = the electricity price from the global settings. |
+| Solar share of the charge in % | A sensor with the current solar share. |
+| Plug: car connected | A binary sensor or text sensor (`on`/`off`, `connected`/`disconnected`, `charging`, `available` …). With it, a charge ends when the car is unplugged. |
+
+**Quantity and losses.** When a charge is finished, DED takes the difference of the wallbox meter between start and end of the charge. This value replaces the estimate (source *wallbox*) and includes the charging losses. Because estimate and wallbox value are both known, the losses flow into the learned correction factor like a receipt does (see above), also for charges away from home.
+The wallbox value is only taken when it is plausible: it must be 0.85 to 1.7 times the estimate. Otherwise the car charged elsewhere or two charges ran over the same meter, and the estimate stays. If two vehicles use the same wallbox entity and their charging times overlap, nothing is guessed either. The entry then carries a short note why (*shared*, *no history*, *does not match*).
+
+**Price and solar share.** During the charge the price sensor and the solar sensor are read about every 15 seconds and averaged (time-weighted; *unknown* is skipped). The entry gets this mean price (source *Wallbox*) and, if a solar sensor is set, the solar share as "☀ 62 %" in the list. Without a price sensor the global electricity price is used.
+
+*Example, mixed price and solar share as template sensors in Home Assistant:* with the wallbox power `W` and the grid import `grid` (both in W), `netz = min(W, max(grid, 0))` is covered by the grid and `solar = W − netz` by PV and battery. Solar share in % = `solar / W · 100`; mixed price = `(netz · purchase price + solar · feed-in tariff) / W` (the solar part is priced at the feed-in tariff it would otherwise earn). Below 50 W the sensors should report *unknown*. The house load is not subtracted from the PV power, so the solar share is on the cautious side.
+
+**Long pauses (surplus charging).** For electric cars a charge is **no longer ended by the completion time** (10 minutes). If the car's position or odometer is known, or a plug sensor is set, the charge stays open through pauses of hours (clouds) and continues as the same entry. It ends
+
+- when the car **drives off** (more than 200 m from the start or 1 km on the odometer; later rises of the state of charge from recuperation are ignored), or
+- when it is **unplugged** (plug sensor; the completion time is then waited for, because the car reports its state of charge with a delay), or
+- after **48 hours without a rise** at the latest.
+
+Without position, odometer and plug sensor the completion time applies as before. The wallbox meter at the start and at the last delivery is written down during the charge, so the quantity is right even after long pauses or a restart of Home Assistant.
+
+**Live row.** While a car charges, a turquoise row **"Charging now"** is on top of the list: start, state of charge from → to, quantity (wallbox kWh, otherwise estimate) and power. It is refreshed every minute and shows *paused* when nothing is delivered. It disappears when the entry is finished.
+
+**Home charging filter and colour.** Entries whose quantity comes from the home wallbox are shown with a **yellow background** and can be selected with the filter **"Home charging (n)"** (also for print and export of the filtered list).
+
+**Switching the wallbox off.** Ending a charge does not depend on the wallbox. If the wallbox is switched off or loses power, its meter keeps the last value and an unavailable power sensor counts as 0 W. If a wallbox resets its meter to zero on power loss, the quantity of that charge cannot be calculated and the estimate stays (a total counter does not do this).
+
+**Limits.** The wallbox history is kept in memory only (the start and last delivery of a running charge are saved). Averages are time-weighted, not weighted by power. The texts of the options form exist in German and English.
 
 ## The panel
 

@@ -218,5 +218,18 @@
  "Tanken & Laden": "Заправка і заряджання",
  "Zeilenfarben": "Кольори рядків",
  "an": "увімкнено",
- "aus": "вимкнено"
+ "aus": "вимкнено",
+ "berechnet (korrigiert)": "розраховано (скориговано)",
+ "Ladeart": "Тип заряджання",
+ "unbekannt": "невідомо",
+ "Sensor des Autos": "Датчик авто",
+ "Spitzenleistung": "Пікова потужність",
+ "mittlere Leistung": "середня потужність",
+ "Schätzung aus dem Füllstand: {0} {1} (Menge weicht um {2} % ab)": "Оцінка за рівнем: {0} {1} (кількість відрізняється на {2} %)",
+ "Korrektur": "Поправка",
+ "wallbox": "Wallbox",
+ "Lädt gerade": "Зараз заряджається",
+ "Solaranteil": "Частка сонячної енергії",
+ "Heimladen": "Зарядка вдома",
+ "pausiert": "Пауза"
 }

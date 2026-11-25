@@ -35,7 +35,7 @@ Alles landet in einer Liste im Seitenmenü (mit CSV- und PDF-Druck).
 2. [Wie ein Tanken erkannt wird (genau)](#wie-ein-tanken-erkannt-wird-genau)
 3. [Welche Position und welcher Preis verwendet wird](#welche-position-und-welcher-preis-verwendet-wird) · [Länder mit Preisportalen](#länder-mit-preisportalen-unterstützt-und-nicht-unterstützt)
 4. [Beleg, Zubehör und Tacho per Nachricht](#beleg-zubehör-und-tacho-per-nachricht)
-5. [Wie der Verbrauch berechnet wird](#wie-der-verbrauch-berechnet-wird) · [Elektrofahrzeuge](#elektrofahrzeuge)
+5. [Wie der Verbrauch berechnet wird](#wie-der-verbrauch-berechnet-wird) · [Elektrofahrzeuge](#elektrofahrzeuge) · [Heimladen mit Heim-Wallbox](#heimladen-mit-heim-wallbox-optional-experimentell)
 6. [Das Panel](#das-panel)
 7. [Sensoren, Ereignis und Dienste](#sensoren-ereignis-und-dienste)
 8. [Installation und Einrichtung](#installation-und-einrichtung) · [KI einrichten](#ki-für-die-belegerkennung-einrichten)
@@ -263,7 +263,7 @@ Elektroautos funktionieren genauso wie Verbrenner; die Unterschiede im Überblic
 
 **Einrichtung:** Beim Fahrzeug die Energieart **Elektro** wählen und als Kapazität die **nutzbare Akkukapazität in kWh** eintragen (z. B. 58). Als Füllstand-Sensor dient der **Ladezustand (SoC) in %**, optional Kilometerstand und GPS wie beim Verbrenner. Ohne Sensoren funktioniert auch hier der [Foto-Betrieb](#foto-betrieb-ohne-auto-anbindung-flottenmanagement) (z. B. Foto der Ladesäule oder der App-Rechnung).
 
-**Erkennung:** Steigt der Ladezustand um mindestens **5 %**, wird ein Ladevorgang erkannt. Er ist beendet, wenn der Ladezustand **10 Minuten lang nicht weiter gestiegen** ist (Standard, einstellbar unter *Konfigurieren → Tankerkennung (Feintuning)*). Die **Entfernungsbedingung entfällt** (das Auto steht ja beim Laden), lässt sich aber einschalten. Viele kleine Ladungen am Tag werden einzeln als Vorgänge erfasst, sobald sie die 5 % erreichen.
+**Erkennung:** Steigt der Ladezustand um mindestens **5 %**, wird ein Ladevorgang erkannt. Er ist beendet, wenn der Ladezustand **10 Minuten lang nicht weiter gestiegen** ist (Standard, einstellbar unter *Konfigurieren → Tankerkennung (Feintuning)*). Die **Entfernungsbedingung entfällt** (das Auto steht ja beim Laden), lässt sich aber einschalten. Bei bekannter Position, bekanntem Kilometerstand oder mit Stecker-Sensor beendet diese Zeit die Ladung gar nicht, siehe [Heimladen](#heimladen-mit-heim-wallbox-optional-experimentell). Viele kleine Ladungen am Tag werden einzeln als Vorgänge erfasst, sobald sie die 5 % erreichen.
 
 **Menge:** kWh = Zuwachs in % × Akkukapazität. Das ist die Energie **im Akku**; an der Steckdose oder Wallbox wird wegen der Ladeverluste meist etwas mehr verbraucht. Willst du es genau, schick den Wert vom Beleg oder der Ladesäule (z. B. `38,2 0,39 14,90`); der Beleg hat immer Vorrang.
 
@@ -271,7 +271,13 @@ Elektroautos funktionieren genauso wie Verbrenner; die Unterschiede im Überblic
 
 **Verbrauch:** Gerechnet wird wie beim Verbrenner nach Voll-zu-Voll, Ergebnis in **kWh/100 km**. Als „voll“ gilt ein Ladevorgang ab **30 %** Zuwachs; kleinere Ladungen werden bis zur nächsten größeren aufaddiert. Dafür braucht es Kilometerstände (Sensor, Tacho-Foto oder `km 54210`).
 
-**Bekannte Grenzen:** Der Wallbox-Zähler wird (noch) nicht gelesen, die Menge ist akkuseitig. Meldet das Auto den Ladezustand nur alle paar Minuten, startet und endet ein Vorgang entsprechend verzögert. Zeigt der Ladezustand nur ganze Prozent, sind sehr kleine Ladungen ungenau.
+**Bekannte Grenzen:** Ohne Heim-Wallbox (siehe [Heimladen](#heimladen-mit-heim-wallbox-optional-experimentell)) ist die Menge akkuseitig. Meldet das Auto den Ladezustand nur alle paar Minuten, startet und endet ein Vorgang entsprechend verzögert. Zeigt der Ladezustand nur ganze Prozent, sind sehr kleine Ladungen ungenau.
+
+### Schätzung, Beleg und Ladeverluste; AC und DC
+
+Die Schätzung (Zuwachs in % × Kapazität) bleibt am Eintrag, auch wenn ein Beleg die Menge ersetzt. Aus beiden Werten lernt die Integration je Fahrzeug und Energieart einen **Korrekturfaktor** (Beleg ÷ Schätzung; er enthält Ladeverluste und einen eventuellen Fehler der angegebenen Kapazität). Ab **drei Einträgen mit Beleg** werden Ladungen **ohne** Beleg mit dem Median des Faktors korrigiert und als *berechnet (korrigiert)* gekennzeichnet; der Faktor steht in der Leiste über der Liste. Der Bearbeiten-Dialog zeigt die Schätzung und die Abweichung.
+
+**AC oder DC** ist nur eine Vermutung und wird mit ihrer Quelle gespeichert: Vorrang hat ein optionaler *Ladeart-Sensor* der Fahrzeug-Integration, dann die Angabe AC/DC auf Beleg oder Säulenanzeige, dann die *Spitzenleistung* eines optionalen *Ladeleistungs-Sensors* gegen die größte AC-Leistung des Autos (Standard 11 kW, einstellbar) und zuletzt die *mittlere Leistung* der Sitzung. Die mittlere Leistung kann nur DC beweisen (z. B. 80 kW); langsames DC sieht aus wie AC, darum bleibt eine Ladung auch *unbekannt*. Die Faktoren werden je Ladeart gelernt, sobald es drei Einträge dieser Art gibt, sonst gemeinsam. Die Ladeart lässt sich im Bearbeiten-Dialog von Hand ändern. Die drei optionalen Felder stehen in der Gruppe *Sensoren* des Fahrzeugs.
 
 ### Plug-in-Hybrid
 
@@ -282,6 +288,43 @@ Beim Fahrzeug **Plug-in-Hybrid** ankreuzen (neben der Kraftstoffart, z. B. Benzi
 - **Automatische Erkennung für beides:** Neben dem Füllstand-Sensor des Tanks kannst du den **Akku-Ladestand (%)** und die **Akkugröße (kWh)** eintragen. Tanken und Laden werden dann unabhängig voneinander erkannt (zwei Sensoren, zwei Erkennungen); beim Laden gilt der Strompreis aus den globalen Einstellungen. **Rekuperation wird ignoriert:** Beim Fahren steigt der Akku-Stand ohne Laden. Bewegt sich das Fahrzeug mehr als 200 m vom Beginn des Anstiegs weg (GPS) oder um mindestens 1 km (Kilometerstand), zählt der Anstieg nicht als Laden; ein Kandidat wird verworfen, und nach einem echten Laden werden Anstiege beim Wegfahren nicht mehr mitgezählt. Ohne Akku-Sensor wird das Laden per Beleg, Foto, Nachricht oder von Hand erfasst.
 - Bei gemischter Fahrweise sind die beiden Einzelwerte ungenauer als bei reinem Verbrenner oder Elektroauto: Der Kraftstoffverbrauch eines Plug-in-Hybrids hängt davon ab, wie viel elektrisch gefahren wurde. Die Werte sind als Trend gedacht, die Kostensumme ist exakt.
 - **Plausibilitätsprüfung beim Hybrid:** Weil im Wechsel Benzin und Strom verbraucht werden (Benzin ist oft die Ausnahme), meldet die Liste **keinen** einzelnen niedrigen oder hohen Verbrauch je Energieart, und die Kilometerprüfung bei Fotos entfällt. Stattdessen wird der **gemeinsame** Verbrauch beider (Liter in kWh umgerechnet) ab 300 km Strecke geprüft, und nur ein **zu hoher** Wert (über etwa 60 kWh/100 km) bekommt ein Warndreieck; ein niedriger Wert ist normal, weil nicht jede Ladung (z. B. zu Hause) erfasst wird.
+
+### Heimladen mit Heim-Wallbox (optional, experimentell)
+
+Für Autos, die zu Hause laden, lässt sich eine Wallbox ergänzen. Was man wirklich bezahlt, ist die Energie, die durch den Wallbox-Zähler lief, nicht die Schätzung aus dem Ladezustand. Die Funktion ist **optional und experimentell** und steht getrennt von den Sensoren des Autos in einem Untermenü ganz unten in den Fahrzeug-Optionen: *Konfigurieren → Heim-Wallbox (optional, experimentell)*. Es gibt sie nur für Elektroautos und Plug-in-Hybride (mit Akku-Sensor).
+
+**Felder (alle optional)**
+
+| Feld | Bedeutung |
+|---|---|
+| Zählerstand der Wallbox (kWh) | Gesamtzähler der Wallbox, wächst nur beim Laden (Wh-Zähler werden umgerechnet). Ohne ihn gilt nichts von dem Folgenden. |
+| Ladeleistung der Wallbox | Aktuelle Leistung. Macht den Beginn genauer (letzter Ruhestand vor der Ladung) und zeigt die kW in der Live-Zeile. |
+| Preis €/kWh der Ladung | Eine Entität (Sensor, Eingabezahl), z. B. ein Mischpreis aus Netz und Solarstrom. Leer = Strompreis aus den globalen Einstellungen. |
+| Solaranteil der Ladung in % | Ein Sensor mit dem aktuellen Solaranteil. |
+| Stecker: Auto angesteckt | Binär- oder Textsensor (`on`/`off`, `connected`/`disconnected`, `charging`, `available` …). Damit endet eine Ladung beim Abstecken. |
+
+**Menge und Verluste.** Ist eine Ladung abgeschlossen, bildet DED die Differenz des Wallbox-Zählers zwischen Beginn und Ende. Dieser Wert ersetzt die Schätzung (Quelle *wallbox*) und enthält die Ladeverluste. Weil Schätzung und Wallbox-Wert beide bekannt sind, fließen die Verluste wie bei einem Beleg in den gelernten Korrekturfaktor ein (siehe oben), auch für Ladungen unterwegs.
+Der Wallbox-Wert wird nur übernommen, wenn er plausibel ist: Er muss das 0,85- bis 1,7-Fache der Schätzung betragen. Sonst hat das Auto woanders geladen oder zwei Ladungen liefen über denselben Zähler, und die Schätzung bleibt. Nutzen zwei Fahrzeuge dieselbe Wallbox-Entität und überlappen sich die Ladezeiten, wird ebenfalls nichts geraten. Der Eintrag trägt dann einen kurzen Hinweis, warum (*geteilt*, *kein Verlauf*, *passt nicht*).
+
+**Preis und Solaranteil.** Während der Ladung werden Preis- und Solarsensor etwa alle 15 Sekunden gelesen und gemittelt (zeitgewichtet, *unknown* wird übersprungen). Der Eintrag bekommt diesen mittleren Preis (Quelle *Wallbox*) und, wenn ein Solarsensor gesetzt ist, den Solaranteil als „☀ 62 %“ in der Liste. Ohne Preissensor gilt der globale Strompreis.
+
+*Beispiel, Mischpreis und Solaranteil als Template-Sensoren in Home Assistant:* Mit der Wallbox-Leistung `W` und dem Netzbezug `grid` (beide in W) wird `netz = min(W, max(grid, 0))` aus dem Netz gedeckt und `solar = W − netz` aus PV und Batterie. Solaranteil in % = `solar / W · 100`; Mischpreis = `(netz · Bezugspreis + solar · Einspeisevergütung) / W` (der Solarteil wird mit der Vergütung bewertet, die er sonst einbrächte). Unter 50 W sollten die Sensoren *unknown* melden. Die Hauslast wird nicht von der PV-Leistung abgezogen, der Solaranteil ist also eher vorsichtig.
+
+**Lange Pausen (Überschussladen).** Bei Elektroautos wird eine Ladung **nicht mehr durch die Abschlusszeit** (10 Minuten) beendet. Ist die Position oder der Kilometerstand des Autos bekannt oder ein Stecker-Sensor gesetzt, bleibt die Ladung über Pausen von Stunden (Wolken) offen und läuft als derselbe Eintrag weiter. Sie endet
+
+- wenn das Auto **wegfährt** (mehr als 200 m vom Beginn oder 1 km am Kilometerstand; spätere Anstiege des Ladezustands durch Rekuperation werden ignoriert), oder
+- wenn es **abgesteckt** wird (Stecker-Sensor; dann wird noch die Abschlusszeit abgewartet, weil das Auto den Ladezustand verzögert meldet), oder
+- spätestens nach **48 Stunden ohne Anstieg**.
+
+Ohne Position, Kilometerstand und Stecker-Sensor gilt wie bisher die Abschlusszeit. Der Wallbox-Zähler bei Beginn und bei der letzten Lieferung wird während der Ladung mitgeschrieben, die Menge stimmt also auch nach langen Pausen oder einem Neustart von Home Assistant.
+
+**Live-Zeile.** Solange ein Auto lädt, steht eine türkise Zeile **„Lädt gerade“** oben in der Liste: Beginn, Ladezustand von → bis, Menge (Wallbox-kWh, sonst Schätzung) und Leistung. Sie wird jede Minute aktualisiert und zeigt *pausiert*, wenn nichts geliefert wird. Sie verschwindet, sobald der Eintrag abgeschlossen ist.
+
+**Filter und Farbe „Heimladen“.** Einträge, deren Menge von der Heim-Wallbox stammt, sind **gelb hinterlegt** und über den Filter **„Heimladen (n)“** auswählbar (auch für Druck und Export der gefilterten Liste).
+
+**Wallbox abschalten.** Das Ende einer Ladung hängt nicht von der Wallbox ab. Wird sie abgeschaltet oder stromlos, behält ihr Zähler den letzten Wert, und ein nicht verfügbarer Leistungssensor zählt als 0 W. Setzt eine Wallbox ihren Zähler beim Stromausfall auf null zurück, lässt sich die Menge dieser Ladung nicht berechnen, und die Schätzung bleibt (ein Gesamtzähler tut das nicht).
+
+**Grenzen.** Der Verlauf der Wallbox liegt nur im Speicher (Beginn und letzte Lieferung einer laufenden Ladung werden gespeichert). Die Mittelwerte sind zeitgewichtet, nicht nach Leistung gewichtet. Die Texte des Optionsformulars gibt es auf Deutsch und Englisch.
 
 ## Das Panel
 

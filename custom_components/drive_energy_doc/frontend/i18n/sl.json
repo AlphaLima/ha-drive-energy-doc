@@ -216,5 +216,18 @@
  "Tanken & Laden": "Točenje in polnjenje",
  "Zeilenfarben": "Barve vrstic",
  "an": "vklopljeno",
- "aus": "izklopljeno"
+ "aus": "izklopljeno",
+ "berechnet (korrigiert)": "izračunano (popravljeno)",
+ "Ladeart": "Vrsta polnjenja",
+ "unbekannt": "neznano",
+ "Sensor des Autos": "Senzor vozila",
+ "Spitzenleistung": "Največja moč",
+ "mittlere Leistung": "povprečna moč",
+ "Schätzung aus dem Füllstand: {0} {1} (Menge weicht um {2} % ab)": "Ocena po stanju: {0} {1} (količina odstopa za {2} %)",
+ "Korrektur": "Popravek",
+ "wallbox": "Wallbox",
+ "Lädt gerade": "Trenutno se polni",
+ "Solaranteil": "Delež sončne energije",
+ "Heimladen": "Polnjenje doma",
+ "pausiert": "Začasno ustavljeno"
 }

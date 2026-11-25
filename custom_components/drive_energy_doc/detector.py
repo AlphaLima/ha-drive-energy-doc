@@ -19,6 +19,7 @@ EPS = 0.05
 MOVE_TOLERANCE_M = 200.0   # Elektro: bewegt sich das Fahrzeug weiter vom Beginn weg, steigt der Akku durch Rekuperation und nicht durch Laden
 MOVE_TOLERANCE_KM = 1.0    # dasselbe über den Kilometerstand, wenn es keinen GPS-Tracker gibt
 CANDIDATE_TIMEOUT_S = 600
+MAX_HOLD_S = 48 * 3600     # Elektro: so lange darf eine Ladung ohne Anstieg offen bleiben, wenn weder Wegfahren noch Abstecken erkannt wird
 
 
 def haversine_m(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
@@ -106,8 +107,16 @@ class FuelDetector:
             return True
         return odometer is not None and p.odometer is not None and abs(odometer - p.odometer) >= MOVE_TOLERANCE_KM
 
-    def check(self, ts: float, pos: tuple[float, float] | None) -> dict | None:
-        """Periodisch aufrufen. Liefert den fertigen Tankvorgang oder None."""
+    @staticmethod
+    def _can_tell_moving(p: "Pending", pos: tuple[float, float] | None, odometer: float | None) -> bool:
+        """Gibt es Position oder Kilometerstand, an denen sich Wegfahren erkennen lässt?"""
+        return (pos is not None and p.lat is not None) or (odometer is not None and p.odometer is not None)
+
+    def check(self, ts: float, pos: tuple[float, float] | None, odometer: float | None = None, plugged: bool | None = None) -> dict | None:
+        """Periodisch aufrufen. Liefert den fertigen Tankvorgang oder None.
+
+        Elektro (``reject_moving``): Pausen beim Laden (Wolken beim Überschussladen) beenden die Ladung nicht. Sie endet, wenn das Auto wegfährt
+        oder abgesteckt wird (``plugged`` False). Gibt es weder Position/Kilometerstand noch Stecker-Meldung, gilt wie beim Tanken die Abschlusszeit."""
         p = self.pending
         if p is None:
             return None
@@ -115,9 +124,15 @@ class FuelDetector:
             if ts - p.last_increase_ts > CANDIDATE_TIMEOUT_S:
                 self.pending = None
             return None
+        if self.reject_moving and self._moved(p, pos, odometer):
+            p.extras["moved"] = True   # einmal weggefahren bleibt weggefahren
         if ts - p.last_increase_ts < self.settle_seconds:
             return None
-        if self.require_distance:
+        if self.reject_moving and (plugged is not None or self._can_tell_moving(p, pos, odometer) or p.extras.get("moved")):
+            ended = plugged is False or p.extras.get("moved") or ts - p.last_increase_ts > MAX_HOLD_S
+            if not ended:
+                return None
+        elif self.require_distance:
             if pos is None or p.lat is None or haversine_m(p.lat, p.lon, pos[0], pos[1]) <= self.min_distance:
                 return None
         done = asdict(p)

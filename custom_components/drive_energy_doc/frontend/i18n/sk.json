@@ -216,5 +216,18 @@
  "Tanken & Laden": "Tankovanie a nabíjanie",
  "Zeilenfarben": "Farby riadkov",
  "an": "zapnuté",
- "aus": "vypnuté"
+ "aus": "vypnuté",
+ "berechnet (korrigiert)": "vypočítané (opravené)",
+ "Ladeart": "Typ nabíjania",
+ "unbekannt": "neznáme",
+ "Sensor des Autos": "Senzor vozidla",
+ "Spitzenleistung": "Špičkový výkon",
+ "mittlere Leistung": "priemerný výkon",
+ "Schätzung aus dem Füllstand: {0} {1} (Menge weicht um {2} % ab)": "Odhad podľa stavu: {0} {1} (množstvo sa líši o {2} %)",
+ "Korrektur": "Korekcia",
+ "wallbox": "Wallbox",
+ "Lädt gerade": "Práve sa nabíja",
+ "Solaranteil": "Podiel solárnej energie",
+ "Heimladen": "Nabíjanie doma",
+ "pausiert": "Pozastavené"
 }

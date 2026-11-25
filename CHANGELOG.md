@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.1.83 (25.11.2026)
+- Heim-Wallbox: optionales Feld „Solaranteil der Ladung in %“ (Sensor, z. B. aus Netzbezug und Wallbox-Leistung). DED mittelt den Wert über die Ladung und zeigt „☀ 62 %“ unter der Menge des Eintrags.
+- Überschussladen mit Pausen: Eine Ladung des Elektroautos endet nicht mehr nach der Abschlusszeit, sondern erst, wenn das Auto wegfährt (Position oder Kilometerstand) oder abgesteckt wird; Pausen von Stunden (Wolken) bleiben im selben Eintrag. Ohne Position, Kilometerstand und Stecker-Sensor gilt weiter die Abschlusszeit; spätestens nach 48 Stunden ohne Anstieg wird abgeschlossen. Die Zeile „Lädt gerade“ wird jede Minute nachgeführt und zeigt bei Pause „pausiert“.
+- Neues optionales Feld „Stecker: Auto angesteckt“ im Heim-Wallbox-Menü (Binär- oder Textsensor): Die Ladung endet beim Abstecken.
+- Wallbox-Menge über lange Pausen: Zählerstand bei Beginn und bei der letzten Lieferung werden während der Ladung mitgeschrieben (überstehen auch einen Neustart).
+- Heimladen: Einträge, deren Menge von der Heim-Wallbox stammt, sind gelb hinterlegt und mit dem neuen Filter „Heimladen“ auswählbar.
+- Laufende Ladung: Solange ein Auto lädt, steht oben in der Liste eine türkise Zeile „Lädt gerade“ mit Beginn, Füllstand, Menge (Wallbox-kWh, sonst Schätzung) und Leistung; sie verschwindet, sobald der Eintrag abgeschlossen ist.
+- Heim-Wallbox als eigenes, optionales und experimentelles Untermenü „Heim-Wallbox“ (ganz unten im Menü) (nur für Elektro- und Plug-in-Hybrid-Fahrzeuge), getrennt von den Sensoren des Autos: Zählerstand (kWh), Leistung (optional) und Preis €/kWh der Ladung (Zahl oder Entität, z. B. Mischpreis aus Netz, Akku und PV; über die Ladung gemittelt). Bei einer Heimladung übernimmt DED die tatsächlich gelieferte Menge samt Ladeverlusten („wallbox“) und rechnet die Kosten damit; die Verluste fließen in den Korrekturfaktor ein. Die Menge wird nicht übernommen, wenn sie nicht zur Schätzung passt (Auto hat woanders geladen), zwei Fahrzeuge zugleich an derselben Wallbox laden oder der Verlauf fehlt; dann bleibt die Schätzung.
+- Schätzung und Beleg bleiben beide am Eintrag. Aus beiden lernt DED einen Korrekturfaktor (Ladeverluste, Kapazitätsfehler); ab drei Einträgen mit Beleg werden Ladungen und Betankungen ohne Beleg korrigiert („berechnet (korrigiert)“), der Faktor steht in der Leiste über der Liste, im Bearbeiten-Dialog die Abweichung.
+- Ladeart AC/DC als Vermutung mit Quelle (Sensor, Beleg/Säulenanzeige, Spitzenleistung, mittlere Leistung), Kürzel in der Liste, von Hand änderbar; neue optionale Felder Ladeleistung, Ladeart-Sensor und größte AC-Leistung in der Gruppe Sensoren. Korrekturfaktoren werden je Ladeart gelernt, sobald es drei Einträge dieser Art gibt.
+
 ## 0.1.82 (24.11.2026)
 - Sicherheit (Review-Hinweis): Fahrzeugbild-Adresse (`entity_picture` einer Bild- oder Kamera-Entität) und Einheit eines Zubehör-Eintrags werden vor dem Einsetzen ins Panel maskiert (kein Einschleusen von HTML mehr). Installationsabschnitt: zuerst die Suche im Marketplace/HACS, das benutzerdefinierte Repository als Ausweichweg.
 - Farbige Zeilen in der Liste: Laden grün, Tanken orange, alles andere (Zubehör) blau; ein Knopf in der Leiste schaltet die Farben ein und aus (wird im Browser gemerkt).

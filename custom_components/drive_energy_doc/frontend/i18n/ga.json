@@ -216,5 +216,18 @@
  "Tanken & Laden": "Breoslú agus luchtú",
  "Zeilenfarben": "Dathanna na sraitheanna",
  "an": "ar",
- "aus": "as"
+ "aus": "as",
+ "berechnet (korrigiert)": "ríofa (ceartaithe)",
+ "Ladeart": "Cineál luchtaithe",
+ "unbekannt": "anaithnid",
+ "Sensor des Autos": "Braiteoir an chairr",
+ "Spitzenleistung": "Uasmhéid cumhachta",
+ "mittlere Leistung": "meán-chumhacht",
+ "Schätzung aus dem Füllstand: {0} {1} (Menge weicht um {2} % ab)": "Meastachán de réir leibhéal: {0} {1} (tá difríocht {2} % sa chainníocht)",
+ "Korrektur": "Ceartúchán",
+ "wallbox": "Wallbox",
+ "Lädt gerade": "Ag luchtú anois",
+ "Solaranteil": "Cion gréine",
+ "Heimladen": "Luchtú sa bhaile",
+ "pausiert": "Sos"
 }

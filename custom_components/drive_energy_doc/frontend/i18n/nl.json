@@ -216,5 +216,18 @@
  "Tanken & Laden": "Tanken & laden",
  "Zeilenfarben": "Rijkleuren",
  "an": "aan",
- "aus": "uit"
+ "aus": "uit",
+ "berechnet (korrigiert)": "berekend (gecorrigeerd)",
+ "Ladeart": "Laadtype",
+ "unbekannt": "onbekend",
+ "Sensor des Autos": "Sensor van de auto",
+ "Spitzenleistung": "Piekvermogen",
+ "mittlere Leistung": "gemiddeld vermogen",
+ "Schätzung aus dem Füllstand: {0} {1} (Menge weicht um {2} % ab)": "Schatting op basis van het niveau: {0} {1} (hoeveelheid wijkt {2} % af)",
+ "Korrektur": "Correctie",
+ "wallbox": "Wallbox",
+ "Lädt gerade": "Laadt nu",
+ "Solaranteil": "Zonne-aandeel",
+ "Heimladen": "Thuis laden",
+ "pausiert": "Gepauzeerd"
 }

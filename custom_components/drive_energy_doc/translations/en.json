@@ -48,7 +48,10 @@
             "data": {
               "level_entity": "Fuel / charge level (%)",
               "odometer_entity": "Odometer",
-              "tracker_entity": "GPS position (device_tracker)"
+              "tracker_entity": "GPS position (device_tracker)",
+              "power_entity": "Car charging power (optional, for AC/DC)",
+              "charge_type_entity": "Car charge type (optional, sensor with AC/DC)",
+              "max_ac_kw": "Car's maximum AC charging power (kW, default 11)"
             }
           },
           "look": {
@@ -145,7 +148,8 @@
           "messaging_companion": "Companion app (push)",
           "messaging_telegram": "Telegram",
           "messaging_whatsapp": "WhatsApp",
-          "thresholds": "Refuel detection (fine tuning)"
+          "thresholds": "Refuel detection (fine tuning)",
+          "wallbox": "Home wallbox (optional, experimental)"
         }
       },
       "general": {
@@ -195,7 +199,10 @@
             "data": {
               "level_entity": "Fuel / charge level (%)",
               "odometer_entity": "Odometer",
-              "tracker_entity": "GPS position (device_tracker)"
+              "tracker_entity": "GPS position (device_tracker)",
+              "power_entity": "Car charging power (optional, for AC/DC)",
+              "charge_type_entity": "Car charge type (optional, sensor with AC/DC)",
+              "max_ac_kw": "Car's maximum AC charging power (kW, default 11)"
             }
           },
           "look": {
@@ -279,6 +286,17 @@
           "whatsapp_detect": "Message when refuelling is detected and when a receipt is missing",
           "whatsapp_timing": "Timing of the message",
           "test": "Send test message"
+        }
+      },
+      "wallbox": {
+        "title": "Home wallbox (optional, experimental)",
+        "description": "Only for vehicles that charge at home. With the wallbox energy counter, Drive Energy Doc takes the energy actually delivered (including charging losses) and learns the losses from it. If the car charged elsewhere or two cars charge on the same wallbox at the same time, the amount is not taken and the estimate stays.",
+        "data": {
+          "wb_energy_entity": "Wallbox energy counter (kWh, only grows while charging)",
+          "wb_power_entity": "Wallbox charging power (optional, more exact start)",
+          "wb_price_entity": "Price per kWh of the charge (sensor, e.g. mixed price; empty = electricity price from the settings)",
+          "wb_solar_entity": "Solar share of the charge in % (sensor, optional)",
+          "plug_entity": "Plug: car connected (sensor, optional; the charge then only ends on unplugging or driving off)"
         }
       }
     },

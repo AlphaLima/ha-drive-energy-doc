@@ -11,7 +11,8 @@ stats = importlib.import_module("drive_energy_doc.stats")
 src = ast.parse((pkg_dir / "vehicle.py").read_text(encoding="utf-8"))
 cls = next(n for n in src.body if isinstance(n, ast.ClassDef) and n.name == "Vehicle")
 fns = {n.name: n for n in cls.body if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef))}
-ns = {"receipt": types.SimpleNamespace(FUEL_GRADES=("diesel", "diesel_premium", "e10", "e5", "ron95", "ron98", "lpg")), "stats": stats, "time": time, "datetime": datetime, "dt_util": types.SimpleNamespace(as_local=lambda x: x, utc_from_timestamp=lambda t: datetime.fromtimestamp(t))}
+charge = importlib.import_module("drive_energy_doc.charge")
+ns = {"charge": charge, "receipt": types.SimpleNamespace(FUEL_GRADES=("diesel", "diesel_premium", "e10", "e5", "ron95", "ron98", "lpg")), "stats": stats, "time": time, "datetime": datetime, "dt_util": types.SimpleNamespace(as_local=lambda x: x, utc_from_timestamp=lambda t: datetime.fromtimestamp(t))}
 for name in ("_energy_of", "_fits_energy", "_entry_on", "_newest_within", "_apply_values", "unit_of"):
     node = fns[name]
     node.decorator_list = []
@@ -58,7 +59,7 @@ print("OK: Plug-in-Hybrid-Zuordnung")
 import asyncio
 detmod = importlib.import_module("drive_energy_doc.detector")
 FuelDetector = detmod.FuelDetector
-ns2 = {"stats": stats, "time": time, "datetime": datetime, "uuid": __import__("uuid"), "asyncio": asyncio, "FuelDetector": FuelDetector, "CONF_LEVEL_EL": "lvl_el", "CONF_ODOMETER": "odo", "CONF_TRACKER": "trk", "DOMAIN": "drive_energy_doc",
+ns2 = {"stats": stats, "time": time, "datetime": datetime, "uuid": __import__("uuid"), "asyncio": asyncio, "FuelDetector": FuelDetector, "CONF_LEVEL_EL": "lvl_el", "CONF_ODOMETER": "odo", "CONF_TRACKER": "trk", "CONF_POWER": "pwr", "CONF_CHARGE_TYPE": "ctype", "CONF_LEVEL": "lvl", "charge": charge, "DOMAIN": "drive_energy_doc",
        "callback": lambda f: f, "Event": object, "dt_util": ns["dt_util"]}
 for name in ("_state_changed", "_tick", "_detectors", "_pending_for", "_valid_pending", "_finish"):
     node = fns[name]
@@ -96,6 +97,9 @@ class V2:
     def tr(self, k, *a): return k
     async def _say(self, m, quick=False, phase=None, el=False): self.said.append(m)
     def _detected_text(self, entry): return "detected"
+    def _sample_charge(self): pass
+    def _charge_det(self): return self.detector_el
+    def _ac_max(self): return None
     def _push_at_start(self, det): return True
     async def _push_started(self, det): pass   # früher Push: hier nicht Gegenstand des Tests
     async def _fetch_price(self, pending=None, det=None):
@@ -123,6 +127,9 @@ v2.detector_el.pending.last_increase_ts -= 1000   # lange nichts mehr gestiegen:
 v2._tick(None)
 for c in v2.hass.tasks: asyncio.run(c)
 assert len(v2.data["entries"]) == 1, v2.data["entries"]
+e_el = v2.data["entries"][0]
+assert e_el["est_quantity"] == 3.6 and e_el["quantity"] == 3.6 and e_el["quantity_source"] == "berechnet", e_el   # Schätzung bleibt am Eintrag, ohne Belege kein Korrekturfaktor
+assert "charge_type" not in e_el   # kein Leistungssensor und zu kurz für eine mittlere Leistung
 en_ = v2.data["entries"][0]
 assert en_["energy"] == "electric"
 assert abs(en_["quantity"] - (70 - 40) / 100 * 12.0) < 1e-6 and en_["unit_price"] == 0.30 and abs(en_["total"] - 3.6 * 0.30) < 0.01, en_

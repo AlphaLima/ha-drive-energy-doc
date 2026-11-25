@@ -216,5 +216,18 @@
  "Tanken & Laden": "Refuelling & charging",
  "Zeilenfarben": "Row colours",
  "an": "on",
- "aus": "off"
+ "aus": "off",
+ "berechnet (korrigiert)": "calculated (corrected)",
+ "Ladeart": "Charge type",
+ "unbekannt": "unknown",
+ "Sensor des Autos": "Car sensor",
+ "Spitzenleistung": "Peak power",
+ "mittlere Leistung": "average power",
+ "Schätzung aus dem Füllstand: {0} {1} (Menge weicht um {2} % ab)": "Estimate from the level: {0} {1} (quantity differs by {2} %)",
+ "Korrektur": "Correction",
+ "wallbox": "Wallbox",
+ "Lädt gerade": "Charging now",
+ "Solaranteil": "Solar share",
+ "Heimladen": "Home charging",
+ "pausiert": "Paused"
 }

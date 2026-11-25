@@ -216,5 +216,18 @@
  "Tanken & Laden": "Tanken & Luede",
  "Zeilenfarben": "Zeilefaarwen",
  "an": "un",
- "aus": "aus"
+ "aus": "aus",
+ "berechnet (korrigiert)": "berechent (korrigéiert)",
+ "Ladeart": "Luedaart",
+ "unbekannt": "onbekannt",
+ "Sensor des Autos": "Sensor vum Auto",
+ "Spitzenleistung": "Spëtzeleeschtung",
+ "mittlere Leistung": "mëttel Leeschtung",
+ "Schätzung aus dem Füllstand: {0} {1} (Menge weicht um {2} % ab)": "Schätzung aus dem Niveau: {0} {1} (Quantitéit ënnerscheet sech ëm {2} %)",
+ "Korrektur": "Korrektur",
+ "wallbox": "Wallbox",
+ "Lädt gerade": "Lued elo",
+ "Solaranteil": "Solaranteil",
+ "Heimladen": "Heemlueden",
+ "pausiert": "Pauséiert"
 }

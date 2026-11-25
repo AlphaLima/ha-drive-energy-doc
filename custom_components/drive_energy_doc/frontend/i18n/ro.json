@@ -216,5 +216,18 @@
  "Tanken & Laden": "Alimentare și încărcare",
  "Zeilenfarben": "Culorile rândurilor",
  "an": "pornit",
- "aus": "oprit"
+ "aus": "oprit",
+ "berechnet (korrigiert)": "calculat (corectat)",
+ "Ladeart": "Tip de încărcare",
+ "unbekannt": "necunoscut",
+ "Sensor des Autos": "Senzorul mașinii",
+ "Spitzenleistung": "Putere maximă",
+ "mittlere Leistung": "putere medie",
+ "Schätzung aus dem Füllstand: {0} {1} (Menge weicht um {2} % ab)": "Estimare după nivel: {0} {1} (cantitatea diferă cu {2} %)",
+ "Korrektur": "Corecție",
+ "wallbox": "Wallbox",
+ "Lädt gerade": "Se încarcă acum",
+ "Solaranteil": "Pondere solară",
+ "Heimladen": "Încărcare acasă",
+ "pausiert": "În pauză"
 }

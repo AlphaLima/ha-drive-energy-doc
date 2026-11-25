@@ -216,5 +216,18 @@
  "Tanken & Laden": "Eldsneyti og hleðsla",
  "Zeilenfarben": "Litir lína",
  "an": "kveikt",
- "aus": "slökkt"
+ "aus": "slökkt",
+ "berechnet (korrigiert)": "reiknað (leiðrétt)",
+ "Ladeart": "Tegund hleðslu",
+ "unbekannt": "óþekkt",
+ "Sensor des Autos": "Skynjari bílsins",
+ "Spitzenleistung": "Hámarksafl",
+ "mittlere Leistung": "meðalafl",
+ "Schätzung aus dem Füllstand: {0} {1} (Menge weicht um {2} % ab)": "Mat út frá stöðu: {0} {1} (magn víkur um {2} %)",
+ "Korrektur": "Leiðrétting",
+ "wallbox": "Wallbox",
+ "Lädt gerade": "Hleður núna",
+ "Solaranteil": "Hlutfall sólarorku",
+ "Heimladen": "Heimahleðsla",
+ "pausiert": "Í bið"
 }

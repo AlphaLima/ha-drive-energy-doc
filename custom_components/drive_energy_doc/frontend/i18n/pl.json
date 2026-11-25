@@ -216,5 +216,18 @@
  "Tanken & Laden": "Tankowanie i ładowanie",
  "Zeilenfarben": "Kolory wierszy",
  "an": "włączone",
- "aus": "wyłączone"
+ "aus": "wyłączone",
+ "berechnet (korrigiert)": "obliczone (skorygowane)",
+ "Ladeart": "Typ ładowania",
+ "unbekannt": "nieznany",
+ "Sensor des Autos": "Czujnik pojazdu",
+ "Spitzenleistung": "Moc szczytowa",
+ "mittlere Leistung": "moc średnia",
+ "Schätzung aus dem Füllstand: {0} {1} (Menge weicht um {2} % ab)": "Szacunek wg poziomu: {0} {1} (ilość różni się o {2} %)",
+ "Korrektur": "Korekta",
+ "wallbox": "Wallbox",
+ "Lädt gerade": "Trwa ładowanie",
+ "Solaranteil": "Udział energii słonecznej",
+ "Heimladen": "Ładowanie w domu",
+ "pausiert": "Wstrzymane"
 }

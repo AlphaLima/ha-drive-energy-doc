@@ -216,5 +216,18 @@
  "Tanken & Laden": "Uzpilde un uzlāde",
  "Zeilenfarben": "Rindu krāsas",
  "an": "ieslēgts",
- "aus": "izslēgts"
+ "aus": "izslēgts",
+ "berechnet (korrigiert)": "aprēķināts (labots)",
+ "Ladeart": "Uzlādes veids",
+ "unbekannt": "nezināms",
+ "Sensor des Autos": "Auto sensors",
+ "Spitzenleistung": "Maksimālā jauda",
+ "mittlere Leistung": "vidējā jauda",
+ "Schätzung aus dem Füllstand: {0} {1} (Menge weicht um {2} % ab)": "Novērtējums pēc līmeņa: {0} {1} (daudzums atšķiras par {2} %)",
+ "Korrektur": "Korekcija",
+ "wallbox": "Wallbox",
+ "Lädt gerade": "Šobrīd lādējas",
+ "Solaranteil": "Saules daļa",
+ "Heimladen": "Uzlāde mājās",
+ "pausiert": "Pauze"
 }

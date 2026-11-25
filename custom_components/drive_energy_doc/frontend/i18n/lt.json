@@ -216,5 +216,18 @@
  "Tanken & Laden": "Pylimas ir įkrovimas",
  "Zeilenfarben": "Eilučių spalvos",
  "an": "įjungta",
- "aus": "išjungta"
+ "aus": "išjungta",
+ "berechnet (korrigiert)": "apskaičiuota (pataisyta)",
+ "Ladeart": "Įkrovimo tipas",
+ "unbekannt": "nežinoma",
+ "Sensor des Autos": "Automobilio jutiklis",
+ "Spitzenleistung": "Didžiausia galia",
+ "mittlere Leistung": "vidutinė galia",
+ "Schätzung aus dem Füllstand: {0} {1} (Menge weicht um {2} % ab)": "Įvertis pagal lygį: {0} {1} (kiekis skiriasi {2} %)",
+ "Korrektur": "Pataisa",
+ "wallbox": "Wallbox",
+ "Lädt gerade": "Šiuo metu kraunasi",
+ "Solaranteil": "Saulės dalis",
+ "Heimladen": "Krovimas namuose",
+ "pausiert": "Pristabdyta"
 }

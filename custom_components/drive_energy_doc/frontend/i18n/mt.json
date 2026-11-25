@@ -216,5 +216,18 @@
  "Tanken & Laden": "Fuel u tlaqqigħ",
  "Zeilenfarben": "Kuluri tar-ringieli",
  "an": "mixgħul",
- "aus": "mitfi"
+ "aus": "mitfi",
+ "berechnet (korrigiert)": "ikkalkulat (ikkoreġut)",
+ "Ladeart": "Tip ta' tlaqqigħ",
+ "unbekannt": "mhux magħruf",
+ "Sensor des Autos": "Sensur tal-karozza",
+ "Spitzenleistung": "Qawwa massima",
+ "mittlere Leistung": "qawwa medja",
+ "Schätzung aus dem Füllstand: {0} {1} (Menge weicht um {2} % ab)": "Stima mil-livell: {0} {1} (il-kwantità tvarja b'{2} %)",
+ "Korrektur": "Korrezzjoni",
+ "wallbox": "Wallbox",
+ "Lädt gerade": "Qed jitgħabba issa",
+ "Solaranteil": "Sehem solari",
+ "Heimladen": "Iċċarġjar id-dar",
+ "pausiert": "Fi pawża"
 }

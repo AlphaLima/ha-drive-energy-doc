@@ -216,5 +216,18 @@
  "Tanken & Laden": "Запраўка і зарадка",
  "Zeilenfarben": "Колеры радкоў",
  "an": "уключана",
- "aus": "выключана"
+ "aus": "выключана",
+ "berechnet (korrigiert)": "разлічана (скарэктавана)",
+ "Ladeart": "Тып зарадкі",
+ "unbekannt": "невядома",
+ "Sensor des Autos": "Датчык аўто",
+ "Spitzenleistung": "Пікавая магутнасць",
+ "mittlere Leistung": "сярэдняя магутнасць",
+ "Schätzung aus dem Füllstand: {0} {1} (Menge weicht um {2} % ab)": "Ацэнка па ўзроўні: {0} {1} (колькасць адрозніваецца на {2} %)",
+ "Korrektur": "Папраўка",
+ "wallbox": "Wallbox",
+ "Lädt gerade": "Зараз зараджаецца",
+ "Solaranteil": "Сонечная частка",
+ "Heimladen": "Зарадка дома",
+ "pausiert": "Паўза"
 }

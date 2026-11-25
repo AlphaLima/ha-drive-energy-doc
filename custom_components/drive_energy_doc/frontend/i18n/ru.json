@@ -218,5 +218,18 @@
  "Tanken & Laden": "Заправка и зарядка",
  "Zeilenfarben": "Цвета строк",
  "an": "включено",
- "aus": "выключено"
+ "aus": "выключено",
+ "berechnet (korrigiert)": "рассчитано (скорректировано)",
+ "Ladeart": "Тип зарядки",
+ "unbekannt": "неизвестно",
+ "Sensor des Autos": "Датчик авто",
+ "Spitzenleistung": "Пиковая мощность",
+ "mittlere Leistung": "средняя мощность",
+ "Schätzung aus dem Füllstand: {0} {1} (Menge weicht um {2} % ab)": "Оценка по уровню: {0} {1} (количество отличается на {2} %)",
+ "Korrektur": "Поправка",
+ "wallbox": "Wallbox",
+ "Lädt gerade": "Сейчас заряжается",
+ "Solaranteil": "Доля солнечной энергии",
+ "Heimladen": "Зарядка дома",
+ "pausiert": "Пауза"
 }

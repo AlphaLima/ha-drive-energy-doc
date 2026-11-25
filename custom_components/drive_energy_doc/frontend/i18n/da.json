@@ -216,5 +216,18 @@
  "Tanken & Laden": "Tankning og opladning",
  "Zeilenfarben": "Rækkefarver",
  "an": "til",
- "aus": "fra"
+ "aus": "fra",
+ "berechnet (korrigiert)": "beregnet (korrigeret)",
+ "Ladeart": "Opladningstype",
+ "unbekannt": "ukendt",
+ "Sensor des Autos": "Bilens sensor",
+ "Spitzenleistung": "Spidseffekt",
+ "mittlere Leistung": "gennemsnitlig effekt",
+ "Schätzung aus dem Füllstand: {0} {1} (Menge weicht um {2} % ab)": "Skøn ud fra niveauet: {0} {1} (mængden afviger med {2} %)",
+ "Korrektur": "Korrektion",
+ "wallbox": "Wallbox",
+ "Lädt gerade": "Lader nu",
+ "Solaranteil": "Solandel",
+ "Heimladen": "Hjemmeladning",
+ "pausiert": "På pause"
 }

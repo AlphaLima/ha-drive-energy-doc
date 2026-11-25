@@ -216,5 +216,18 @@
  "Tanken & Laden": "Rifornimento e ricarica",
  "Zeilenfarben": "Colori delle righe",
  "an": "attivo",
- "aus": "disattivo"
+ "aus": "disattivo",
+ "berechnet (korrigiert)": "calcolato (corretto)",
+ "Ladeart": "Tipo di ricarica",
+ "unbekannt": "sconosciuto",
+ "Sensor des Autos": "Sensore dell'auto",
+ "Spitzenleistung": "Potenza di picco",
+ "mittlere Leistung": "potenza media",
+ "Schätzung aus dem Füllstand: {0} {1} (Menge weicht um {2} % ab)": "Stima dal livello: {0} {1} (la quantità differisce del {2} %)",
+ "Korrektur": "Correzione",
+ "wallbox": "Wallbox",
+ "Lädt gerade": "In carica",
+ "Solaranteil": "Quota solare",
+ "Heimladen": "Ricarica a casa",
+ "pausiert": "In pausa"
 }

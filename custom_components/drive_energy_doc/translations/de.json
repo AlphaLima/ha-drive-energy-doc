@@ -48,7 +48,10 @@
             "data": {
               "level_entity": "Tankinhalt / Ladestand (%)",
               "odometer_entity": "Kilometerstand",
-              "tracker_entity": "GPS-Position (device_tracker)"
+              "tracker_entity": "GPS-Position (device_tracker)",
+              "power_entity": "Ladeleistung des Autos (optional, für AC/DC)",
+              "charge_type_entity": "Ladeart des Autos (optional, Sensor mit AC/DC)",
+              "max_ac_kw": "Größte AC-Ladeleistung des Autos (kW, Standard 11)"
             }
           },
           "look": {
@@ -145,7 +148,8 @@
           "messaging_companion": "Companion-App (Push)",
           "messaging_telegram": "Telegram",
           "messaging_whatsapp": "WhatsApp",
-          "thresholds": "Tankerkennung (Feintuning)"
+          "thresholds": "Tankerkennung (Feintuning)",
+          "wallbox": "Heim-Wallbox (optional, experimentell)"
         }
       },
       "general": {
@@ -195,7 +199,10 @@
             "data": {
               "level_entity": "Tankinhalt / Ladestand (%)",
               "odometer_entity": "Kilometerstand",
-              "tracker_entity": "GPS-Position (device_tracker)"
+              "tracker_entity": "GPS-Position (device_tracker)",
+              "power_entity": "Ladeleistung des Autos (optional, für AC/DC)",
+              "charge_type_entity": "Ladeart des Autos (optional, Sensor mit AC/DC)",
+              "max_ac_kw": "Größte AC-Ladeleistung des Autos (kW, Standard 11)"
             }
           },
           "look": {
@@ -279,6 +286,17 @@
           "whatsapp_detect": "Meldung bei erkanntem Tankvorgang und fehlendem Beleg",
           "whatsapp_timing": "Zeitpunkt der Meldung",
           "test": "Testnachricht senden"
+        }
+      },
+      "wallbox": {
+        "title": "Heim-Wallbox (optional, experimentell)",
+        "description": "Nur für Fahrzeuge, die zu Hause laden. Mit dem Zählerstand der Wallbox übernimmt Drive Energy Doc die tatsächlich gelieferte Menge (mit Ladeverlusten) und lernt daraus die Verluste. Hat das Auto woanders geladen oder laden zwei Autos zugleich an derselben Wallbox, wird die Menge nicht übernommen und die Schätzung bleibt.",
+        "data": {
+          "wb_energy_entity": "Zählerstand der Wallbox (kWh, wächst nur beim Laden)",
+          "wb_power_entity": "Ladeleistung der Wallbox (optional, genauerer Beginn)",
+          "wb_price_entity": "Preis €/kWh der Ladung (Sensor, z. B. Mischpreis; leer = Strompreis aus den Einstellungen)",
+          "wb_solar_entity": "Solaranteil der Ladung in % (Sensor, optional)",
+          "plug_entity": "Stecker: Auto angesteckt (Sensor, optional; die Ladung endet dann erst beim Abstecken oder Wegfahren)"
         }
       }
     },

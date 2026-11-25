@@ -218,5 +218,18 @@
  "Tanken & Laden": "Гориво и батерия",
  "Zeilenfarben": "Цветове на редовете",
  "an": "вкл.",
- "aus": "изкл."
+ "aus": "изкл.",
+ "berechnet (korrigiert)": "изчислено (коригирано)",
+ "Ladeart": "Вид зареждане",
+ "unbekannt": "неизвестно",
+ "Sensor des Autos": "Сензор на колата",
+ "Spitzenleistung": "Пикова мощност",
+ "mittlere Leistung": "средна мощност",
+ "Schätzung aus dem Füllstand: {0} {1} (Menge weicht um {2} % ab)": "Оценка по нивото: {0} {1} (количеството се отклонява с {2} %)",
+ "Korrektur": "Корекция",
+ "wallbox": "Wallbox",
+ "Lädt gerade": "Зарежда се",
+ "Solaranteil": "Слънчев дял",
+ "Heimladen": "Зареждане у дома",
+ "pausiert": "На пауза"
 }

@@ -216,5 +216,18 @@
  "Tanken & Laden": "Yakıt alma ve şarj",
  "Zeilenfarben": "Satır renkleri",
  "an": "açık",
- "aus": "kapalı"
+ "aus": "kapalı",
+ "berechnet (korrigiert)": "hesaplanan (düzeltilmiş)",
+ "Ladeart": "Şarj türü",
+ "unbekannt": "bilinmiyor",
+ "Sensor des Autos": "Aracın sensörü",
+ "Spitzenleistung": "Tepe güç",
+ "mittlere Leistung": "ortalama güç",
+ "Schätzung aus dem Füllstand: {0} {1} (Menge weicht um {2} % ab)": "Seviyeye göre tahmin: {0} {1} (miktar %{2} farklı)",
+ "Korrektur": "Düzeltme",
+ "wallbox": "Wallbox",
+ "Lädt gerade": "Şu anda şarj oluyor",
+ "Solaranteil": "Güneş payı",
+ "Heimladen": "Evde şarj",
+ "pausiert": "Duraklatıldı"
 }

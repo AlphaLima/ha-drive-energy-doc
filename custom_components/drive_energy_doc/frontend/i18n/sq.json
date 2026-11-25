@@ -216,5 +216,18 @@
  "Tanken & Laden": "Karburant dhe karikim",
  "Zeilenfarben": "Ngjyrat e rreshtave",
  "an": "aktiv",
- "aus": "joaktiv"
+ "aus": "joaktiv",
+ "berechnet (korrigiert)": "llogaritur (korrigjuar)",
+ "Ladeart": "Lloji i karikimit",
+ "unbekannt": "i panjohur",
+ "Sensor des Autos": "Sensori i makinës",
+ "Spitzenleistung": "Fuqia maksimale",
+ "mittlere Leistung": "fuqia mesatare",
+ "Schätzung aus dem Füllstand: {0} {1} (Menge weicht um {2} % ab)": "Vlerësim sipas nivelit: {0} {1} (sasia ndryshon me {2} %)",
+ "Korrektur": "Korrigjim",
+ "wallbox": "Wallbox",
+ "Lädt gerade": "Po ngarkohet tani",
+ "Solaranteil": "Pjesa diellore",
+ "Heimladen": "Ngarkim në shtëpi",
+ "pausiert": "Në pauzë"
 }

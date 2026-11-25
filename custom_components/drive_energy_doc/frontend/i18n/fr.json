@@ -216,5 +216,18 @@
  "Tanken & Laden": "Plein et recharge",
  "Zeilenfarben": "Couleurs des lignes",
  "an": "activé",
- "aus": "désactivé"
+ "aus": "désactivé",
+ "berechnet (korrigiert)": "calculé (corrigé)",
+ "Ladeart": "Type de charge",
+ "unbekannt": "inconnu",
+ "Sensor des Autos": "Capteur du véhicule",
+ "Spitzenleistung": "Puissance maximale",
+ "mittlere Leistung": "puissance moyenne",
+ "Schätzung aus dem Füllstand: {0} {1} (Menge weicht um {2} % ab)": "Estimation d'après le niveau : {0} {1} (la quantité diffère de {2} %)",
+ "Korrektur": "Correction",
+ "wallbox": "Wallbox",
+ "Lädt gerade": "En charge",
+ "Solaranteil": "Part solaire",
+ "Heimladen": "Charge à domicile",
+ "pausiert": "En pause"
 }

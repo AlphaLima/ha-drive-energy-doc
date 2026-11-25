@@ -216,5 +216,18 @@
  "Tanken & Laden": "Tankning och laddning",
  "Zeilenfarben": "Radfärger",
  "an": "på",
- "aus": "av"
+ "aus": "av",
+ "berechnet (korrigiert)": "beräknat (korrigerat)",
+ "Ladeart": "Laddningstyp",
+ "unbekannt": "okänd",
+ "Sensor des Autos": "Bilens sensor",
+ "Spitzenleistung": "Toppeffekt",
+ "mittlere Leistung": "medeleffekt",
+ "Schätzung aus dem Füllstand: {0} {1} (Menge weicht um {2} % ab)": "Uppskattning efter nivån: {0} {1} (mängden avviker med {2} %)",
+ "Korrektur": "Korrigering",
+ "wallbox": "Wallbox",
+ "Lädt gerade": "Laddar nu",
+ "Solaranteil": "Solandel",
+ "Heimladen": "Hemmaladdning",
+ "pausiert": "Pausad"
 }

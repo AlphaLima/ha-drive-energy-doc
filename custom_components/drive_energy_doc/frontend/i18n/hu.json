@@ -216,5 +216,18 @@
  "Tanken & Laden": "Tankolás és töltés",
  "Zeilenfarben": "Sorszínek",
  "an": "be",
- "aus": "ki"
+ "aus": "ki",
+ "berechnet (korrigiert)": "számított (korrigált)",
+ "Ladeart": "Töltés típusa",
+ "unbekannt": "ismeretlen",
+ "Sensor des Autos": "Az autó érzékelője",
+ "Spitzenleistung": "Csúcsteljesítmény",
+ "mittlere Leistung": "átlagteljesítmény",
+ "Schätzung aus dem Füllstand: {0} {1} (Menge weicht um {2} % ab)": "Becslés a szint alapján: {0} {1} (a mennyiség {2} %-kal tér el)",
+ "Korrektur": "Korrekció",
+ "wallbox": "Wallbox",
+ "Lädt gerade": "Most tölt",
+ "Solaranteil": "Napenergia-arány",
+ "Heimladen": "Otthoni töltés",
+ "pausiert": "Szünetel"
 }

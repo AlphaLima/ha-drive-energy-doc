@@ -83,7 +83,7 @@ def s_whatsapp(d: dict) -> vol.Schema:
 
 BASIC_SECTIONS = {
     "vehicle": [CONF_NAME, CONF_ENERGY, CONF_PHEV, CONF_CAPACITY],
-    "sensors": [CONF_LEVEL, CONF_ODOMETER, CONF_TRACKER],
+    "sensors": [CONF_LEVEL, CONF_ODOMETER, CONF_TRACKER, CONF_POWER, CONF_CHARGE_TYPE, CONF_AC_MAX],
     "look": [CONF_PLATE, CONF_PLATE_COUNTRY, CONF_VEHICLE_TYPE, CONF_LANGUAGE, CONF_IMAGE, "image_upload", "image_remove"],
 }
 
@@ -123,6 +123,9 @@ def s_basic_fields(d: dict, hass_country: str | None = None) -> vol.Schema:
             _text(CONF_LEVEL, d): _ent(["sensor", "number"]),
             _text(CONF_ODOMETER, d): _ent(["sensor", "number"]),
             _text(CONF_TRACKER, d): _ent(["device_tracker"]),
+            _text(CONF_POWER, d): _ent(["sensor", "number"]),
+            _text(CONF_CHARGE_TYPE, d): _ent(["sensor", "select"]),
+            _text(CONF_AC_MAX, d): _num("kW", 1, 50),
             # Optional (nur Aussehen): Kennzeichen, Land, Typ, Bild
             _text(CONF_PLATE, d): str,
             vol.Optional(CONF_PLATE_COUNTRY, description={"suggested_value": d.get(CONF_PLATE_COUNTRY, default_cc)}): _country_selector(),
@@ -256,6 +259,19 @@ class _MessagingMixin:
 
     async def async_step_msg_back(self, user_input=None):
         return await self._msg_step(None, self._channel)  # Eingaben bleiben stehen
+
+
+def s_wallbox(d: dict) -> vol.Schema:
+    """Eigenes Untermenü „Heim-Wallbox“: getrennt von den Sensoren des Autos, alles optional."""
+    return vol.Schema(
+        {
+            _text(CONF_WB_ENERGY, d): _ent(["sensor", "number"]),
+            _text(CONF_WB_POWER, d): _ent(["sensor", "number"]),
+            _text(CONF_WB_PRICE, d): _ent(["sensor", "input_number", "number"]),
+            _text(CONF_WB_SOLAR, d): _ent(["sensor", "number"]),
+            _text(CONF_PLUG, d): _ent(["binary_sensor", "sensor"]),
+        }
+    )
 
 
 def s_thresholds(d: dict) -> vol.Schema:
@@ -552,7 +568,9 @@ class DriveEnergyDocOptionsFlow(_MessagingMixin, OptionsFlow):
         if self._cur().get(CONF_KIND) == KIND_SETTINGS:
             return self.async_show_menu(step_id="init", menu_options=["whatsapp", "general", "price_key"])
         enabled = get_settings(self.hass).get(CONF_CHANNELS) or CHANNELS
-        return self.async_show_menu(step_id="init", menu_options=["basic", *[f"messaging_{c}" for c in CHANNELS if c in enabled], "thresholds"])
+        cur = self._cur()
+        home = ["wallbox"] if (cur.get(CONF_ENERGY) == "electric" or cur.get(CONF_PHEV)) else []   # nur für Fahrzeuge, die laden
+        return self.async_show_menu(step_id="init", menu_options=["basic", *[f"messaging_{c}" for c in CHANNELS if c in enabled], "thresholds", *home])
 
     async def _form(self, step: str, schema: vol.Schema, user_input, check=None) -> ConfigFlowResult:
         errors, detail = {}, ""
@@ -626,6 +644,9 @@ class DriveEnergyDocOptionsFlow(_MessagingMixin, OptionsFlow):
         out = {k: v for k, v in dict(self.config_entry.options).items() if k not in keys}
         out.update(_clean(flat))
         return self.async_create_entry(data=out)
+
+    async def async_step_wallbox(self, user_input=None) -> ConfigFlowResult:
+        return await self._form("wallbox", s_wallbox(self._cur()), user_input)
 
     async def async_step_thresholds(self, user_input=None) -> ConfigFlowResult:
         return await self._form("thresholds", s_thresholds(self._cur()), user_input)

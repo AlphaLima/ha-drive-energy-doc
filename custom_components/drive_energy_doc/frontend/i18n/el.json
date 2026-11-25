@@ -216,5 +216,18 @@
  "Tanken & Laden": "Ανεφοδιασμός και φόρτιση",
  "Zeilenfarben": "Χρώματα γραμμών",
  "an": "ενεργό",
- "aus": "ανενεργό"
+ "aus": "ανενεργό",
+ "berechnet (korrigiert)": "υπολογισμένο (διορθωμένο)",
+ "Ladeart": "Τύπος φόρτισης",
+ "unbekannt": "άγνωστο",
+ "Sensor des Autos": "Αισθητήρας οχήματος",
+ "Spitzenleistung": "Μέγιστη ισχύς",
+ "mittlere Leistung": "μέση ισχύς",
+ "Schätzung aus dem Füllstand: {0} {1} (Menge weicht um {2} % ab)": "Εκτίμηση από τη στάθμη: {0} {1} (η ποσότητα διαφέρει κατά {2} %)",
+ "Korrektur": "Διόρθωση",
+ "wallbox": "Wallbox",
+ "Lädt gerade": "Φορτίζει τώρα",
+ "Solaranteil": "Ηλιακό ποσοστό",
+ "Heimladen": "Φόρτιση στο σπίτι",
+ "pausiert": "Σε παύση"
 }

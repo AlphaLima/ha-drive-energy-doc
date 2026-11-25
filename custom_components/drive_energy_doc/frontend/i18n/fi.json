@@ -216,5 +216,18 @@
  "Tanken & Laden": "Tankkaus ja lataus",
  "Zeilenfarben": "Rivien värit",
  "an": "päällä",
- "aus": "pois"
+ "aus": "pois",
+ "berechnet (korrigiert)": "laskettu (korjattu)",
+ "Ladeart": "Latauksen tyyppi",
+ "unbekannt": "tuntematon",
+ "Sensor des Autos": "Auton anturi",
+ "Spitzenleistung": "Huipputeho",
+ "mittlere Leistung": "keskimääräinen teho",
+ "Schätzung aus dem Füllstand: {0} {1} (Menge weicht um {2} % ab)": "Arvio tason mukaan: {0} {1} (määrä poikkeaa {2} %)",
+ "Korrektur": "Korjaus",
+ "wallbox": "Wallbox",
+ "Lädt gerade": "Latautuu nyt",
+ "Solaranteil": "Aurinko-osuus",
+ "Heimladen": "Kotilataus",
+ "pausiert": "Tauolla"
 }

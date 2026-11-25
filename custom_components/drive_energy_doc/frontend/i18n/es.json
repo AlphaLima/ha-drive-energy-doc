@@ -216,5 +216,18 @@
  "Tanken & Laden": "Repostaje y carga",
  "Zeilenfarben": "Colores de filas",
  "an": "activado",
- "aus": "desactivado"
+ "aus": "desactivado",
+ "berechnet (korrigiert)": "calculado (corregido)",
+ "Ladeart": "Tipo de carga",
+ "unbekannt": "desconocido",
+ "Sensor des Autos": "Sensor del coche",
+ "Spitzenleistung": "Potencia máxima",
+ "mittlere Leistung": "potencia media",
+ "Schätzung aus dem Füllstand: {0} {1} (Menge weicht um {2} % ab)": "Estimación según el nivel: {0} {1} (la cantidad difiere un {2} %)",
+ "Korrektur": "Corrección",
+ "wallbox": "Wallbox",
+ "Lädt gerade": "Cargando ahora",
+ "Solaranteil": "Parte solar",
+ "Heimladen": "Carga en casa",
+ "pausiert": "En pausa"
 }

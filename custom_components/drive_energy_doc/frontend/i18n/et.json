@@ -216,5 +216,18 @@
  "Tanken & Laden": "Tankimine ja laadimine",
  "Zeilenfarben": "Ridade värvid",
  "an": "sees",
- "aus": "väljas"
+ "aus": "väljas",
+ "berechnet (korrigiert)": "arvutatud (parandatud)",
+ "Ladeart": "Laadimise tüüp",
+ "unbekannt": "teadmata",
+ "Sensor des Autos": "Auto andur",
+ "Spitzenleistung": "Tippvõimsus",
+ "mittlere Leistung": "keskmine võimsus",
+ "Schätzung aus dem Füllstand: {0} {1} (Menge weicht um {2} % ab)": "Hinnang taseme järgi: {0} {1} (kogus erineb {2} %)",
+ "Korrektur": "Korrektsioon",
+ "wallbox": "Wallbox",
+ "Lädt gerade": "Laeb praegu",
+ "Solaranteil": "Päikeseenergia osa",
+ "Heimladen": "Kodulaadimine",
+ "pausiert": "Pausil"
 }

@@ -216,5 +216,18 @@
  "Tanken & Laden": "Гориво и батерија",
  "Zeilenfarben": "Бои на редовите",
  "an": "вклучено",
- "aus": "исклучено"
+ "aus": "исклучено",
+ "berechnet (korrigiert)": "пресметано (коригирано)",
+ "Ladeart": "Тип на полнење",
+ "unbekannt": "непознато",
+ "Sensor des Autos": "Сензор на возилото",
+ "Spitzenleistung": "Врвна моќност",
+ "mittlere Leistung": "просечна моќност",
+ "Schätzung aus dem Füllstand: {0} {1} (Menge weicht um {2} % ab)": "Проценка според нивото: {0} {1} (количината отстапува за {2} %)",
+ "Korrektur": "Корекција",
+ "wallbox": "Wallbox",
+ "Lädt gerade": "Се полни сега",
+ "Solaranteil": "Удел на сончева енергија",
+ "Heimladen": "Полнење дома",
+ "pausiert": "Паузирано"
 }

@@ -22,7 +22,7 @@ from homeassistant.helpers.storage import Store
 from homeassistant.util import dt as dt_util
 
 from . import channels as chan
-from . import messages, receipt, stats
+from . import charge, messages, receipt, stats, wallbox
 from .const import *  # noqa: F403
 from .detector import FuelDetector
 from .price import lookup, resolve_provider
@@ -92,6 +92,7 @@ class Vehicle:
             require_distance=False,
             reject_moving=True,   # Anstieg des Akkus beim Fahren (Rekuperation) ist kein Laden
         ) if self.phev and o.get(CONF_LEVEL_EL) else None
+        self._wb = wallbox.Log()   # Verlauf der Heim-Wallbox (nur im Speicher)
         self._pos: tuple[float, float] | None = None
         self._exif_pos: tuple[float, float] | None = None   # Aufnahmeort des Fotos, das gerade gelesen wird (Foto-Metadaten)
         self._capture: list[str] | None = None
@@ -147,7 +148,8 @@ class Vehicle:
             lvl_el = self._read_float(o.get(CONF_LEVEL_EL))
             if lvl_el is not None:
                 self.detector_el.prev_level = lvl_el
-        tracked = [e for e in (o.get(CONF_LEVEL), o.get(CONF_LEVEL_EL) if self.detector_el else None, o.get(CONF_TRACKER)) if e]
+        tracked = [e for e in (o.get(CONF_LEVEL), o.get(CONF_LEVEL_EL) if self.detector_el else None, o.get(CONF_TRACKER), o.get(CONF_POWER), o.get(CONF_CHARGE_TYPE), o.get(CONF_WB_ENERGY), o.get(CONF_WB_POWER), o.get(CONF_PLUG)) if e]
+        self._wb_sample()
         self._unsubs.append(async_track_state_change_event(self.hass, tracked, self._state_changed))
         self._unsubs.append(async_track_time_interval(self.hass, self._tick, CHECK_EVERY))
         if o.get(CONF_TG_TOKEN) and o.get(CONF_TG_CHAT) and o.get(CONF_CH_ON["telegram"], True):
@@ -319,6 +321,15 @@ class Vehicle:
             self._pos = self._read_pos()
             self._tick(None)
             return
+        if entity == self.o.get(CONF_PLUG) and entity not in (self.o.get(CONF_LEVEL), self.o.get(CONF_LEVEL_EL)):
+            self._tick(None)   # abgesteckt: die Ladung kann abgeschlossen werden
+            return
+        if entity in (self.o.get(CONF_WB_ENERGY), self.o.get(CONF_WB_POWER)) and entity not in (self.o.get(CONF_LEVEL), self.o.get(CONF_LEVEL_EL)):
+            self._wb_sample()   # Verlauf der Heim-Wallbox mitschreiben
+            return
+        if entity in (self.o.get(CONF_POWER), self.o.get(CONF_CHARGE_TYPE)) and entity not in (self.o.get(CONF_LEVEL), self.o.get(CONF_LEVEL_EL)):
+            self._sample_charge()   # Ladeleistung und Ladeart des Autos während des Ladens
+            return
         level = self._read_float(entity)
         if level is None:
             return
@@ -326,6 +337,10 @@ class Vehicle:
         result = det.on_level(level, time.time(), self._pos, self._read_float(self.o.get(CONF_ODOMETER)))
         if result in ("started", "valid", "cancelled"):
             self._save()
+        if result in ("started", "valid"):
+            self._sample_charge()
+        elif det.pending and det.pending.valid and det is self._charge_det():
+            self._panel("changed")   # laufende Ladung: die türkise Zeile im Panel nachführen
         if result == "valid":
             self.hass.async_create_task(self._fetch_price(None, det))
             if self._push_at_start(det):
@@ -384,14 +399,166 @@ class Vehicle:
     @callback
     def _tick(self, _now) -> None:
         self._pos = self._read_pos() or self._pos
+        self._wb_sample()
+        self._sample_charge()
         finished = False
+        plugged, odo = self._plugged(), self._read_float(self.o.get(CONF_ODOMETER))
         for det in self._detectors():
-            done = det.check(time.time(), self._pos)
+            done = det.check(time.time(), self._pos, odo, plugged if det is self._charge_det() else None)
             if done:
                 finished = True
                 self.hass.async_create_task(self._finish(done, det is self.detector_el))
         if not finished:
             self._notify_entities()
+            lv = self._charge_det()
+            if lv and lv.pending and lv.pending.valid and time.time() - getattr(self, "_live_ts", 0) >= 60:
+                self._live_ts = time.time()
+                self._panel("changed")   # laufende Ladung: Zeile im Panel jede Minute nachführen
+
+    def _plugged(self) -> bool | None:
+        """Stecker-Sensor: True angesteckt, False abgesteckt, None ohne Sensor oder unbekannt."""
+        e = self.o.get(CONF_PLUG)
+        st = self.hass.states.get(e) if e else None
+        return wallbox.parse_plug(st.state) if st else None
+
+    def _wb_sample(self) -> None:
+        """Zählerstand und Leistung der Heim-Wallbox in den Verlauf schreiben."""
+        ee = self.o.get(CONF_WB_ENERGY)
+        if not ee:
+            return
+        kwh = self._read_float(ee)
+        st = self.hass.states.get(ee)
+        if kwh is not None:
+            kwh = wallbox.to_kwh(kwh, st.attributes.get("unit_of_measurement") if st else None)
+        pe = self.o.get(CONF_WB_POWER)
+        w = self._read_float(pe)
+        if w is not None:
+            ps = self.hass.states.get(pe)
+            w = wallbox.to_watt(w, ps.attributes.get("unit_of_measurement") if ps else None)
+        elif pe and (self.hass.states.get(pe) is None or self.hass.states.get(pe).state in ("unavailable", "unknown")):
+            w = 0.0   # Wallbox stromlos oder abgeschaltet: der letzte Leistungswert bleibt nicht stehen
+        self._wb.add(time.time(), kwh, w)
+
+    def _wb_price_now(self) -> float | None:
+        raw = self.o.get(CONF_WB_PRICE)
+        if not raw:
+            return None
+        try:
+            return float(raw)
+        except (TypeError, ValueError):
+            return self._read_float(str(raw))
+
+    def _wb_match(self, done: dict, est: float | None) -> tuple[float | None, str | None]:
+        """Energie der Heim-Wallbox für diese Ladung: (kWh, None) oder (None, Grund), wenn sie nicht zugeordnet werden kann."""
+        self._wb_sample()
+        ex = done.get("extras") or {}
+        now = time.time()
+        stored = ex.get("wb_end") if ex.get("wb_base") is not None else None   # während der Ladung mitgeschrieben: gilt auch über lange Pausen und einen Neustart
+        end = stored[0] if stored else min(now, done["last_increase_ts"] + max(self.detector.settle_seconds, 900))
+        others: list[dict] = []
+        for v in self.hass.data.get(DOMAIN, {}).get("vehicles", {}).values():   # dieselbe Wallbox bei einem anderen Fahrzeug: nicht raten, wenn die Zeiten sich überlappen
+            if v is self or v.o.get(CONF_WB_ENERGY) != self.o.get(CONF_WB_ENERGY):
+                continue
+            others += [{"ts_start": x.get("ts_start"), "ts": x.get("ts")} for x in v.data["entries"][-30:] if x.get("kind") != "extra"]
+            d = v._charge_det()
+            if d and d.pending:
+                others.append({"ts_start": d.pending.start_ts, "ts": now})
+        if wallbox.shared_conflict(done["start_ts"], end, others):
+            return None, "geteilt"
+        kwh = round(stored[1] - ex["wb_base"], 3) if stored and stored[1] >= ex["wb_base"] else self._wb.energy(done["start_ts"], end)
+        if kwh is None:
+            return None, "kein Verlauf"
+        if not wallbox.plausible(kwh, est):
+            return None, "passt nicht"
+        return kwh, None
+
+    def _charge_det(self) -> FuelDetector | None:
+        """Erkennung, die das Laden (Strom) verfolgt: bei Elektroauto die einzige, beim Plug-in-Hybrid die für den Akku."""
+        return self.detector_el if self.detector_el else (self.detector if self.electric else None)
+
+    def _ac_max(self) -> float | None:
+        try:
+            return float(self.o.get(CONF_AC_MAX)) if self.o.get(CONF_AC_MAX) else None
+        except (TypeError, ValueError):
+            return None
+
+    def _sample_charge(self) -> None:
+        """Während eines Ladevorgangs die Spitzenleistung und die Ladeart des Autos merken (steht beim Abschluss nicht mehr zur Verfügung)."""
+        det = self._charge_det()
+        p = det.pending if det else None
+        if not p:
+            return
+        ex = p.extras
+        if self.o.get(CONF_WB_ENERGY) and self._wb.s:
+            if ex.get("wb_base") is None:
+                b = self._wb.baseline(p.start_ts)
+                if b is not None:
+                    ex["wb_base"] = b
+                    self._save()
+            cur = self._wb.s[-1]
+            if ex.get("wb_base") is not None and cur[1] > (ex.get("wb_end") or [0, ex["wb_base"]])[1]:
+                ex["wb_end"] = [cur[0], cur[1]]   # letzter Zählerstand, bei dem die Wallbox noch geliefert hat
+                if time.time() - getattr(self, "_wb_saved", 0) > 300:
+                    self._wb_saved = time.time()
+                    self._save()
+        pe = self.o.get(CONF_POWER)
+        if pe:
+            w = self._read_float(pe)
+            st = self.hass.states.get(pe)
+            if w is not None:
+                if str((st.attributes.get("unit_of_measurement") if st else "") or "").lower() == "kw":
+                    w *= 1000
+                if w > (ex.get("peak_w") or 0):
+                    ex["peak_w"] = round(w)
+        if self.o.get(CONF_WB_PRICE):   # Preis der Wallbox über die Ladung mitteln (Mischpreis ändert sich mit der Sonne)
+            pr = self._wb_price_now()
+            if pr is not None:
+                ex["wbp_sum"] = round(ex.get("wbp_sum", 0) + pr, 4)
+                ex["wbp_n"] = ex.get("wbp_n", 0) + 1
+        se = self.o.get(CONF_WB_SOLAR)
+        if se:   # Solaranteil der Ladung über die Zeit mitteln
+            sv = self._read_float(se)
+            if sv is not None:
+                ex["wbs_sum"] = round(ex.get("wbs_sum", 0) + sv, 2)
+                ex["wbs_n"] = ex.get("wbs_n", 0) + 1
+        te = self.o.get(CONF_CHARGE_TYPE)
+        if te:
+            st = self.hass.states.get(te)
+            t = charge.parse_type(st.state if st else None)
+            if t and (t == "dc" or ex.get("ctype") is None) and ex.get("ctype") != t:
+                ex["ctype"] = t   # DC gewinnt: ein später gemeldetes AC überschreibt es nicht
+                self._save()
+
+    def live(self) -> dict | None:
+        """Laufende Ladung (gültiger Anstieg, noch nicht abgeschlossen) für die türkise Zeile im Panel."""
+        det = self._charge_det()
+        p = det.pending if det else None
+        if not p or not p.valid:
+            return None
+        cap = self.capacity_el if self.detector_el else self.capacity
+        est = round((p.level - p.start_level) / 100 * cap, 2) if cap else None
+        ex = p.extras
+        kwh = round(ex["wb_end"][1] - ex["wb_base"], 3) if (ex.get("wb_base") is not None and ex.get("wb_end")) else (self._wb.energy(p.start_ts, time.time()) if self.o.get(CONF_WB_ENERGY) else None)
+        w = self._wb.s[-1][2] if (self.o.get(CONF_WB_POWER) and self._wb.s) else None
+        if w is not None and w < wallbox.IDLE_WATT:
+            w = None
+        paused = time.time() - p.last_increase_ts > max(det.settle_seconds, 300) and not w
+        return {"ts_start": p.start_ts, "level_from": round(p.start_level, 1), "level_to": round(p.level, 1), "est_quantity": est, "wb_kwh": kwh if (kwh and kwh > 0) else None, "kw": round(w / 1000, 1) if w else None, "paused": paused}
+
+    def correction(self) -> dict:
+        """Korrekturfaktoren (Beleg geteilt durch Schätzung) je Energieart und Ladeart für die Anzeige im Panel."""
+        out: dict[str, Any] = {}
+        kinds = [("electric", self.capacity if self.electric else self.capacity_el)] if (self.electric or self.phev) else []
+        if not self.electric:
+            kinds.append(("fuel", self.capacity))
+        for kind, cap in kinds:
+            row = {}
+            for ct in (None, "ac", "dc"):
+                f, n, _ = charge.factor(self.data["entries"], kind, cap, ct)
+                if ct is None or charge.samples(self.data["entries"], kind, cap, ct):
+                    row[ct or "all"] = {"factor": f, "n": len(charge.samples(self.data["entries"], kind, cap, ct))}
+            out[kind] = row
+        return out
 
     def _detectors(self) -> list[FuelDetector]:
         return [self.detector] + ([self.detector_el] if self.detector_el else [])
@@ -453,7 +620,17 @@ class Vehicle:
             ex = await self._fetch_price({**done, "pos": (done["lat"], done["lon"]), **ex}, self.detector_el if el else None) or ex
         pct = done["level"] - done["start_level"]
         cap = self.capacity_el if el else self.capacity   # Plug-in-Hybrid: Akku (kWh) oder Tank (l)
-        qty = round(pct / 100 * cap, 2) if cap else None
+        est = round(pct / 100 * cap, 2) if cap else None   # Schätzung: Zuwachs mal Kapazität; sie bleibt am Eintrag, auch wenn ein Beleg die Menge ersetzt
+        kind = "electric" if (el or self.electric) else "fuel"
+        ctype = csrc = ckw = None
+        if kind == "electric":
+            ctype, csrc, ckw = charge.classify(ex.get("ctype"), ex.get("peak_w"), charge.avg_power_kw(est, done.get("start_ts"), done.get("last_increase_ts"), pct), self._ac_max())
+        fac, _n, _grp = charge.factor(self.data["entries"], kind, cap, ctype)   # gelernter Korrekturfaktor aus Einträgen mit Beleg
+        qty = round(est * fac, 2) if (est and fac) else est
+        src = "berechnet (korrigiert)" if (est and fac) else "berechnet"
+        wb, wb_note = (self._wb_match(done, est) if (kind == "electric" and self.o.get(CONF_WB_ENERGY)) else (None, None))
+        if wb:
+            qty, src = wb, "wallbox"   # gemessene Energie der Heim-Wallbox (einschließlich der Ladeverluste)
         entry = {
             "id": uuid.uuid4().hex[:12],
             "ts": done["last_increase_ts"],
@@ -468,7 +645,7 @@ class Vehicle:
             "level_from": round(done["start_level"], 1),
             "level_to": round(done["level"], 1),
             "quantity": qty,
-            "quantity_source": "berechnet",
+            "quantity_source": src,
             "unit_price": ex.get("unit_price"),
             "price_source": ex.get("price_source"),
             "total": None,
@@ -478,6 +655,24 @@ class Vehicle:
         }
         if el:
             entry["energy"] = "electric"
+        if est:
+            entry["est_quantity"] = est
+        if est and fac:
+            entry["est_factor"] = fac
+        if ctype:
+            entry["charge_type"], entry["charge_src"] = ctype, csrc
+        if ckw and kind == "electric":
+            entry["charge_kw"] = ckw
+        if wb:
+            entry["wb_kwh"] = wb
+            if ex.get("wbs_n"):
+                entry["solar_pct"] = round(max(0.0, min(100.0, ex["wbs_sum"] / ex["wbs_n"])))
+            n = ex.get("wbp_n")
+            price = (ex["wbp_sum"] / n) if n else self._wb_price_now()
+            if price:
+                entry["unit_price"], entry["price_source"] = round(price, 4), "Wallbox"
+        elif wb_note:
+            entry["wb_note"] = wb_note   # Wallbox ist eingerichtet, aber die Menge wurde nicht übernommen (geteilt, kein Verlauf, passt nicht)
         entry["total"] = round(qty * entry["unit_price"], 2) if qty and entry["unit_price"] else None
         entry["photos"].extend(ex.get("extra_photos", []))
         r = ex.get("receipt")
@@ -1340,6 +1535,9 @@ class Vehicle:
             entry["odometer"], entry["odometer_source"] = float(values["odometer"]), "beleg"   # nur wenn kein besserer Stand da ist
         if q or p or t:
             entry["receipt"] = True
+        ct = charge.parse_type(values.get("charge_type"))
+        if ct and entry.get("kind") != "extra" and entry.get("charge_src") != "sensor" and (self.electric or entry.get("energy") == "electric" or values.get("category") == "charging"):
+            entry["charge_type"], entry["charge_src"] = ct, "beleg"   # Ladeart vom Beleg oder der Säule, nur der Sensor des Autos geht vor
         if values.get("fuel_grade") in receipt.FUEL_GRADES and entry.get("kind") != "extra" and entry.get("energy") != "electric" and values.get("category") in (None, "fuel"):
             entry["fuel"] = values["fuel_grade"]   # Sorte vom Beleg (z. B. Super E10 oder Super Plus)
         if self.phev and values.get("category") in ("fuel", "charging") and entry.get("kind") != "extra":
@@ -1443,6 +1641,12 @@ class Vehicle:
             e["quantity_source"] = "manuell"
         if "unit_price" in fields and fields["unit_price"] not in (None, ""):
             e["price_source"] = "manuell"
+        if "charge_type" in fields:   # Ladeart von Hand: AC, DC oder leer (unbekannt)
+            if fields["charge_type"] in ("ac", "dc") and e.get("kind") != "extra":
+                e["charge_type"], e["charge_src"] = fields["charge_type"], "manuell"
+            else:
+                for k in ("charge_type", "charge_src"):
+                    e.pop(k, None)
         if "fuel" in fields:   # Kraftstoffsorte (nur bei Tank-Einträgen)
             if fields["fuel"] in receipt.FUEL_GRADES and e.get("kind") != "extra" and e.get("energy") != "electric":
                 e["fuel"] = fields["fuel"]
@@ -1592,6 +1796,8 @@ class Vehicle:
             "avg_consumption_electric": round(sum(cons_el) / len(cons_el), 2) if cons_el else None,
             "cost_12m": round(sum(e.get("total") or 0 for e in es if e["ts"] >= year_ago), 2),
             "count": len(es),
+            "correction": self.correction(),
+            "live": self.live(),
             "status": "idle" if not any(d.pending for d in self._detectors()) else ("refuelling" if self._valid_pending() else "candidate"),
         }
 

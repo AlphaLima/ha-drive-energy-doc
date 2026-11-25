@@ -216,5 +216,18 @@
  "Tanken & Laden": "Repostatge i càrrega",
  "Zeilenfarben": "Colors de les files",
  "an": "activat",
- "aus": "desactivat"
+ "aus": "desactivat",
+ "berechnet (korrigiert)": "calculat (corregit)",
+ "Ladeart": "Tipus de càrrega",
+ "unbekannt": "desconegut",
+ "Sensor des Autos": "Sensor del cotxe",
+ "Spitzenleistung": "Potència màxima",
+ "mittlere Leistung": "potència mitjana",
+ "Schätzung aus dem Füllstand: {0} {1} (Menge weicht um {2} % ab)": "Estimació segons el nivell: {0} {1} (la quantitat difereix un {2} %)",
+ "Korrektur": "Correcció",
+ "wallbox": "Wallbox",
+ "Lädt gerade": "Carregant ara",
+ "Solaranteil": "Part solar",
+ "Heimladen": "Càrrega a casa",
+ "pausiert": "En pausa"
 }
