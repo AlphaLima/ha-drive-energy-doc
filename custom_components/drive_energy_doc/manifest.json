@@ -2,7 +2,8 @@
   "domain": "drive_energy_doc",
   "name": "Drive Energy Doc",
   "after_dependencies": [
-    "ai_task"
+    "ai_task",
+    "recorder"
   ],
   "categories": [
     "vehicles_transport.cars_evs",
@@ -24,5 +25,5 @@
   "iot_class": "cloud_polling",
   "issue_tracker": "https://github.com/AlphaLima/ha-drive-energy-doc/issues",
   "requirements": [],
-  "version": "0.1.84"
+  "version": "0.1.85"
 }

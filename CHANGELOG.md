@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.1.85 (26.11.2026)
+- Hassfest: `recorder` in `after_dependencies` (Wallbox-Verlauf nach Neustart), doppeltes `brand/logo.png` entfernt (gleich `icon.png`).
+
 ## 0.1.84 (26.11.2026)
 - Review (HACS): Fotos werden komplett im Executor benannt und abgelegt (kein Dateizugriff mehr im Event-Loop, auch nicht beim Neueinlesen); Foto-Namen aus dem Panel werden nur noch angenommen, wenn die Integration sie selbst beim Scan vergeben hat (kein Pfad wie ../configuration.yaml möglich).
 - Neustart-Sicherheit: Ein laufender Lade- oder Tankvorgang (Füllstand, letzter Anstieg) wird jetzt jede Minute und beim Herunterfahren gesichert; was während des Neustarts weitergeladen wurde, wird beim Start nachgezogen. Die Zeile „Lädt gerade“ erscheint schon, sobald die Wallbox liefert und das Auto noch keinen Anstieg gemeldet hat.

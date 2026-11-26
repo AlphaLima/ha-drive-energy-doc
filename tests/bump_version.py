@@ -16,7 +16,7 @@ panel_path = base / "frontend" / "drive-energy-doc-panel.js"
 DEFAULT = {
     "domain": "drive_energy_doc",
     "name": "Drive Energy Doc",
-    "after_dependencies": ["ai_task"],
+    "after_dependencies": ["ai_task", "recorder"],
     "categories": ["vehicles_transport.cars_evs", "energy.ev_charging"],
     "codeowners": ["@AlphaLima"],
     "config_flow": True,
