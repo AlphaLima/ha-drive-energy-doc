@@ -253,5 +253,11 @@
  "Auto": "Car",
  "Verlust nach Leistung": "Loss by power",
  "Keine Ladekurve gespeichert.": "No charging curve saved.",
- "Noch keine Ladung mit Wallbox-Menge und Ladeleistung.": "No charge with wallbox quantity and charging power yet."
+ "Noch keine Ladung mit Wallbox-Menge und Ladeleistung.": "No charge with wallbox quantity and charging power yet.",
+ "Näherung aus Menge und Ladedauer (Pausen zählen mit)": "Approximation from quantity and charging time (pauses included)",
+ "Vorläufig: Wallbox-Energie bis zur letzten Meldung des Ladestands": "Provisional: wallbox energy up to the last state-of-charge report",
+ "Ladung jetzt abschließen": "Finish charge now",
+ "Laufende Ladung jetzt abschließen? Lädt das Auto weiter, beginnt danach eine neue Ladung.": "Finish the current charge now? If the car keeps charging, a new charge starts afterwards.",
+ "Heimladung erfasst": "Home charge recorded",
+ "Die gewählte KI hat die Anfrage abgelehnt ({0}). Details stehen im Home-Assistant-Protokoll.": "The selected AI rejected the request ({0}). Details are in the Home Assistant log."
 }

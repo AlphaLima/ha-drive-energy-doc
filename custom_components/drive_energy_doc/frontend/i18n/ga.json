@@ -253,5 +253,11 @@
  "Auto": "Carr",
  "Verlust nach Leistung": "Caillteanas de réir cumhachta",
  "Keine Ladekurve gespeichert.": "Níl cuar sábháilte.",
- "Noch keine Ladung mit Wallbox-Menge und Ladeleistung.": "Gan luchtú le sonraí Wallbox agus cumhacht fós."
+ "Noch keine Ladung mit Wallbox-Menge und Ladeleistung.": "Gan luchtú le sonraí Wallbox agus cumhacht fós.",
+ "Näherung aus Menge und Ladedauer (Pausen zählen mit)": "Neastachán ón méid agus ó fhad an luchtaithe (áirítear sosanna)",
+ "Vorläufig: Wallbox-Energie bis zur letzten Meldung des Ladestands": "Sealadach: fuinneamh an luchtaire go dtí an tuairisc dheireanach ar leibhéal an luchta",
+ "Ladung jetzt abschließen": "Críochnaigh an luchtú anois",
+ "Laufende Ladung jetzt abschließen? Lädt das Auto weiter, beginnt danach eine neue Ladung.": "An gcríochnófar an luchtú reatha anois? Má leanann an carr ag luchtú, tosóidh luchtú nua ina dhiaidh sin.",
+ "Heimladung erfasst": "Luchtú baile taifeadta",
+ "Die gewählte KI hat die Anfrage abgelehnt ({0}). Details stehen im Home-Assistant-Protokoll.": "Dhiúltaigh an IS roghnaithe don iarratas ({0}). Tá na sonraí i log Home Assistant."
 }

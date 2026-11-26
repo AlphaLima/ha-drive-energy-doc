@@ -174,3 +174,14 @@ if __name__ == "__main__":
         if name.startswith("test_"):
             fn()
             print("ok", name)
+
+
+def test_finish_now():
+    d = new()
+    assert d.finish_now() is None   # noch kein Vorgang: nichts
+    for i in range(1, 25):
+        d.on_level(40 + i * 2, 10 + i * 5, HOME, 1000)
+    assert d.pending and d.pending.valid
+    done = d.finish_now()
+    assert done and done["level"] == 88 and d.pending is None
+    assert d.finish_now() is None

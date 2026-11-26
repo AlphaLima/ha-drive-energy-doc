@@ -253,5 +253,11 @@
  "Auto": "Auto",
  "Verlust nach Leistung": "Zudumi pēc jaudas",
  "Keine Ladekurve gespeichert.": "Līkne nav saglabāta.",
- "Noch keine Ladung mit Wallbox-Menge und Ladeleistung.": "Vēl nav uzlādes ar Wallbox daudzumu un jaudu."
+ "Noch keine Ladung mit Wallbox-Menge und Ladeleistung.": "Vēl nav uzlādes ar Wallbox daudzumu un jaudu.",
+ "Näherung aus Menge und Ladedauer (Pausen zählen mit)": "Aptuveni no daudzuma un uzlādes ilguma (pauzes ieskaitītas)",
+ "Vorläufig: Wallbox-Energie bis zur letzten Meldung des Ladestands": "Provizoriski: lādētāja enerģija līdz pēdējam uzlādes līmeņa ziņojumam",
+ "Ladung jetzt abschließen": "Pabeigt uzlādi tagad",
+ "Laufende Ladung jetzt abschließen? Lädt das Auto weiter, beginnt danach eine neue Ladung.": "Pabeigt pašreizējo uzlādi tagad? Ja auto turpina lādēties, sāksies jauna uzlāde.",
+ "Heimladung erfasst": "Mājas uzlāde reģistrēta",
+ "Die gewählte KI hat die Anfrage abgelehnt ({0}). Details stehen im Home-Assistant-Protokoll.": "Izvēlētais MI noraidīja pieprasījumu ({0}). Sīkāka informācija ir Home Assistant žurnālā."
 }

@@ -253,5 +253,11 @@
  "Auto": "Auto",
  "Verlust nach Leistung": "Straty podľa výkonu",
  "Keine Ladekurve gespeichert.": "Žiadna uložená krivka.",
- "Noch keine Ladung mit Wallbox-Menge und Ladeleistung.": "Zatiaľ žiadne nabíjanie s údajmi Wallboxu a výkonom."
+ "Noch keine Ladung mit Wallbox-Menge und Ladeleistung.": "Zatiaľ žiadne nabíjanie s údajmi Wallboxu a výkonom.",
+ "Näherung aus Menge und Ladedauer (Pausen zählen mit)": "Odhad z množstva a doby nabíjania (prestávky sa započítavajú)",
+ "Vorläufig: Wallbox-Energie bis zur letzten Meldung des Ladestands": "Predbežne: energia z wallboxu do posledného hlásenia stavu nabitia",
+ "Ladung jetzt abschließen": "Ukončiť nabíjanie teraz",
+ "Laufende Ladung jetzt abschließen? Lädt das Auto weiter, beginnt danach eine neue Ladung.": "Ukončiť prebiehajúce nabíjanie teraz? Ak sa auto ďalej nabíja, začne nové nabíjanie.",
+ "Heimladung erfasst": "Domáce nabíjanie zaznamenané",
+ "Die gewählte KI hat die Anfrage abgelehnt ({0}). Details stehen im Home-Assistant-Protokoll.": "Zvolená AI požiadavku odmietla ({0}). Podrobnosti sú v protokole Home Assistanta."
 }

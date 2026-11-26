@@ -106,7 +106,7 @@ async def _register_once(hass: HomeAssistant) -> None:
     from .whatsapp import WhatsAppView
 
     hass.http.register_view(WhatsAppView)
-    for cmd in (ws_subscribe, ws_set_currency, ws_ack, ws_list, ws_update, ws_delete, ws_curve, ws_add, ws_delete_photo, ws_discard_photo, ws_countries, ws_set_plate):
+    for cmd in (ws_subscribe, ws_set_currency, ws_ack, ws_list, ws_update, ws_delete, ws_curve, ws_finish_charge, ws_add, ws_delete_photo, ws_discard_photo, ws_countries, ws_set_plate):
         websocket_api.async_register_command(hass, cmd)
 
     async def export_csv(call: ServiceCall) -> None:
@@ -291,6 +291,12 @@ async def ws_ack(hass, connection, msg) -> None:
 @websocket_api.async_response
 async def ws_delete(hass, connection, msg) -> None:
     connection.send_result(msg["id"], await _vehicle(hass, msg["vehicle"]).delete_entry(msg["entry"]))
+
+
+@websocket_api.websocket_command({vol.Required("type"): "drive_energy_doc/finish_charge", vol.Required("vehicle"): str})
+@websocket_api.async_response
+async def ws_finish_charge(hass, connection, msg) -> None:
+    connection.send_result(msg["id"], await _vehicle(hass, msg["vehicle"]).finish_charge())
 
 
 @websocket_api.websocket_command({vol.Required("type"): "drive_energy_doc/curve", vol.Required("vehicle"): str, vol.Required("entry"): str})

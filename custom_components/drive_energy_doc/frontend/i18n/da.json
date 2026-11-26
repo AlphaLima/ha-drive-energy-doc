@@ -253,5 +253,11 @@
  "Auto": "Bil",
  "Verlust nach Leistung": "Tab efter effekt",
  "Keine Ladekurve gespeichert.": "Ingen gemt ladekurve.",
- "Noch keine Ladung mit Wallbox-Menge und Ladeleistung.": "Endnu ingen opladning med Wallbox-mængde og effekt."
+ "Noch keine Ladung mit Wallbox-Menge und Ladeleistung.": "Endnu ingen opladning med Wallbox-mængde og effekt.",
+ "Näherung aus Menge und Ladedauer (Pausen zählen mit)": "Tilnærmelse ud fra mængde og ladetid (pauser tæller med)",
+ "Vorläufig: Wallbox-Energie bis zur letzten Meldung des Ladestands": "Foreløbig: ladeboksens energi frem til seneste melding om ladeniveau",
+ "Ladung jetzt abschließen": "Afslut opladning nu",
+ "Laufende Ladung jetzt abschließen? Lädt das Auto weiter, beginnt danach eine neue Ladung.": "Afslut den igangværende opladning nu? Lader bilen videre, starter derefter en ny opladning.",
+ "Heimladung erfasst": "Hjemmeopladning registreret",
+ "Die gewählte KI hat die Anfrage abgelehnt ({0}). Details stehen im Home-Assistant-Protokoll.": "Den valgte AI afviste forespørgslen ({0}). Detaljer findes i Home Assistant-loggen."
 }

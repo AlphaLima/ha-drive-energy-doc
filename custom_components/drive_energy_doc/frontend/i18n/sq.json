@@ -253,5 +253,11 @@
  "Auto": "Makina",
  "Verlust nach Leistung": "Humbjet sipas fuqisë",
  "Keine Ladekurve gespeichert.": "Nuk ka kurbë të ruajtur.",
- "Noch keine Ladung mit Wallbox-Menge und Ladeleistung.": "Ende asnjë ngarkim me të dhëna Wallbox dhe fuqi."
+ "Noch keine Ladung mit Wallbox-Menge und Ladeleistung.": "Ende asnjë ngarkim me të dhëna Wallbox dhe fuqi.",
+ "Näherung aus Menge und Ladedauer (Pausen zählen mit)": "Përafrim nga sasia dhe kohëzgjatja e karikimit (pauzat llogariten)",
+ "Vorläufig: Wallbox-Energie bis zur letzten Meldung des Ladestands": "Paraprake: energjia e karikuesit deri në raportimin e fundit të nivelit të karikimit",
+ "Ladung jetzt abschließen": "Përfundo karikimin tani",
+ "Laufende Ladung jetzt abschließen? Lädt das Auto weiter, beginnt danach eine neue Ladung.": "Të përfundohet karikimi aktual tani? Nëse makina vazhdon të karikohet, fillon një karikim i ri.",
+ "Heimladung erfasst": "Karikimi në shtëpi u regjistrua",
+ "Die gewählte KI hat die Anfrage abgelehnt ({0}). Details stehen im Home-Assistant-Protokoll.": "IA e zgjedhur e refuzoi kërkesën ({0}). Detajet janë në regjistrin e Home Assistant."
 }

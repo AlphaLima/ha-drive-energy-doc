@@ -102,6 +102,7 @@ class V2:
     def _plugged(self): return None
     def _curve_sample(self): pass
     _curve = []
+    _wb_run = None
     def _charge_det(self): return self.detector_el
     def _ac_max(self): return None
     def _push_at_start(self, det): return True

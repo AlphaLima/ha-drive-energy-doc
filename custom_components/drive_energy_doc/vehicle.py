@@ -275,6 +275,10 @@ class Vehicle:
                         rows.append(f"{when};{n};;KI überlastet, unverändert;")
                         _LOGGER.warning("Foto-Neueinlesen: KI überlastet, Foto %s bleibt unverändert", n)
                         continue
+                    if ai and ai.get("error"):
+                        rows.append(f"{when};{n};;KI hat abgelehnt ({ai['error']}), unverändert;")
+                        _LOGGER.warning("Foto-Neueinlesen: KI hat die Anfrage abgelehnt (%s), Foto %s bleibt unverändert", ai["error"], n)
+                        continue
                     note = []
                     info = None
                     if ai:
@@ -364,7 +368,8 @@ class Vehicle:
             self._panel("changed", live=True)   # laufende Ladung: nur die türkise Zeile im Panel nachführen
         if result == "valid":
             self.hass.async_create_task(self._fetch_price(None, det))
-            if self._push_at_start(det):
+            home = det is self._charge_det() and self._wb_run is not None   # die eigene Wallbox liefert gerade: Heimladung, keine Säule zum Fotografieren
+            if self._push_at_start(det) and not home:
                 self.hass.async_create_task(self._push_started(det))
         self._notify_entities()
 
@@ -454,6 +459,8 @@ class Vehicle:
                 self.hass.async_add_executor_job(lambda: (self.curve_dir / "running.json").unlink(missing_ok=True))
             return
         wb = self._wb.s[-1][2] if (self.o.get(CONF_WB_POWER) and self._wb.s) else None
+        if wb is not None and self._read_float(self.o.get(CONF_WB_POWER)) is None:
+            wb = None   # Sensor kurz nicht verfügbar (z. B. 7 s beim Wiederverbinden): Lücke statt eines falschen Einbruchs auf 0
         car = self._car_power_w()
         soc = self._read_float(self.o.get(CONF_LEVEL_EL if self.detector_el else CONF_LEVEL))
         if curve.skip_idle(self._curve, now, wb, car, soc):
@@ -606,6 +613,10 @@ class Vehicle:
                     if ex.get("wb_on_last"):
                         ex["wb_on_s"] = round(ex["wb_on_s"] + min(now - ex["wb_on_last"], 120))   # aktive Ladezeit ohne Pausen
                 ex["wb_on_last"] = now
+            if ex.get("wb_base") is not None and cur[1] is not None and ex.get("rise_lvl") != p.level:
+                # Wallbox-Zähler, als das Auto diesen Ladestand meldete (für den vorläufigen Verlust); beim ersten Mal (z. B. nach einem Neustart) ist der Meldezeitpunkt unbekannt: auf die nächste Meldung warten
+                ex["rise_kwh"] = cur[1] if "rise_lvl" in ex else None
+                ex["rise_lvl"] = p.level
             if ex.get("wb_base") is not None and cur[1] > (ex.get("wb_end") or [0, ex["wb_base"]])[1]:
                 ex["wb_end"] = [cur[0], cur[1]]   # letzter Zählerstand, bei dem die Wallbox noch geliefert hat
                 if time.time() - getattr(self, "_wb_saved", 0) > 300:
@@ -654,11 +665,39 @@ class Vehicle:
             w = None
         paused = time.time() - p.last_increase_ts > max(det.settle_seconds, 300) and not w
         out = {"ts_start": p.start_ts, "level_from": round(p.start_level, 1), "level_to": round(p.level, 1), "est_quantity": est, "wb_kwh": kwh if (kwh and kwh > 0) else None, "kw": round(w / 1000, 1) if w else None, "paused": paused}
+        on = ex.get("wb_on_s")
+        if out["wb_kwh"] and on and on >= 600:
+            out["avg_kw"] = round(out["wb_kwh"] / (on / 3600), 1)   # wie beim Abschluss: Wallbox-Energie durch aktive Ladezeit
+        else:
+            av = charge.avg_power_kw(est, p.start_ts, p.last_increase_ts, p.level - p.start_level)
+            out["avg_kw"] = round(av, 1) if av else None
+        out["charge_type"] = self._live_ctype(ex) if self.o.get(CONF_CHARGE_TYPE) else charge.classify(None, ex.get("peak_w"), charge.avg_power_kw(est, p.start_ts, p.last_increase_ts, p.level - p.start_level), self._ac_max())[0]
         self._live_money(out, ex, p.odometer, est)
         stable = not w and time.time() - p.last_increase_ts >= 600   # Wallbox liefert nicht und der Ladestand blieb 10 Minuten gleich: das Auto ist nachgekommen, sonst täuscht der Verzug der Audi-Cloud einen hohen Verlust vor
         if out["wb_kwh"] and est and est >= 2 and stable:
             out["loss_pct"] = round((out["wb_kwh"] / est - 1) * 100)   # Ladeverlust: Wallbox-Energie gegenüber dem, was im Akku ankam
+        elif est and est >= 3 and ex.get("rise_kwh") is not None and ex.get("wb_base") is not None and ex.get("rise_lvl") == p.level:
+            # während der Ladung: Wallbox-Energie bis zur letzten Meldung des Ladestands gegen die Schätzung (der Verzug der Auto-Cloud kürzt sich weitgehend heraus)
+            out["loss_pct"] = round(((ex["rise_kwh"] - ex["wb_base"]) / est - 1) * 100)
+            out["loss_prov"] = True
         return out
+
+    async def finish_charge(self) -> bool:
+        """Laufende Ladung von Hand abschließen (Knopf „Ladung abschließen“): Eintrag wie beim Wegfahren; eine weitere Lieferung der Wallbox beginnt eine neue Ladung."""
+        det = self._charge_det()
+        done = det.finish_now() if det else None
+        if not done:
+            return False
+        self._wb_run = None   # Beginn der Wallbox-Lieferung vergessen: liefert die Wallbox weiter, zählt das als neue Ladung
+        await self._finish(done, det is self.detector_el)
+        return True
+
+    def _live_ctype(self, ex: dict) -> str | None:
+        """Ladeart der laufenden Ladung aus der Ladeart-Entität des Autos: der während der Ladung gemerkte Wert (DC gewinnt), sonst der aktuelle Zustand."""
+        if ex.get("ctype"):
+            return ex["ctype"]
+        st = self.hass.states.get(self.o.get(CONF_CHARGE_TYPE))
+        return charge.parse_type(st.state if st else None)
 
     def _live_money(self, out: dict, ex: dict, odometer: float | None, est: float | None) -> None:
         """Kilometerstand, Preis und Betrag der laufenden Ladung (vorläufig: mittlerer Preis bisher, sonst aktueller Preis)."""
@@ -685,7 +724,9 @@ class Vehicle:
         kwh = round(cur[1] - base, 3) if cur[1] >= base else None
         cand = det.pending   # Anstieg noch unter der Schwelle: Kandidat mit Start- und aktuellem Stand
         lvl = self._read_float(self.o.get(CONF_LEVEL_EL if self.detector_el else CONF_LEVEL))
-        out = {"ts_start": start, "level_from": round(cand.start_level, 1) if cand else None, "level_to": round(cand.level, 1) if cand else (round(lvl, 1) if lvl is not None else None), "est_quantity": None, "wb_kwh": kwh if kwh and kwh > 0 else None, "kw": round(w / 1000, 1) if w else None, "paused": False, "provisional": True}
+        out = {"ts_start": start, "level_from": round(cand.start_level, 1) if cand else None, "level_to": round(cand.level, 1) if cand else (round(lvl, 1) if lvl is not None else None), "est_quantity": None, "wb_kwh": kwh if kwh and kwh > 0 else None, "kw": round(w / 1000, 1) if w else None, "paused": False, "provisional": True,
+               "avg_kw": round(kwh / ((time.time() - start) / 3600), 1) if (kwh and kwh > 0 and time.time() - start >= 600) else None}
+        out["charge_type"] = self._live_ctype({}) if self.o.get(CONF_CHARGE_TYPE) else (charge.classify(None, w, None, self._ac_max())[0] if w else None)
         self._live_money(out, {}, None, None)
         return out
 
@@ -851,7 +892,9 @@ class Vehicle:
         self._save()
         self._notify_entities()
         self.hass.bus.async_fire(f"{DOMAIN}_refuel", {"vehicle": self.name, "entry": entry})
-        if not r:
+        if entry.get("quantity_source") == "wallbox":   # Heimladung: Menge von der eigenen Wallbox, es gibt keinen Beleg – nur kurz im Panel melden, keine Beleg-Bitte
+            self._panel("reply", text=self._summary(entry, self.tr("Heimladung erfasst")), entry=entry["id"])
+        elif not r:
             await self._say(self._detected_text(entry), quick=True, phase="end", el=el)   # Push mit Link: Antippen öffnet die Aufnahme
 
     # ---------------------------------------------------------------- Nachrichten
@@ -1276,6 +1319,8 @@ class Vehicle:
                 ai = await receipt.ai_read(self.hass, self._ai_entity(), image, self.media_dir, self._pos, self._exif_pos)
             if ai and ai.get("busy"):   # KI überlastet: nichts ablegen, kein Eintrag
                 return await self._say("⚠ " + self.tr("Die KI ist gerade überlastet. Bitte schick das Foto in ein paar Minuten noch einmal.") + " " + self.tr("Es wurde nichts gespeichert."))
+            if ai and ai.get("error"):   # KI hat die Anfrage abgelehnt (z. B. Einstellungen/Konto der KI): nichts ablegen, deutlich sagen statt „nichts lesbar“
+                return await self._say("⚠ " + self.tr("Die gewählte KI hat die Anfrage abgelehnt ({0}). Details stehen im Home-Assistant-Protokoll.", ai["error"]) + " " + self.tr("Es wurde nichts gespeichert."))
             if ai and receipt.plausible(ai):
                 values, box = ai, ai.get("crop")
             elif ai and ai.get("odometer") and self._km_sane(ai["odometer"], ts=sent_ts):   # mit bekannter Aufnahme-/Sendezeit gegen die Reihenfolge der Einträge prüfen
@@ -1283,7 +1328,7 @@ class Vehicle:
             elif ai and ai.get("odometer"):
                 rejected_km = float(ai["odometer"])
                 _LOGGER.warning("Kilometerstand %s vom Foto passt nicht zur Reihenfolge der Einträge (%s)", rejected_km, self.name)
-        info = values if isinstance(values, dict) and values else (ai if isinstance(ai, dict) and not ai.get("busy") else None)
+        info = values if isinstance(values, dict) and values else (ai if isinstance(ai, dict) and not ai.get("busy") and not ai.get("error") else None)
         name = await self.hass.async_add_executor_job(receipt.save_new_photo, image, box, self.photo_dir, info, sent_ts, "Tacho" if (km is not None and not values) else ("Zusatzfoto" if extra else None), self.orig_dir)
         cat = (values or {}).get("category") if isinstance(values, dict) else None
         if cat in ("adblue", "oil", "washer", "carwash", "other"):   # Beleg für Zubehör/Verbrauchsmaterial: eigener Eintrag, nie einen Tankvorgang überschreiben
@@ -1841,6 +1886,8 @@ class Vehicle:
         box = None
         if ai and ai.get("busy"):   # KI überlastet: Foto nicht ablegen, der Nutzer soll es später noch einmal versuchen
             return {"found": False, "busy": True}
+        if ai and ai.get("error"):   # KI hat die Anfrage abgelehnt: dem Nutzer im Panel sagen
+            return {"found": False, "ai_error": ai["error"]}
         if ai:
             km = ai.get("odometer")
             if km is not None and not self._km_sane(km):

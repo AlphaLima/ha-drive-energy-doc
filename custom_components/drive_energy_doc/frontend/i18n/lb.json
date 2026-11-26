@@ -253,5 +253,11 @@
  "Auto": "Auto",
  "Verlust nach Leistung": "Verloscht no Leeschtung",
  "Keine Ladekurve gespeichert.": "Keng Luedkurv gespäichert.",
- "Noch keine Ladung mit Wallbox-Menge und Ladeleistung.": "Nach keng Luedung mat Wallbox-Quantitéit a Leeschtung."
+ "Noch keine Ladung mit Wallbox-Menge und Ladeleistung.": "Nach keng Luedung mat Wallbox-Quantitéit a Leeschtung.",
+ "Näherung aus Menge und Ladedauer (Pausen zählen mit)": "Ongeféier aus Quantitéit a Luedzäit (Pausen zielen mat)",
+ "Vorläufig: Wallbox-Energie bis zur letzten Meldung des Ladestands": "Provisoresch: Wallbox-Energie bis zur leschter Meldung vum Luedstand",
+ "Ladung jetzt abschließen": "Lueden elo ofschléissen",
+ "Laufende Ladung jetzt abschließen? Lädt das Auto weiter, beginnt danach eine neue Ladung.": "Dat lafend Lueden elo ofschléissen? Luet den Auto weider, fänkt duerno en neit Lueden un.",
+ "Heimladung erfasst": "Doheem-Lueden erfaasst",
+ "Die gewählte KI hat die Anfrage abgelehnt ({0}). Details stehen im Home-Assistant-Protokoll.": "Déi gewielte KI huet d'Ufro ofgeleent ({0}). Detailer stinn am Home-Assistant-Protokoll."
 }

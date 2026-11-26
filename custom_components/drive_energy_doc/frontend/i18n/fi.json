@@ -253,5 +253,11 @@
  "Auto": "Auto",
  "Verlust nach Leistung": "Häviöt tehon mukaan",
  "Keine Ladekurve gespeichert.": "Latauskäyrää ei ole tallennettu.",
- "Noch keine Ladung mit Wallbox-Menge und Ladeleistung.": "Ei vielä latausta, jossa on Wallbox-määrä ja teho."
+ "Noch keine Ladung mit Wallbox-Menge und Ladeleistung.": "Ei vielä latausta, jossa on Wallbox-määrä ja teho.",
+ "Näherung aus Menge und Ladedauer (Pausen zählen mit)": "Arvio määrästä ja latausajasta (tauot mukana)",
+ "Vorläufig: Wallbox-Energie bis zur letzten Meldung des Ladestands": "Alustava: latausaseman energia viimeisimpään varaustason ilmoitukseen asti",
+ "Ladung jetzt abschließen": "Päätä lataus nyt",
+ "Laufende Ladung jetzt abschließen? Lädt das Auto weiter, beginnt danach eine neue Ladung.": "Päätetäänkö käynnissä oleva lataus nyt? Jos auto jatkaa latautumista, alkaa uusi lataus.",
+ "Heimladung erfasst": "Kotilataus tallennettu",
+ "Die gewählte KI hat die Anfrage abgelehnt ({0}). Details stehen im Home-Assistant-Protokoll.": "Valittu tekoäly hylkäsi pyynnön ({0}). Tiedot löytyvät Home Assistantin lokista."
 }

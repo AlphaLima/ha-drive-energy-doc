@@ -253,5 +253,11 @@
  "Auto": "Bíll",
  "Verlust nach Leistung": "Tap eftir afli",
  "Keine Ladekurve gespeichert.": "Enginn ferill vistaður.",
- "Noch keine Ladung mit Wallbox-Menge und Ladeleistung.": "Engin hleðsla með Wallbox-magni og afli enn."
+ "Noch keine Ladung mit Wallbox-Menge und Ladeleistung.": "Engin hleðsla með Wallbox-magni og afli enn.",
+ "Näherung aus Menge und Ladedauer (Pausen zählen mit)": "Nálgun út frá magni og hleðslutíma (hlé teljast með)",
+ "Vorläufig: Wallbox-Energie bis zur letzten Meldung des Ladestands": "Bráðabirgða: orka hleðslustöðvar fram að síðustu tilkynningu um hleðslustöðu",
+ "Ladung jetzt abschließen": "Ljúka hleðslu núna",
+ "Laufende Ladung jetzt abschließen? Lädt das Auto weiter, beginnt danach eine neue Ladung.": "Ljúka yfirstandandi hleðslu núna? Ef bíllinn heldur áfram að hlaða hefst ný hleðsla á eftir.",
+ "Heimladung erfasst": "Heimahleðsla skráð",
+ "Die gewählte KI hat die Anfrage abgelehnt ({0}). Details stehen im Home-Assistant-Protokoll.": "Valin gervigreind hafnaði beiðninni ({0}). Nánar í annál Home Assistant."
 }

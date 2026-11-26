@@ -253,5 +253,11 @@
  "Auto": "Auto",
  "Verlust nach Leistung": "Gubici po snazi",
  "Keine Ladekurve gespeichert.": "Krivulja nije spremljena.",
- "Noch keine Ladung mit Wallbox-Menge und Ladeleistung.": "Još nema punjenja s podacima Wallboxa i snagom."
+ "Noch keine Ladung mit Wallbox-Menge und Ladeleistung.": "Još nema punjenja s podacima Wallboxa i snagom.",
+ "Näherung aus Menge und Ladedauer (Pausen zählen mit)": "Približno iz količine i trajanja punjenja (pauze se računaju)",
+ "Vorläufig: Wallbox-Energie bis zur letzten Meldung des Ladestands": "Privremeno: energija punjača do posljednje dojave razine napunjenosti",
+ "Ladung jetzt abschließen": "Završi punjenje sada",
+ "Laufende Ladung jetzt abschließen? Lädt das Auto weiter, beginnt danach eine neue Ladung.": "Završiti trenutačno punjenje sada? Ako se auto nastavi puniti, počinje novo punjenje.",
+ "Heimladung erfasst": "Kućno punjenje zabilježeno",
+ "Die gewählte KI hat die Anfrage abgelehnt ({0}). Details stehen im Home-Assistant-Protokoll.": "Odabrana UI odbila je zahtjev ({0}). Pojedinosti su u zapisniku Home Assistanta."
 }

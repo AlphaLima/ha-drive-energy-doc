@@ -5,13 +5,17 @@ const FUEL_GRADES = { diesel: "Diesel", diesel_premium: "Diesel Premium", e10: "
 const COLS = ["nr", "date", "start", "end", "lfrom", "lto", "km", "station", "qty", "ctype", "kcar", "kwb", "pavg", "ppk", "price", "total", "cons", "sol", "loss", "receipt", "note", "act"];
 const DEF_HIDE = ["start", "end", "lfrom", "lto", "ctype", "kcar", "kwb", "pavg", "ppk"];   // Laden von / bis: vorhanden, aber zunächst ausgeblendet
 
-const VERSION = "0.1.86";
+const VERSION = "0.1.87b1";
 
 class DriveEnergyDocPanel extends HTMLElement {
   set hass(h) {
     const first = !this._hass;
     this._hass = h;
-    if (first) this._loadLang().then(() => this._load());
+    if (first) this._loadLang().then(() => this._load(), () => this._load());
+    if (h && h.connection && this._conn !== h.connection) {   // nach einem HA-Neustart (Verbindung wieder da): alles neu laden
+      this._conn = h.connection;
+      h.connection.addEventListener("ready", () => { this._sig = null; this._load(); });
+    }
     this._subscribe();
   }
 
@@ -31,17 +35,19 @@ class DriveEnergyDocPanel extends HTMLElement {
         price: `<td class="n">${lv.unit_price != null ? this._fmt(lv.unit_price, 3) : ""}</td>`,
         total: `<td class="n">${lv.total != null ? this._fmt(lv.total) + " €" : ""}</td>`,
         station: `<td><div>${this._esc(this.T("Lädt gerade"))}</div>${lv.kw ? `<div class="src">${this._fmt(lv.kw, 1)} kW</div>` : lv.paused ? `<div class="src">${this._esc(this.T("pausiert"))}</div>` : ""}</td>`,
-        qty: `<td class="n">${q != null ? this._fmt(q) + " " + kwu : "–"}<div class="src">${lv.level_from != null ? Math.round(lv.level_from) + "→" + Math.round(lv.level_to) + " % " : lv.level_to != null ? Math.round(lv.level_to) + " % " : ""}${this._esc(this.T(lv.wb_kwh != null ? "wallbox" : "berechnet"))}</div></td>`,
+        qty: `<td class="n">${q != null ? this._fmt(q) + " " + kwu : "–"}<div class="src">${lv.level_from != null ? Math.round(lv.level_from) + "→" + Math.round(lv.level_to) + " % " : lv.level_to != null ? Math.round(lv.level_to) + " % " : ""}${lv.wb_kwh != null ? "" : this._esc(this.T("berechnet")) + " "}${lv.charge_type ? `<span class="ct ${lv.charge_type}">${lv.charge_type.toUpperCase()}</span>` : ""}</div></td>`,
+        ctype: `<td class="ctr">${lv.charge_type ? `<span class="ct ${lv.charge_type}">${lv.charge_type.toUpperCase()}</span>` : ""}</td>`,
         start: `<td>${this._tm(lv.ts_start)}</td>`,
         kcar: `<td class="n">${lv.est_quantity != null ? this._fmt(lv.est_quantity) + " kWh" : ""}</td>`,
+        pavg: `<td class="n">${lv.avg_kw ? this._fmt(lv.avg_kw, 1) + " kW" : ""}</td>`,
         ppk: `<td class="n">${lv.kw ? this._fmt(lv.kw, 1) + " kW" : ""}</td>`,
         kwb: `<td class="n">${lv.wb_kwh != null ? this._fmt(lv.wb_kwh) + " kWh" : ""}</td>`,
         lfrom: `<td class="n">${lv.level_from != null ? Math.round(lv.level_from) + " %" : ""}</td>`,
         lto: `<td class="n">${lv.level_to != null ? Math.round(lv.level_to) + " %" : ""}</td>`,
-        loss: `<td class="n">${lv.loss_pct != null && lv.loss_pct >= 0 ? lv.loss_pct + " %" : ""}</td>`,
-        note: `<td>${lv.est_quantity != null || lv.wb_kwh != null ? `<div class="src">${lv.est_quantity != null ? this._esc(this.T("Akku")) + " " + this._fmt(lv.est_quantity) + " kWh" : ""}${lv.est_quantity != null && lv.wb_kwh != null ? " · " : ""}${lv.wb_kwh != null ? "Wallbox " + this._fmt(lv.wb_kwh) + " kWh" : ""}</div>` : ""}</td>`,
+        loss: `<td class="n">${lv.loss_pct != null ? (lv.loss_prov ? `<span class="src" title="${this._esc(this.T("Vorläufig: Wallbox-Energie bis zur letzten Meldung des Ladestands"))}">≈ ${lv.loss_pct} %</span>` : (lv.loss_pct < 0 ? `<span class="est">${lv.loss_pct} %</span>` : lv.loss_pct + " %")) : ""}</td>`,
+        note: `<td>${lv.est_quantity != null || lv.wb_kwh != null ? `${lv.est_quantity != null ? `<div class="src">${this._esc(this.T("Akku"))} ${this._fmt(lv.est_quantity)} kWh</div>` : ""}${lv.wb_kwh != null ? `<div class="src">Wallbox ${this._fmt(lv.wb_kwh)} kWh</div>` : ""}` : ""}</td>`,
       };
-    cell.act = `<td><button data-act="curve" title="${this.T("Ladekurve")}" aria-label="${this.T("Ladekurve")}">${this._ico("chart")}</button></td>`;   // Kurve der laufenden Ladung
+    cell.act = `<td><button data-act="curve" title="${this.T("Ladekurve")}" aria-label="${this.T("Ladekurve")}">${this._ico("chart")}</button>${lv.provisional ? "" : ` <button data-act="finish" title="${this.T("Ladung jetzt abschließen")}" aria-label="${this.T("Ladung jetzt abschließen")}">${this._ico("check")}</button>`}</td>`;   // Kurve der laufenden Ladung
     return `<tr class="c-live" data-id="live">${order.map(k => (cell[k] || "<td></td>").replace("<td", `<td data-c="${k}"`)).join("")}</tr>`;
   }
 
@@ -49,12 +55,14 @@ class DriveEnergyDocPanel extends HTMLElement {
     // nur die Zeile „Lädt gerade“ nachführen, ohne die ganze Seite neu zu zeichnen (kein Flackern)
     try {
       const data = await this._hass.callWS({ type: "drive_energy_doc/list" });
+      const ids = x => (x || []).map(y => y.id).join(",");
+      if (!data.length || ids(data) !== ids(this._data)) { this._load(); return; }   // Fahrzeuge (noch) nicht alle da, z. B. während eines Neustarts: nicht übernehmen, normal laden
       this._data = data;
       if (this._dlg || this.shadowRoot.querySelector(".busy, .dlg") || !this._liveCtx) return;
       const v = data[this._tab || 0];
       const lv = v && v.summary && v.summary.live && ["all", "electric", "both", "home"].includes(this._liveCtx.flt) ? v.summary.live : null;
       const tr = this.shadowRoot.querySelector("tr.c-live");
-      if (!!lv !== !!tr) { this._render(); return; }   // erscheint oder verschwindet: einmal ganz zeichnen
+      if (!!lv !== !!tr) { this._sig = JSON.stringify(data); this._render(); return; }   // erscheint oder verschwindet: einmal ganz zeichnen (gezeichneten Stand merken)
       if (lv) {
         const tpl = document.createElement("template");
         tpl.innerHTML = this._liveRowHtml(lv, v, this._liveCtx.u, this._liveCtx.order);
@@ -118,6 +126,9 @@ class DriveEnergyDocPanel extends HTMLElement {
   }
   set narrow(v) { this._narrow = v; }
   connectedCallback() {
+    // HA kann das Element anlegen und hass setzen, bevor diese Datei geladen ist (Ladedatei lädt sie nach): dann liegt hass als eigene Eigenschaft
+    // am Element und verdeckt den Setter – das Panel würde nie laden. Wert übernehmen und über den Setter neu setzen.
+    if (Object.prototype.hasOwnProperty.call(this, "hass")) { const h = this.hass; delete this.hass; if (h) this.hass = h; }
     if (!this._locCb) { this._locCb = () => this._quick(); }
     window.addEventListener("location-changed", this._locCb);   // Link aus der Push-Nachricht, während das Panel schon offen ist
     if (!this.shadowRoot) {
@@ -204,8 +215,10 @@ class DriveEnergyDocPanel extends HTMLElement {
     try { if (localStorage.getItem("deOri") === "landscape") this._ori = "landscape"; } catch (e) { /* ignore */ }
     this._render();
     this._timer = setInterval(() => {   // Rückfall, falls ein Ereignis fehlt: nur solange ein Tank- oder Ladevorgang läuft, und dann nur die laufende Zeile
-      if ((this._data || []).some(x => x.summary && (x.summary.live || (x.summary.status && x.summary.status !== "idle")))) this._liveOnly();
+      if (!(this._data || []).length || this._err) this._load();   // noch keine Fahrzeuge (z. B. nach einem Neustart): ganz laden
+      else if (this._data.some(x => x.summary && (x.summary.live || (x.summary.status && x.summary.status !== "idle")))) this._liveOnly();
     }, 60000);
+    if (this._hass && (!(this._data || []).length || this._err)) this._load();   // wieder eingehängt (HA hängt das Panel z. B. beim Neustart um): ohne Fahrzeuge sofort neu laden
     this._subscribe();   // beim Wiederöffnen der Seite
   }
   disconnectedCallback() {
@@ -418,6 +431,14 @@ class DriveEnergyDocPanel extends HTMLElement {
   _pavg(e) {
     // mittlere Ladeleistung (kW): gespeichert, bei älteren Einträgen aus der Ladeart-Erkennung („mittel“)
     return e.avg_kw != null ? e.avg_kw : (e.charge_src === "mittel" && e.charge_kw ? e.charge_kw : null);
+  }
+  _pavgEst(e) {
+    // ältere Strom-Einträge ohne gespeicherte Leistung: Näherung aus Menge und Dauer (Laden von/bis); Pausen zählen mit, darum nur als „≈“ und nicht in der Auswertung
+    if (this._pavg(e) != null || e.kind === "extra" || !e.ts_start || !e.ts || e.ts - e.ts_start < 600) return null;
+    const q = e.wb_kwh || e.quantity || e.est_quantity;
+    if (!q || (e.energy !== "electric" && !(this._rv && this._rv.energy === "electric"))) return null;
+    const kw = q / ((e.ts - e.ts_start) / 3600);
+    return kw >= 0.5 && kw <= 400 ? kw : null;
   }
   _ppk(e) {
     // Spitzenleistung (kW): gespeichert, bei älteren Einträgen aus Sensor oder Leistungsmessung
@@ -670,6 +691,7 @@ class DriveEnergyDocPanel extends HTMLElement {
       batt: '<rect x="3" y="8" width="18" height="12" rx="1.5"/><path d="M6 8V5.5h3.5V8M14.5 8V5.5H18V8M6.5 14h3.5M15 12.2v3.6M13.2 14h3.6"/>',
       gauge: '<path d="M4 18a8 8 0 1 1 16 0"/><path d="M12 18l3.5-5"/>',
       chart: '<path d="M4 4v16h16"/><path d="M7 15l4-5 3 3 5-7"/>',
+      check: '<path d="M5 12.5l4.5 4.5L19 7"/>',
       pwr: '<path d="M13 3 6 13h5l-1 8 7-10h-5z"/>',
       pwrPk: '<path d="M11 3 5 13h5l-1 8 7-10h-5z"/><path d="M17 3h4M19 3v5"/>',
       plug: '<path d="M9 3v5M15 3v5M6.5 8h11v3a5.5 5.5 0 0 1-11 0zM12 16.5V21"/>',
@@ -698,6 +720,7 @@ class DriveEnergyDocPanel extends HTMLElement {
     if (!this.shadowRoot) return;
     const d = this._data || [];
     const v = d[this._tab] || d[0];
+    this._rv = v;   // Fahrzeug, das gerade gezeichnet wird
     const css = `
       :host{display:block;padding:16px;color:var(--primary-text-color);background:var(--primary-background-color);min-height:100%;box-sizing:border-box}
       .head{display:flex;justify-content:flex-start;align-items:center;gap:28px;margin-bottom:12px;flex-wrap:wrap}
@@ -936,7 +959,7 @@ class DriveEnergyDocPanel extends HTMLElement {
         lto: `<td class="n">${e.level_to != null && e.kind !== "extra" ? Math.round(e.level_to) + " %" : ""}</td>`,
         ctype: `<td class="ctr">${e.charge_type ? `<span class="ct ${e.charge_type}">${e.charge_type.toUpperCase()}</span>` : ""}</td>`,
         kcar: `<td class="n">${e.est_quantity != null && e.kind !== "extra" && (e.energy === "electric" || v.energy === "electric") ? this._fmt(e.est_quantity) + " kWh" : ""}</td>`,
-        pavg: `<td class="n">${this._pavg(e) != null ? this._fmt(this._pavg(e), 1) + " kW" : ""}</td>`,
+        pavg: `<td class="n">${this._pavg(e) != null ? this._fmt(this._pavg(e), 1) + " kW" : (this._pavgEst(e) != null ? `<span class="src" title="${this._esc(this.T("Näherung aus Menge und Ladedauer (Pausen zählen mit)"))}">≈ ${this._fmt(this._pavgEst(e), 1)} kW</span>` : "")}</td>`,
         ppk: `<td class="n">${this._ppk(e) != null ? this._fmt(this._ppk(e), 1) + " kW" : ""}</td>`,
         kwb: `<td class="n">${e.wb_kwh != null ? this._fmt(e.wb_kwh) + " kWh" : ""}</td>`,
         sol: `<td class="ctr">${e.solar_pct != null ? Math.round(e.solar_pct) + " %" : ""}</td>`,
@@ -1053,6 +1076,13 @@ class DriveEnergyDocPanel extends HTMLElement {
     if (act === "photo") return this._pick(v, v.entries.find(x => x.id === t.closest("tr").dataset.id));
     const id = t.closest("tr").dataset.id;
     if (id === "live" && act === "curve") return this._curveDlg(v, { id: "live", ts: (v.summary.live || {}).ts_start || Date.now() / 1000 });
+    if (id === "live" && act === "finish") {
+      if (confirm(this.T("Laufende Ladung jetzt abschließen? Lädt das Auto weiter, beginnt danach eine neue Ladung."))) {
+        try { await this._hass.callWS({ type: "drive_energy_doc/finish_charge", vehicle: v.id }); } catch (err) { alert(String(err.message || err)); }
+        this._sig = null; this._load();
+      }
+      return;
+    }
     const e = v.entries.find(x => x.id === id);
     if (act === "del") {
       if (confirm(this.T("Eintrag vom {0} endgültig löschen?", this._date(e.ts)))) { await this._hass.callWS({ type: "drive_energy_doc/delete", vehicle: v.id, entry: id }); this._load(); }
@@ -1454,6 +1484,7 @@ class DriveEnergyDocPanel extends HTMLElement {
       btn.disabled = false;
       if (!r) { ph(""); return false; }
       if (r.busy) { ph(""); alert(this.T("Die KI ist gerade überlastet. Bitte in ein paar Minuten noch einmal versuchen.")); return false; }
+      if (r.ai_error) { ph(""); alert(this.T("Die gewählte KI hat die Anfrage abgelehnt ({0}). Details stehen im Home-Assistant-Protokoll.", r.ai_error)); return false; }
       if (!r.found) {
         ph("");
         const keep = await ask(this.T("Auf dem Foto konnte ich keine Daten lesen. Soll es trotzdem zur Dokumentation behalten werden?"), this.T("Behalten"), this.T("Verwerfen"));

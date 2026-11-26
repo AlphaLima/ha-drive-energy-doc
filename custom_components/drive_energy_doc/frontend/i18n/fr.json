@@ -253,5 +253,11 @@
  "Auto": "Voiture",
  "Verlust nach Leistung": "Pertes par puissance",
  "Keine Ladekurve gespeichert.": "Aucune courbe enregistrée.",
- "Noch keine Ladung mit Wallbox-Menge und Ladeleistung.": "Pas encore de charge avec quantité Wallbox et puissance."
+ "Noch keine Ladung mit Wallbox-Menge und Ladeleistung.": "Pas encore de charge avec quantité Wallbox et puissance.",
+ "Näherung aus Menge und Ladedauer (Pausen zählen mit)": "Approximation à partir de la quantité et de la durée de charge (pauses incluses)",
+ "Vorläufig: Wallbox-Energie bis zur letzten Meldung des Ladestands": "Provisoire : énergie de la wallbox jusqu'au dernier relevé du niveau de charge",
+ "Ladung jetzt abschließen": "Terminer la recharge maintenant",
+ "Laufende Ladung jetzt abschließen? Lädt das Auto weiter, beginnt danach eine neue Ladung.": "Terminer la recharge en cours maintenant ? Si la voiture continue de charger, une nouvelle recharge commence ensuite.",
+ "Heimladung erfasst": "Recharge à domicile enregistrée",
+ "Die gewählte KI hat die Anfrage abgelehnt ({0}). Details stehen im Home-Assistant-Protokoll.": "L'IA sélectionnée a refusé la requête ({0}). Les détails figurent dans le journal de Home Assistant."
 }

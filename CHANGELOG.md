@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.1.87b1 (Beta, 26.11.2026)
+- Beleg-KI mit Claude (offizielle Anthropic-Integration): Die Anthropic-API lehnte die strukturierte Abfrage mit „Schema is too complex“ ab (zu viele optionale Felder), es wurde kein Beleg erkannt. Lehnt eine KI die Abfrage ab, fragt DED jetzt einmal ohne `structure` nach, verlangt dieselben Felder als JSON und liest die Antwort selbst; das bleibt für diese KI bis zum nächsten Neustart so. Gemini und OpenAI laufen unverändert.
+- Lehnt die KI eine Anfrage trotzdem ab (z. B. Konto oder Einstellungen der KI), sagt DED das jetzt im Messenger und im Panel („Die gewählte KI hat die Anfrage abgelehnt …“), statt still „nichts lesbar“ zu melden; das Foto wird dann nicht abgelegt.
+- Heimladung (Menge von der eigenen Wallbox): nach dem Abschluss keine Bitte um einen Beleg mehr; stattdessen kurz „Heimladung erfasst“ mit Zusammenfassung im Panel, ohne Push. Auch die Aufforderung am Ladebeginn, die Säule zu fotografieren, entfällt, solange die eigene Wallbox liefert.
+- Knopf „Ladung jetzt abschließen“ (Haken) in der Zeile „Lädt gerade“: schließt die laufende Ladung sofort ab, ohne Wegfahren oder Abstecken; lädt das Auto weiter, beginnt eine neue Ladung (Websocket `drive_energy_doc/finish_charge`).
+- Zeile „Lädt gerade“ wie die fertigen Einträge: ohne den Zusatz „wallbox“ unter der Menge, Akku- und Wallbox-kWh in der Notiz zweizeilig.
+- Zeile „Lädt gerade“: vorläufiger Ladeverlust „≈ … %“ schon während der Ladung (Wallbox-Energie bis zur letzten Meldung des Ladestands gegen die Schätzung, ab 3 kWh); der endgültige Wert erscheint wie bisher, sobald die Wallbox ruht und der Ladestand 10 Minuten gleich blieb.
+- Zeile „Lädt gerade“ zeigt die Ladeart AC/DC schon während der Ladung: aus der Ladeart-Entität des Autos (falls eingetragen), sonst geschätzt aus Spitzen- bzw. Wallbox-Leistung.
+- Panel blieb öfter bei „Noch kein Fahrzeug“ (Hauptursache, seit der Ladedatei in 0.1.83): HA legte das Panel-Element manchmal an und setzte `hass`, bevor die Panel-Datei geladen war; der Wert verdeckte dann den Setter, das Panel lud nie. Wird jetzt beim Einhängen übernommen.
+- Panel nach HA-Neustart: Hängt HA das Panel um (aus- und wieder eingehängt), wird ohne Fahrzeuge sofort neu geladen; der Minutentakt lädt ebenfalls nach, solange die Liste leer ist oder ein Fehler angezeigt wird.
+- Spalte „Ø Ladeleistung“ auch in der Zeile „Lädt gerade“ (Wallbox-Energie durch aktive Ladezeit, sonst Schätzung durch Dauer); ältere Strom-Einträge ohne gespeicherten Wert zeigen eine Näherung „≈ … kW“ aus Menge und Ladedauer (Pausen zählen mit, nicht in der Auswertung „Verlust nach Leistung“).
+- Ladekurve: Ist der Wallbox-Leistungssensor kurz nicht verfügbar, entsteht eine Lücke statt eines Einbruchs auf 0 kW.
+- Panel: Während einer laufenden Ladung konnte die minütliche Nachführung bei einem HA-Neustart eine leere Fahrzeugliste übernehmen; das Panel blieb dann bei „Noch kein Fahrzeug“ stehen. Leere oder unvollständige Listen werden jetzt normal nachgeladen (alle 5 s), und nach dem Wiederverbinden mit HA lädt das Panel alles neu.
+
 ## 0.1.86 (26.11.2026)
 - Panel: Direkt nach einem HA-Neustart geöffnet, blieb es bei „Noch kein Fahrzeug“ stehen (seit 0.1.84 kein minütliches Neuladen mehr). Jetzt wird alle 5 Sekunden erneut nachgesehen, bis die Fahrzeuge da sind; ebenso nach einem Fehler.
 

@@ -253,5 +253,11 @@
  "Auto": "Karozza",
  "Verlust nach Leistung": "Telf skont il-qawwa",
  "Keine Ladekurve gespeichert.": "L-ebda kurva ma ġiet salvata.",
- "Noch keine Ladung mit Wallbox-Menge und Ladeleistung.": "Għad m'hemm l-ebda ċarġ b'dejta tal-Wallbox u qawwa."
+ "Noch keine Ladung mit Wallbox-Menge und Ladeleistung.": "Għad m'hemm l-ebda ċarġ b'dejta tal-Wallbox u qawwa.",
+ "Näherung aus Menge und Ladedauer (Pausen zählen mit)": "Approssimazzjoni mill-kwantità u t-tul taċ-ċarġ (il-pawżi jgħoddu)",
+ "Vorläufig: Wallbox-Energie bis zur letzten Meldung des Ladestands": "Proviżorju: l-enerġija taċ-ċarġer sal-aħħar rapport tal-livell taċ-ċarġ",
+ "Ladung jetzt abschließen": "Itemm iċ-ċarġ issa",
+ "Laufende Ladung jetzt abschließen? Lädt das Auto weiter, beginnt danach eine neue Ladung.": "Titemm iċ-ċarġ kurrenti issa? Jekk il-karozza tibqa' tiċċarġja, jibda ċarġ ġdid wara.",
+ "Heimladung erfasst": "Iċ-ċarġ fid-dar ġie rreġistrat",
+ "Die gewählte KI hat die Anfrage abgelehnt ({0}). Details stehen im Home-Assistant-Protokoll.": "L-IA magħżula ċaħdet it-talba ({0}). Id-dettalji jinsabu fil-log ta' Home Assistant."
 }

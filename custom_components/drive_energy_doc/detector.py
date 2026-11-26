@@ -112,6 +112,15 @@ class FuelDetector:
         """Gibt es Position oder Kilometerstand, an denen sich Wegfahren erkennen lässt?"""
         return (pos is not None and p.lat is not None) or (odometer is not None and p.odometer is not None)
 
+    def finish_now(self) -> dict | None:
+        """Laufenden (gültigen) Vorgang sofort abschließen, z. B. per Knopf im Panel, ohne Wegfahren oder Abstecken."""
+        p = self.pending
+        if p is None or not p.valid:
+            return None
+        done = asdict(p)
+        self.pending = None
+        return done
+
     def check(self, ts: float, pos: tuple[float, float] | None, odometer: float | None = None, plugged: bool | None = None) -> dict | None:
         """Periodisch aufrufen. Liefert den fertigen Tankvorgang oder None.
 

@@ -255,5 +255,11 @@
  "Auto": "Автомобиль",
  "Verlust nach Leistung": "Потери по мощности",
  "Keine Ladekurve gespeichert.": "Кривая не сохранена.",
- "Noch keine Ladung mit Wallbox-Menge und Ladeleistung.": "Пока нет зарядки с данными Wallbox и мощностью."
+ "Noch keine Ladung mit Wallbox-Menge und Ladeleistung.": "Пока нет зарядки с данными Wallbox и мощностью.",
+ "Näherung aus Menge und Ladedauer (Pausen zählen mit)": "Приблизительно по количеству и длительности зарядки (паузы учитываются)",
+ "Vorläufig: Wallbox-Energie bis zur letzten Meldung des Ladestands": "Предварительно: энергия зарядной станции до последнего сообщения об уровне заряда",
+ "Ladung jetzt abschließen": "Завершить зарядку сейчас",
+ "Laufende Ladung jetzt abschließen? Lädt das Auto weiter, beginnt danach eine neue Ladung.": "Завершить текущую зарядку сейчас? Если автомобиль продолжит заряжаться, начнётся новая зарядка.",
+ "Heimladung erfasst": "Домашняя зарядка записана",
+ "Die gewählte KI hat die Anfrage abgelehnt ({0}). Details stehen im Home-Assistant-Protokoll.": "Выбранный ИИ отклонил запрос ({0}). Подробности в журнале Home Assistant."
 }

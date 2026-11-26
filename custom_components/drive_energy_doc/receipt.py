@@ -343,9 +343,41 @@ INSTRUCTIONS = (
     "Always return the crop box that contains only the receipt or the display."
 )
 
+# Ohne „structure“ (z. B. Claude über die Anthropic-Integration: „Schema is too complex“ bei vielen optionalen Feldern): dieselben Felder als reines JSON verlangen
+INSTRUCTIONS_JSON = INSTRUCTIONS + (
+    " Answer with ONE JSON object only, no other text and no code fence. Use exactly these keys; every value is a string, empty string if not readable: "
+    + "; ".join(f'"{k}": {v["description"]}' for k, v in STRUCTURE.items())
+)
+
+_NO_SCHEMA: set[str] = set()   # KI-Entitäten, die die strukturierte Abfrage abgelehnt haben (bis zum Neustart gemerkt)
+
+
+def parse_json_answer(text: Any) -> dict[str, Any]:
+    """Freitext-Antwort der KI als JSON-Objekt lesen (auch mit ```json-Zaun oder Text drumherum). Nichts Lesbares -> {}."""
+    import json
+
+    if isinstance(text, dict):
+        return text
+    s = str(text or "")
+    start, end = s.find("{"), s.rfind("}")
+    if start < 0 or end <= start:
+        return {}
+    try:
+        d = json.loads(s[start:end + 1])
+    except ValueError:
+        return {}
+    return d if isinstance(d, dict) else {}
+
+
+def short_error(err: BaseException) -> str:
+    """Kurze Fehlermeldung für den Nutzer, z. B. „Schema is too complex.“ statt des ganzen repr."""
+    s = str(err) or repr(err)
+    m = re.search(r"'message':\s*'([^']{1,200})'", s)
+    return (m.group(1) if m else s)[:200]
+
 
 async def ai_read(hass, entity_id: str, image: bytes, media_dir: Path, pos: tuple[float, float] | None = None, exif: tuple[float, float] | None = None) -> dict[str, Any] | None:
-    """Beleg per ai_task lesen. None = nicht verfügbar oder nichts Lesbares."""
+    """Beleg per ai_task lesen. None = nicht verfügbar oder nichts Lesbares; {"busy": True} = KI überlastet; {"error": Text} = KI hat die Anfrage abgelehnt."""
     if not entity_id or not hass.services.has_service("ai_task", "generate_data"):
         return None
     folder = media_dir / "drive_energy_doc_tmp"
@@ -370,39 +402,49 @@ async def ai_read(hass, entity_id: str, image: bytes, media_dir: Path, pos: tupl
     await hass.async_add_executor_job(_write)
     t_ai = time.monotonic()
     resp = None
+    structured = entity_id not in _NO_SCHEMA
     try:
-        for attempt, wait in enumerate((4, 10, None)):   # Die KI-Anbieter melden Überlastung mit 503 (Gemini) bzw. 529 (Claude): ein paar Mal mit Pause wiederholen
+        waits = [4, 10, None]
+        attempt = 0
+        while waits:   # Die KI-Anbieter melden Überlastung mit 503 (Gemini) bzw. 529 (Claude): ein paar Mal mit Pause wiederholen
+            wait = waits[0]
+            attempt += 1
+            call = {
+                "entity_id": entity_id,
+                "task_name": "fuel_receipt",
+                "instructions": INSTRUCTIONS if structured else INSTRUCTIONS_JSON,
+                "attachments": [{"media_content_id": f"media-source://media_source/local/drive_energy_doc_tmp/{name}", "media_content_type": "image/jpeg"}],
+            }
+            if structured:
+                call["structure"] = STRUCTURE
             try:
                 resp = await asyncio.wait_for(
-                    hass.services.async_call(
-                        "ai_task",
-                        "generate_data",
-                        {
-                            "entity_id": entity_id,
-                            "task_name": "fuel_receipt",
-                            "instructions": INSTRUCTIONS,
-                            "structure": STRUCTURE,
-                            "attachments": [{"media_content_id": f"media-source://media_source/local/drive_energy_doc_tmp/{name}", "media_content_type": "image/jpeg"}],
-                        },
-                        blocking=True,
-                        return_response=True,
-                    ),
+                    hass.services.async_call("ai_task", "generate_data", call, blocking=True, return_response=True),
                     timeout=75,   # Gemini braucht bei Fotos meist 5 bis 30 s; was länger dauert, hängt in der Regel
                 )
                 break
             except Exception as err:  # noqa: BLE001 - KI-Fehler dürfen nie den Ablauf stoppen
                 busy = isinstance(err, asyncio.TimeoutError) or any(s in repr(err) for s in ("503", "UNAVAILABLE", "429", "high demand", "overloaded", "RESOURCE_EXHAUSTED", "entity_not_found", "529", "overloaded_error", "rate_limit"))   # entity_not_found: die KI ist kurz nach dem HA-Start noch nicht geladen
-                _LOGGER.warning("Beleg-KI fehlgeschlagen (Versuch %d): %r", attempt + 1, err)
+                _LOGGER.warning("Beleg-KI fehlgeschlagen (Versuch %d%s): %r", attempt, "" if structured else ", ohne structure", err)
+                if not busy and structured:
+                    # Die Anthropic-API lehnt das Schema mit 15 optionalen Feldern ab („Schema is too complex“), Home Assistant meldet nur „api_error“ (Ursache im Log davor).
+                    # Für jeden nicht vorübergehenden Fehler einmal ohne structure fragen und das JSON selbst lesen; klappt das, bleibt es für diese KI dabei.
+                    structured = False
+                    continue
                 if not busy:
-                    return None
+                    return {"error": short_error(err)}   # abgelehnt (auch ohne structure): dem Nutzer sagen statt „nichts gelesen“
                 if wait is None:
                     return {"busy": True}   # KI überlastet: kein „nichts gelesen“, der Aufrufer sagt das dem Nutzer
+                waits.pop(0)
                 await asyncio.sleep(wait)
+        if not structured and entity_id not in _NO_SCHEMA and resp is not None:
+            _NO_SCHEMA.add(entity_id)
+            _LOGGER.info("Beleg-KI %s: strukturierte Abfrage abgelehnt, ab jetzt JSON als Text", entity_id)
     finally:
         await hass.async_add_executor_job(lambda: (folder / name).unlink(missing_ok=True))
     ai_secs = round(time.monotonic() - t_ai, 1)
     _LOGGER.info("Beleg-KI: Antwort nach %.1f s (%s, Bild %d KB)", ai_secs, entity_id, len(image) // 1024)
-    data = (resp or {}).get("data") or {}
+    data = parse_json_answer((resp or {}).get("data"))   # mit structure ein dict, ohne ein Text mit JSON
 
     def num(key: str) -> float | None:
         try:

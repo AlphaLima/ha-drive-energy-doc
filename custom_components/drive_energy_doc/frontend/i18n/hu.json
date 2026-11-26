@@ -253,5 +253,11 @@
  "Auto": "Autó",
  "Verlust nach Leistung": "Veszteség teljesítmény szerint",
  "Keine Ladekurve gespeichert.": "Nincs mentett görbe.",
- "Noch keine Ladung mit Wallbox-Menge und Ladeleistung.": "Még nincs töltés Wallbox-mennyiséggel és teljesítménnyel."
+ "Noch keine Ladung mit Wallbox-Menge und Ladeleistung.": "Még nincs töltés Wallbox-mennyiséggel és teljesítménnyel.",
+ "Näherung aus Menge und Ladedauer (Pausen zählen mit)": "Közelítés a mennyiségből és a töltési időből (a szünetek is beleszámítanak)",
+ "Vorläufig: Wallbox-Energie bis zur letzten Meldung des Ladestands": "Előzetes: a fali töltő energiája a töltöttségi szint utolsó jelentéséig",
+ "Ladung jetzt abschließen": "Töltés lezárása most",
+ "Laufende Ladung jetzt abschließen? Lädt das Auto weiter, beginnt danach eine neue Ladung.": "Lezárja most a folyamatban lévő töltést? Ha az autó tovább töltődik, utána új töltés kezdődik.",
+ "Heimladung erfasst": "Otthoni töltés rögzítve",
+ "Die gewählte KI hat die Anfrage abgelehnt ({0}). Details stehen im Home-Assistant-Protokoll.": "A kiválasztott MI elutasította a kérést ({0}). A részletek a Home Assistant naplójában találhatók."
 }

@@ -253,5 +253,11 @@
  "Auto": "Automobilis",
  "Verlust nach Leistung": "Nuostoliai pagal galią",
  "Keine Ladekurve gespeichert.": "Kreivė neišsaugota.",
- "Noch keine Ladung mit Wallbox-Menge und Ladeleistung.": "Dar nėra krovimo su Wallbox kiekiu ir galia."
+ "Noch keine Ladung mit Wallbox-Menge und Ladeleistung.": "Dar nėra krovimo su Wallbox kiekiu ir galia.",
+ "Näherung aus Menge und Ladedauer (Pausen zählen mit)": "Apytikslė vertė pagal kiekį ir įkrovimo trukmę (pertraukos įskaičiuotos)",
+ "Vorläufig: Wallbox-Energie bis zur letzten Meldung des Ladestands": "Preliminarus: įkroviklio energija iki paskutinio įkrovos lygio pranešimo",
+ "Ladung jetzt abschließen": "Baigti įkrovimą dabar",
+ "Laufende Ladung jetzt abschließen? Lädt das Auto weiter, beginnt danach eine neue Ladung.": "Baigti vykstantį įkrovimą dabar? Jei automobilis toliau krausis, prasidės naujas įkrovimas.",
+ "Heimladung erfasst": "Įkrovimas namuose užregistruotas",
+ "Die gewählte KI hat die Anfrage abgelehnt ({0}). Details stehen im Home-Assistant-Protokoll.": "Pasirinktas DI atmetė užklausą ({0}). Išsami informacija – Home Assistant žurnale."
 }

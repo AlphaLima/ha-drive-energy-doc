@@ -253,5 +253,11 @@
  "Auto": "Αυτοκίνητο",
  "Verlust nach Leistung": "Απώλειες ανά ισχύ",
  "Keine Ladekurve gespeichert.": "Δεν υπάρχει αποθηκευμένη καμπύλη.",
- "Noch keine Ladung mit Wallbox-Menge und Ladeleistung.": "Δεν υπάρχει ακόμη φόρτιση με δεδομένα Wallbox και ισχύ."
+ "Noch keine Ladung mit Wallbox-Menge und Ladeleistung.": "Δεν υπάρχει ακόμη φόρτιση με δεδομένα Wallbox και ισχύ.",
+ "Näherung aus Menge und Ladedauer (Pausen zählen mit)": "Προσέγγιση από ποσότητα και διάρκεια φόρτισης (οι παύσεις μετράνε)",
+ "Vorläufig: Wallbox-Energie bis zur letzten Meldung des Ladestands": "Προσωρινό: ενέργεια του φορτιστή μέχρι την τελευταία αναφορά της στάθμης φόρτισης",
+ "Ladung jetzt abschließen": "Ολοκλήρωση φόρτισης τώρα",
+ "Laufende Ladung jetzt abschließen? Lädt das Auto weiter, beginnt danach eine neue Ladung.": "Ολοκλήρωση της τρέχουσας φόρτισης τώρα; Αν το αυτοκίνητο συνεχίσει να φορτίζει, ξεκινά νέα φόρτιση.",
+ "Heimladung erfasst": "Η φόρτιση στο σπίτι καταγράφηκε",
+ "Die gewählte KI hat die Anfrage abgelehnt ({0}). Details stehen im Home-Assistant-Protokoll.": "Η επιλεγμένη ΤΝ απέρριψε το αίτημα ({0}). Λεπτομέρειες στο αρχείο καταγραφής του Home Assistant."
 }
