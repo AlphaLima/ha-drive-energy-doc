@@ -103,7 +103,8 @@ def test_charging_stationary_is_detected():
     d.on_level(40, 0, HOME, 1000)
     events = [d.on_level(40 + i * 2, 10 + i * 30, (51.7300 + (i % 3) * 0.0001, 6.2900), 1000) for i in range(1, 16)]  # GPS-Rauschen von ca. 10 m
     assert events.count("valid") == 1 and d.pending.level == 70
-    assert d.check(10 + 15 * 30 + 100, HOME)["level"] == 70
+    assert d.check(10 + 15 * 30 + 100, HOME, 1000) is None   # Auto steht noch am Ladeort: Ladung bleibt offen (Pausen)
+    assert d.check(10 + 15 * 30 + 100, FAR, 1000)["level"] == 70
 
 
 def test_driving_off_after_charging_ignores_regen():
@@ -131,6 +132,41 @@ def test_default_detector_unchanged():
     for i in range(1, 8):
         d.on_level(40 + i * 5, i * 30, HOME, 1000)
     assert d.pending.valid
+
+
+def _charging(**kw):
+    d = new(reject_moving=True, require_distance=False, settle_seconds=600, **kw)
+    d.on_level(45, 100, HOME, 1000)
+    d.on_level(52, 200, HOME, 1000)
+    assert d.pending.valid
+    return d
+
+
+def test_ev_long_pause_keeps_charge_open():
+    d = _charging()
+    assert d.check(200 + 5 * 3600, HOME, 1000) is None            # Stunden Pause (Wolken): nicht beendet
+    d.on_level(60, 200 + 6 * 3600, HOME, 1000)                      # Ladung geht weiter, derselbe Vorgang
+    assert d.pending.level == 60
+
+
+def test_ev_ends_when_car_moves_or_unplugged():
+    d = _charging()
+    assert d.check(2000, FAR, 1000)["level"] == 52                  # weggefahren
+    d = _charging()
+    assert d.check(2000, HOME, 1000, plugged=True) is None
+    assert d.check(2000, HOME, 1000, plugged=False)["level"] == 52  # abgesteckt (Abschlusszeit vorbei)
+    d = _charging()
+    assert d.check(250, HOME, 1000, plugged=False) is None          # Abschlusszeit noch nicht um (Füllstand meldet verspätet)
+
+
+def test_ev_without_signals_uses_settle_time():
+    d = _charging()
+    assert d.check(2000, None, None) ["level"] == 52                # weder Position noch Stecker: wie bisher
+
+
+def test_ev_hold_has_cap():
+    d = _charging()
+    assert d.check(200 + det.MAX_HOLD_S + 1, HOME, 1000) is not None
 
 
 if __name__ == "__main__":

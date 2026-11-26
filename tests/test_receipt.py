@@ -181,3 +181,10 @@ def test_convert_foreign_currency():
         assert "orig" not in e
     finally:
         r.eur_rate = orig
+
+
+def test_safe_photo_name():
+    for ok in ("2026-10-15_1240_Tanken_Aral.jpg", "Foto_2.jpg"):
+        assert r.safe_photo_name(ok)
+    for bad in ("../../../configuration.yaml", "..", "a/b.jpg", r"a\b.jpg", "C:x.jpg", ".hidden", "", None, 5, "x" * 300):
+        assert not r.safe_photo_name(bad), bad

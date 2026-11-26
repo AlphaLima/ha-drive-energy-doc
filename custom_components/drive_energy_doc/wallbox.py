@@ -86,6 +86,26 @@ def parse_plug(state: str | None) -> bool | None:
     return None
 
 
+def find_run(power: list[tuple[float, float]], energy: list[tuple[float, float]], gap: float = 900.0) -> tuple[float, float] | None:
+    """Beginn der laufenden Lieferung aus dem Verlauf der Entitäten (Recorder): (Zeitpunkt, Zählerstand davor) oder None, wenn die Wallbox zuletzt nicht lieferte.
+    ``power`` und ``energy`` sind zeitlich geordnete (Zeit, Watt) bzw. (Zeit, kWh). Eine Pause von mehr als ``gap`` Sekunden unter 50 W trennt zwei Lieferungen."""
+    start = low = None
+    for ts, w in power:
+        if w >= IDLE_WATT:
+            if low is not None and ts - low > gap:
+                start = None
+            low = None
+            if start is None:
+                start = ts
+        elif low is None:
+            low = ts
+    if start is None or low is not None:
+        return None
+    before = [x for x in energy if x[0] <= start]
+    base = before[-1] if before else (energy[0] if energy else None)
+    return (start, base[1]) if base else None
+
+
 def plausible(wb_kwh: float | None, est_kwh: float | None) -> bool:
     """Passt die Wallbox-Energie zur Schätzung aus dem Füllstand? Ohne Schätzung genügt eine positive Menge."""
     if not wb_kwh or wb_kwh <= 0:

@@ -1,7 +1,22 @@
 # Changelog
 
+## 0.1.84 (26.11.2026)
+- Review (HACS): Fotos werden komplett im Executor benannt und abgelegt (kein Dateizugriff mehr im Event-Loop, auch nicht beim Neueinlesen); Foto-Namen aus dem Panel werden nur noch angenommen, wenn die Integration sie selbst beim Scan vergeben hat (kein Pfad wie ../configuration.yaml möglich).
+- Neustart-Sicherheit: Ein laufender Lade- oder Tankvorgang (Füllstand, letzter Anstieg) wird jetzt jede Minute und beim Herunterfahren gesichert; was während des Neustarts weitergeladen wurde, wird beim Start nachgezogen. Die Zeile „Lädt gerade“ erscheint schon, sobald die Wallbox liefert und das Auto noch keinen Anstieg gemeldet hat.
+- Neukonfigurieren und Neustart: Beim Neuladen des Fahrzeugs (z. B. Sprache ändern) wird die laufende Ladung mit aktuellem Stand gesichert; auch der Wallbox-Verlauf und der Beginn der Wallbox-Lieferung bleiben erhalten.
+- Neustart während einer Wallbox-Ladung: Beginn der Lieferung und Zählerstand davor werden beim Start aus dem Verlauf (Recorder) geholt, der Betrag in der Zeile „Lädt gerade“ beginnt also nicht mehr bei null.
+- Liste: Spalten „Solaranteil“ und „Ladeverlust“ (nur Elektroauto und Plug-in-Hybrid), Überschriften als Symbole, kompakte Spaltenbreiten (gespeicherte Breiten werden einmalig zurückgesetzt); Heimladungen ohne „Beleg fehlt“; im Bearbeiten-Dialog schlägt die Notiz Akku-kWh, Wallbox-kWh und Ladeverlust vor.
+- Summen: Auswahlfeld Liste / Woche / Monat / Jahr; Tabelle je Zeitraum mit Einträgen, gefahrenen km (Abstand der Kilometerstände), Menge, Ø-Verbrauch je 100 km (nach Strecke gewichtet), Ø-Preis, Betrag (mit Zubehör), Solaranteil (nach Menge gewichtet) und Ladeverlust, Gesamtsumme unten; beachtet den Filter.
+- Weitere Spalten (Elektroauto und Plug-in-Hybrid, standardmäßig ausgeblendet): Laden von / bis (Uhrzeit), Ladestand von / bis, Ladeart AC/DC, Akku-kWh, Wallbox-kWh, Ø Ladeleistung (Energie durch aktive Ladezeit, Pausen zählen nicht) und Spitzenleistung (Auto-Sensor, sonst Wallbox). Spalten-Dialog zweispaltig mit Symbolen und Knopf „Standard“.
+- Ladekurve: Während einer Ladung merkt DED einmal pro Minute Wallbox-Leistung, Leistung laut Auto und Ladestand (in Pausen seltener) und legt die Kurve beim Abschluss als eigene Datei je Eintrag ab (`drive_energy_doc/<Fahrzeug>/curves/`, wenige KB). Knopf „Ladekurve“ am Eintrag: zwei Diagramme (Leistung, Ladestand) mit gemeinsamer Zeitachse und Tooltip. Übersteht Neustart und Neukonfigurieren.
+- Auswertung „Verlust nach Leistung“ im Summen-Auswahlfeld (Elektroauto, Plug-in-Hybrid): Punktdiagramm Ladeverlust über Ø Ladeleistung (eine Ladung = ein Punkt, Tooltip) und Tabelle je Leistungsbereich (bis 2,3 / 3,7 / 7,4 / 11 / 22 kW und mehr).
+- Spalten-Einstellungen (Auswahl, Reihenfolge, Breiten) werden je Fahrzeug gespeichert.
+- Das Panel zeichnet nur neu, wenn sich Daten geändert haben; ohne laufenden Vorgang keine minütliche Aktualisierung mehr.
+- Die Panel-Datei wird bei jedem Öffnen frisch geladen (kleine Ladedatei); Änderungen sind ohne Neustart und ohne Browser-Cache sichtbar.
+- Panel: Die Zeile „Lädt gerade“ wird einzeln nachgeführt, die Seite flackert nicht mehr; sie zeigt außerdem Kilometerstand, Preis, Betrag und Ladeverlust.
+
 ## 0.1.83 (25.11.2026)
-- Heim-Wallbox: optionales Feld „Solaranteil der Ladung in %“ (Sensor, z. B. aus Netzbezug und Wallbox-Leistung). DED mittelt den Wert über die Ladung und zeigt „☀ 62 %“ unter der Menge des Eintrags.
+- Heim-Wallbox: optionales Feld „Solaranteil der Ladung in %“ (Sensor, z. B. aus Netzbezug und Wallbox-Leistung). DED mittelt den Wert über die Ladung und zeigt ihn in der Spalte „Solaranteil“.
 - Überschussladen mit Pausen: Eine Ladung des Elektroautos endet nicht mehr nach der Abschlusszeit, sondern erst, wenn das Auto wegfährt (Position oder Kilometerstand) oder abgesteckt wird; Pausen von Stunden (Wolken) bleiben im selben Eintrag. Ohne Position, Kilometerstand und Stecker-Sensor gilt weiter die Abschlusszeit; spätestens nach 48 Stunden ohne Anstieg wird abgeschlossen. Die Zeile „Lädt gerade“ wird jede Minute nachgeführt und zeigt bei Pause „pausiert“.
 - Neues optionales Feld „Stecker: Auto angesteckt“ im Heim-Wallbox-Menü (Binär- oder Textsensor): Die Ladung endet beim Abstecken.
 - Wallbox-Menge über lange Pausen: Zählerstand bei Beginn und bei der letzten Lieferung werden während der Ladung mitgeschrieben (überstehen auch einen Neustart).

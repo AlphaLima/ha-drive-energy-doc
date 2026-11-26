@@ -2,7 +2,7 @@
 
 DOMAIN = "drive_energy_doc"
 PANEL_PATH = "drive-energy-doc"
-PANEL_URL = "/drive_energy_doc_static/drive-energy-doc-panel.js"
+PANEL_URL = "/drive_energy_doc_static/drive-energy-doc-loader.js"   # lädt das eigentliche Panel immer frisch
 
 CONF_NAME = "name"
 CONF_ENERGY = "energy"            # diesel | e5 | e10 | lpg | electric

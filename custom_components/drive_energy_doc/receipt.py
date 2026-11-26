@@ -567,6 +567,18 @@ def new_photo_name(values: dict | None = None, ts: float | None = None, label: s
     return name
 
 
+def safe_photo_name(name: object) -> bool:
+    """Nur ein reiner Dateiname (kein Pfad, kein ``..``), wie ihn new_photo_name erzeugt."""
+    return isinstance(name, str) and 0 < len(name) <= 200 and not name.startswith(".") and not any(c in name for c in ("/", "\\", "\x00", ":")) and ".." not in name
+
+
+def save_new_photo(image: bytes, box: list[int] | None, folder: Path, values: dict | None, ts: float | None, label: str | None, keep_original: Path | None) -> str:
+    """Executor: freien Namen wählen und das Foto ablegen (alle Dateisystem-Zugriffe hier, nicht im Event-Loop). Rückgabe: Dateiname."""
+    name = new_photo_name(values, ts, label, folder)
+    crop_and_save(image, box, folder, name, keep_original)
+    return name
+
+
 def recompress(data: bytes, max_side: int, quality: int) -> bytes:
     """JPEG verkleinern und stärker komprimieren (progressiv, optimiert). Gibt das Original zurück, wenn das Ergebnis nicht kleiner ist. Läuft im Executor."""
     try:

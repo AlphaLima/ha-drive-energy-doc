@@ -1,10 +1,11 @@
 /* Drive-Energy-Doc-Panel: Fahrzeug-Reiter, Tankliste mit Belegfotos, Bearbeiten, CSV-Export */
-const DEFW = { nr: 46 };   // Standardbreite einzelner Spalten in px (sonst 120 bei fester Breite)
+const DEFW = { nr: 46, sol: 48, loss: 56 };   // Standardbreite einzelner Spalten in px (sonst 120 bei fester Breite)
 const CURRENCIES = ["ALL", "AED", "AUD", "BAM", "BRL", "BYN", "CAD", "CHF", "CNY", "CZK", "DKK", "EGP", "GBP", "GEL", "HUF", "INR", "ISK", "JPY", "MAD", "MDL", "MKD", "MXN", "NOK", "NZD", "PLN", "RON", "RSD", "SEK", "THB", "TND", "TRY", "UAH", "USD", "ZAR"];
 const FUEL_GRADES = { diesel: "Diesel", diesel_premium: "Diesel Premium", e10: "Super E10", e5: "Super E5", ron95: "Super 95", ron98: "Super 98", lpg: "LPG" };
-const COLS = ["nr", "date", "km", "station", "qty", "price", "total", "cons", "receipt", "note", "act"];
+const COLS = ["nr", "date", "start", "end", "lfrom", "lto", "km", "station", "qty", "ctype", "kcar", "kwb", "pavg", "ppk", "price", "total", "cons", "sol", "loss", "receipt", "note", "act"];
+const DEF_HIDE = ["start", "end", "lfrom", "lto", "ctype", "kcar", "kwb", "pavg", "ppk"];   // Laden von / bis: vorhanden, aber zunächst ausgeblendet
 
-const VERSION = "0.1.83";
+const VERSION = "0.1.84";
 
 class DriveEnergyDocPanel extends HTMLElement {
   set hass(h) {
@@ -21,6 +22,47 @@ class DriveEnergyDocPanel extends HTMLElement {
     this._hass.connection.subscribeMessage(ev => this._onEvent(ev), { type: "drive_energy_doc/subscribe" }).then(u => { this._sub = u; this._subBusy = false; }, () => { this._subBusy = false; });
   }
 
+  _liveRowHtml(lv, v, u, order) {
+    const q = lv.wb_kwh != null ? lv.wb_kwh : lv.est_quantity, kwu = v.phev ? "kWh" : u;
+      const cell = {
+        nr: `<td class="n nr"><span class="pulse"></span></td>`,
+        date: `<td><span>${this._d(lv.ts_start)}</span><span class="tm">${this._tm(lv.ts_start)}</span></td>`,
+        km: `<td class="n">${lv.odometer != null ? this._fmt(lv.odometer, 0) : "–"}</td>`,
+        price: `<td class="n">${lv.unit_price != null ? this._fmt(lv.unit_price, 3) : ""}</td>`,
+        total: `<td class="n">${lv.total != null ? this._fmt(lv.total) + " €" : ""}</td>`,
+        station: `<td><div>${this._esc(this.T("Lädt gerade"))}</div>${lv.kw ? `<div class="src">${this._fmt(lv.kw, 1)} kW</div>` : lv.paused ? `<div class="src">${this._esc(this.T("pausiert"))}</div>` : ""}</td>`,
+        qty: `<td class="n">${q != null ? this._fmt(q) + " " + kwu : "–"}<div class="src">${lv.level_from != null ? Math.round(lv.level_from) + "→" + Math.round(lv.level_to) + " % " : lv.level_to != null ? Math.round(lv.level_to) + " % " : ""}${this._esc(this.T(lv.wb_kwh != null ? "wallbox" : "berechnet"))}</div></td>`,
+        start: `<td>${this._tm(lv.ts_start)}</td>`,
+        kcar: `<td class="n">${lv.est_quantity != null ? this._fmt(lv.est_quantity) + " kWh" : ""}</td>`,
+        ppk: `<td class="n">${lv.kw ? this._fmt(lv.kw, 1) + " kW" : ""}</td>`,
+        kwb: `<td class="n">${lv.wb_kwh != null ? this._fmt(lv.wb_kwh) + " kWh" : ""}</td>`,
+        lfrom: `<td class="n">${lv.level_from != null ? Math.round(lv.level_from) + " %" : ""}</td>`,
+        lto: `<td class="n">${lv.level_to != null ? Math.round(lv.level_to) + " %" : ""}</td>`,
+        loss: `<td class="n">${lv.loss_pct != null && lv.loss_pct >= 0 ? lv.loss_pct + " %" : ""}</td>`,
+        note: `<td>${lv.est_quantity != null || lv.wb_kwh != null ? `<div class="src">${lv.est_quantity != null ? this._esc(this.T("Akku")) + " " + this._fmt(lv.est_quantity) + " kWh" : ""}${lv.est_quantity != null && lv.wb_kwh != null ? " · " : ""}${lv.wb_kwh != null ? "Wallbox " + this._fmt(lv.wb_kwh) + " kWh" : ""}</div>` : ""}</td>`,
+      };
+    cell.act = `<td><button data-act="curve" title="${this.T("Ladekurve")}" aria-label="${this.T("Ladekurve")}">${this._ico("chart")}</button></td>`;   // Kurve der laufenden Ladung
+    return `<tr class="c-live" data-id="live">${order.map(k => (cell[k] || "<td></td>").replace("<td", `<td data-c="${k}"`)).join("")}</tr>`;
+  }
+
+  async _liveOnly() {
+    // nur die Zeile „Lädt gerade“ nachführen, ohne die ganze Seite neu zu zeichnen (kein Flackern)
+    try {
+      const data = await this._hass.callWS({ type: "drive_energy_doc/list" });
+      this._data = data;
+      if (this._dlg || this.shadowRoot.querySelector(".busy, .dlg") || !this._liveCtx) return;
+      const v = data[this._tab || 0];
+      const lv = v && v.summary && v.summary.live && ["all", "electric", "both", "home"].includes(this._liveCtx.flt) ? v.summary.live : null;
+      const tr = this.shadowRoot.querySelector("tr.c-live");
+      if (!!lv !== !!tr) { this._render(); return; }   // erscheint oder verschwindet: einmal ganz zeichnen
+      if (lv) {
+        const tpl = document.createElement("template");
+        tpl.innerHTML = this._liveRowHtml(lv, v, this._liveCtx.u, this._liveCtx.order);
+        tr.replaceWith(tpl.content.firstElementChild);
+      }
+    } catch (e) { /* nächster Versuch beim nächsten Ereignis */ }
+  }
+
   _onEvent(ev) {
     if (!ev) return;
     if (ev.event === "processing") {
@@ -33,6 +75,11 @@ class DriveEnergyDocPanel extends HTMLElement {
     } else if (ev.event === "reply") {
       this._liveToast(ev.text || "");
     } else if (ev.event === "changed") {
+      if (ev.live) {   // nur die laufende Ladung hat sich geändert
+        clearTimeout(this._liveT);
+        this._liveT = setTimeout(() => this._liveOnly(), 300);
+        return;
+      }
       clearTimeout(this._chgT);
       this._chgT = setTimeout(() => this._load(), 600);   // mehrere Änderungen auf einmal: nur einmal neu laden
     }
@@ -77,7 +124,7 @@ class DriveEnergyDocPanel extends HTMLElement {
       this.attachShadow({ mode: "open" });
       // ShadowRoot kennt kein onclick: echten Listener setzen
       this.shadowRoot.addEventListener("click", ev => { if (this._cur) this._click(ev, this._cur); });
-      this.shadowRoot.addEventListener("change", ev => { if (ev.target && ev.target.id === "flt") { this._flt = ev.target.value; this._selId = null; this._render(); } });   // Filter der Liste
+      this.shadowRoot.addEventListener("change", ev => { if (ev.target && ev.target.id === "agg") { this._agg = ev.target.value; try { localStorage.setItem("deAgg", this._agg); } catch (e) { /* ignore */ } this._render(); return; } if (ev.target && ev.target.id === "flt") { this._flt = ev.target.value; this._selId = null; this._render(); } });   // Filter der Liste
       document.addEventListener("keydown", ev => { if (this.isConnected) this._keys(ev); });
       this.shadowRoot.addEventListener("pointerdown", ev => this._rsStart(ev));
       // Beleg beim Darüberfahren vergrößern (Maus/Stift; am Handy gibt es den Foto-Viewer per Tipp)
@@ -101,9 +148,9 @@ class DriveEnergyDocPanel extends HTMLElement {
         if (ev.target.classList && ev.target.classList.contains("rs")) {
           this._cw = {}; this._co = null;
           this._saveCw();
-          this._hide = [];
+          this._hide = [...DEF_HIDE];
           this._sort = null;
-          try { localStorage.removeItem("deCo"); localStorage.removeItem("deHide"); localStorage.removeItem("deSort"); } catch (e) { /* ignore */ }
+          try { localStorage.setItem(this._ck("deCo"), "null"); localStorage.setItem(this._ck("deHide"), JSON.stringify(this._hide)); localStorage.removeItem("deSort"); } catch (e) { /* ignore */ }
           this._render();
         }
       });
@@ -131,20 +178,24 @@ class DriveEnergyDocPanel extends HTMLElement {
         const o = this._order().slice(), from = o.indexOf(d), to = o.indexOf(th.dataset.c);
         o.splice(from, 1); o.splice(to, 0, d);
         this._co = o;
-        try { localStorage.setItem("deCo", JSON.stringify(o)); } catch (e) { /* ignore */ }
+        try { localStorage.setItem(this._ck("deCo"), JSON.stringify(o)); } catch (e) { /* ignore */ }
         this._render();
       });
       this.shadowRoot.addEventListener("dragend", () => { this._dragCol = null; this.shadowRoot.querySelectorAll("th.dropt").forEach(x => x.classList.remove("dropt")); });
     }
     this._tab = 0;
     this._hide = [];
-    try { this._hide = JSON.parse(localStorage.getItem("deHide") || "[]") || []; } catch (e) { /* ignore */ }
+    this._agg = "list";
+    try { this._agg = localStorage.getItem("deAgg") || "list"; } catch (e) { /* ignore */ }
+    try { const h = localStorage.getItem("deHide"); this._hide = h ? (JSON.parse(h) || []) : [...DEF_HIDE]; } catch (e) { /* ignore */ }
+    try { if (localStorage.getItem("deHideV") !== "5") { DEF_HIDE.forEach(c => { if (!this._hide.includes(c)) this._hide.push(c); }); localStorage.setItem("deHide", JSON.stringify(this._hide)); localStorage.setItem("deHideV", "5"); } } catch (e) { /* ignore */ }   // neue Spalten zunächst aus
     this._sort = null;   // Sortierung per Klick auf die Spaltenüberschrift: {c: Spalte, dir: 1 aufsteigend | -1 absteigend}
     // Sortierung wird nicht gespeichert: beim Öffnen und beim Fahrzeugwechsel gilt immer der Standard (Nr. absteigend)
     this._cw = {};
     this._co = null;
     try { this._co = JSON.parse(localStorage.getItem("deCo") || "null"); } catch (e) { /* ignore */ }
     try { this._cw = JSON.parse(localStorage.getItem("deCw") || "{}") || {}; } catch (e) { /* ignore */ }
+    try { if (localStorage.getItem("deCwV") !== "2") { this._cw = {}; localStorage.setItem("deCw", "{}"); localStorage.setItem("deCwV", "2"); } } catch (e) { /* ignore */ }   // einmalig: alte feste Breiten verwerfen (kompakte Spalten)
     this._ori = "portrait";
     this._rcp = true;
     try { if (localStorage.getItem("deRcp") === "0") this._rcp = false; } catch (e) { /* ignore */ }
@@ -152,7 +203,9 @@ class DriveEnergyDocPanel extends HTMLElement {
     try { if (localStorage.getItem("deClr") === "0") this._clr = false; } catch (e) { /* ignore */ }
     try { if (localStorage.getItem("deOri") === "landscape") this._ori = "landscape"; } catch (e) { /* ignore */ }
     this._render();
-    this._timer = setInterval(() => this._load(), 60000);
+    this._timer = setInterval(() => {   // Rückfall, falls ein Ereignis fehlt: nur solange ein Tank- oder Ladevorgang läuft, und dann nur die laufende Zeile
+      if ((this._data || []).some(x => x.summary && (x.summary.live || (x.summary.status && x.summary.status !== "idle")))) this._liveOnly();
+    }, 60000);
     this._subscribe();   // beim Wiederöffnen der Seite
   }
   disconnectedCallback() {
@@ -180,7 +233,10 @@ class DriveEnergyDocPanel extends HTMLElement {
 
   async _load() {
     try {
-      this._data = await this._hass.callWS({ type: "drive_energy_doc/list" });
+      const data = await this._hass.callWS({ type: "drive_energy_doc/list" });
+      const sig = JSON.stringify(data);
+      if (this._tabInit && sig === this._sig && !this._jumpId && !this._err) return;   // nichts geändert: nicht neu zeichnen (kein Flackern)
+      this._data = data;
       if (!this._tabInit) {   // beim ersten Laden das zuletzt gewählte Fahrzeug wieder auswählen
         this._tabInit = true;
         try {
@@ -189,6 +245,7 @@ class DriveEnergyDocPanel extends HTMLElement {
         } catch (e) { /* ignore */ }
       }
       if (!this._dlg && !this.shadowRoot.querySelector(".busy, .dlg")) {   // nicht neu zeichnen, solange der Fortschritts- oder ein anderer Dialog offen ist
+        this._sig = sig;   // gezeichneter Stand
         this._render();
         this._quick();
         if (this._jumpId) { const id = this._jumpId; this._jumpId = null; setTimeout(() => { const r = [...this.shadowRoot.querySelectorAll("tr[data-id]")].find(x => x.dataset.id === id); if (r) { this._selId = id; r.classList.add("rsel"); r.scrollIntoView({ block: "center", behavior: "smooth" }); } }, 50); }   // zur Zeile des gerade erfassten Belegs springen
@@ -219,6 +276,159 @@ class DriveEnergyDocPanel extends HTMLElement {
     if (e.lat == null || e.lon == null) return "";
     const txt = `${Number(e.lat).toFixed(5)}, ${Number(e.lon).toFixed(5)}`;
     return link ? `<a href="https://www.google.com/maps/search/?api=1&query=${e.lat},${e.lon}" target="_blank" rel="noopener">${txt}</a>` : txt;
+  }
+  _aggHtml(v, ents, mode) {
+    // Summen je Zeitraum (beachtet den Filter der Liste); neueste oben, Gesamtsumme unten
+    const el = v.energy === "electric", phev = !!v.phev, units = el ? ["kWh"] : phev ? ["l", "kWh"] : ["l"];
+    const unitOf = e => (el || (phev && e.energy === "electric")) ? "kWh" : "l";
+    const key = ts => {
+      const d = new Date(ts * 1000);
+      if (mode === "year") return [String(d.getFullYear()), String(d.getFullYear())];
+      if (mode === "month") return [`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`, d.toLocaleDateString(this._locale || "de-DE", { month: "long", year: "numeric" })];
+      const x = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate())), wd = x.getUTCDay() || 7;   // ISO-Kalenderwoche
+      x.setUTCDate(x.getUTCDate() + 4 - wd);
+      const y = x.getUTCFullYear(), w = Math.ceil(((x - Date.UTC(y, 0, 1)) / 864e5 + 1) / 7);
+      return [`${y}-${String(w).padStart(2, "0")}`, `${this.T("KW")} ${w} ${y}`];
+    };
+    const blank = () => ({ n: 0, total: 0, km: 0, q: { l: 0, kWh: 0 }, qp: { l: 0, kWh: 0 }, tp: { l: 0, kWh: 0 }, cq: { l: 0, kWh: 0 }, ck: { l: 0, kWh: 0 }, wb: 0, wbEst: 0, solQ: 0, solW: 0 });
+    const kmOf = {};   // gefahrene km je Eintrag: Abstand zum vorigen Kilometerstand (alle Einträge des Fahrzeugs, unabhängig vom Filter)
+    let prevKm = null;
+    [...v.entries].filter(x => x.kind !== "extra" && x.odometer != null).sort((a, b) => a.ts - b.ts).forEach(x => { if (prevKm != null && x.odometer > prevKm && x.odometer - prevKm < 5000) kmOf[x.id] = x.odometer - prevKm; prevKm = Math.max(prevKm || 0, x.odometer); });
+    const add = (g, e) => {
+      if (e.total) g.total += e.total;
+      if (e.kind === "extra") return;
+      g.n++;
+      const u = unitOf(e);
+      g.km += kmOf[e.id] || 0;
+      if (e.consumption && e.cons_km) { g.cq[u] += e.consumption * e.cons_km / 100; g.ck[u] += e.cons_km; }   // Verbrauch nach Strecke gewichtet
+      if (e.quantity) { g.q[u] += e.quantity; if (e.total) { g.qp[u] += e.quantity; g.tp[u] += e.total; } }
+      if (e.quantity_source === "wallbox" && e.wb_kwh && e.est_quantity) { g.wb += e.wb_kwh; g.wbEst += e.est_quantity; }
+      if (e.solar_pct != null && e.quantity) { g.solQ += e.quantity; g.solW += e.solar_pct * e.quantity; }
+    };
+    const groups = new Map(), sum = blank();
+    ents.forEach(e => { const [k, label] = key(e.ts); if (!groups.has(k)) groups.set(k, { label, ...blank() }); add(groups.get(k), e); add(sum, e); });
+    const strom = el || phev;
+    const head = [this.T("Zeitraum"), this.T("Einträge"), this.T("km"), ...units.map(u => `${this.T("Menge")} ${this.T(u)}`), ...units.map(u => `${this.T(u)}/100 ${this.T("km")}`), ...units.map(u => `€/${this.T(u)}`), this.T("Betrag"), ...(strom ? [this.T("Solaranteil"), this.T("Ladeverlust")] : [])];
+    const row = (g, lab, tag) => `<tr><${tag}>${this._esc(lab)}</${tag}><${tag} class="n">${g.n}</${tag}><${tag} class="n">${g.km ? this._fmt(g.km, 0) : "–"}</${tag}>${units.map(u => `<${tag} class="n">${g.q[u] ? this._fmt(g.q[u]) : "–"}</${tag}>`).join("")}${units.map(u => `<${tag} class="n">${g.ck[u] ? this._fmt(g.cq[u] / g.ck[u] * 100) : "–"}</${tag}>`).join("")}${units.map(u => `<${tag} class="n">${g.qp[u] ? this._fmt(g.tp[u] / g.qp[u], 3) : "–"}</${tag}>`).join("")}<${tag} class="n">${this._fmt(g.total)} €</${tag}>${strom ? `<${tag} class="ctr">${g.solQ ? Math.round(g.solW / g.solQ) + " %" : "–"}</${tag}><${tag} class="n">${g.wbEst ? Math.round((g.wb / g.wbEst - 1) * 100) + " %" : "–"}</${tag}>` : ""}</tr>`;
+    const body = [...groups.entries()].sort((a, b) => b[0].localeCompare(a[0])).map(([, g]) => row(g, g.label, "td")).join("");
+    return `<div class="wrap"><table class="agg"><thead><tr>${head.map((h, i) => `<th class="${i === 0 ? "" : strom && i === head.length - 2 ? "ctr" : "n"}">${this._esc(h)}</th>`).join("")}</tr></thead><tbody>${body || `<tr><td colspan="${head.length}">–</td></tr>`}</tbody><tfoot>${row(sum, this.T("Summe"), "td")}</tfoot></table></div>`;
+  }
+  _chart(o) {
+    // Liniendiagramm oder Punkte, eine y-Achse. o: {series:[{name,color,pts:[[x,y]],dots}], x:[min,max], y:[min,max], xfmt, yfmt, h}
+    const W = 640, H = o.h || 200, L = 46, R = 12, T = 8, B = 24;
+    const [x0, x1] = o.x[0] === o.x[1] ? [o.x[0] - 1, o.x[1] + 1] : o.x, [y0, y1] = o.y;
+    const X = x => L + (x - x0) / (x1 - x0) * (W - L - R), Y = y => H - B - (y - y0) / ((y1 - y0) || 1) * (H - T - B);
+    const yt = [0, 1, 2, 3, 4].map(i => y0 + (y1 - y0) * i / 4), xt = [0, 1, 2, 3, 4].map(i => x0 + (x1 - x0) * i / 4);
+    let s = `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img">`;
+    s += yt.map(v => `<line class="gl" x1="${L}" x2="${W - R}" y1="${Y(v)}" y2="${Y(v)}"/><text class="ax" x="${L - 6}" y="${Y(v) + 4}" text-anchor="end">${this._esc(o.yfmt(v))}</text>`).join("");
+    s += xt.map(v => `<text class="ax" x="${X(v)}" y="${H - 6}" text-anchor="middle">${this._esc(o.xfmt(v))}</text>`).join("");
+    for (const sr of o.series) {
+      const pts = sr.pts.filter(q => q[1] != null);
+      if (!pts.length) continue;
+      if (sr.dots) s += pts.map(q => `<circle class="dt" cx="${X(q[0])}" cy="${Y(q[1])}" r="5" fill="${sr.color}"/>`).join("");
+      else s += `<path class="ln" stroke="${sr.color}" d="${pts.map((q, i) => (i ? "L" : "M") + X(q[0]).toFixed(1) + " " + Y(q[1]).toFixed(1)).join("")}"/>`;
+    }
+    s += `<line class="xh" y1="${T}" y2="${H - B}" style="display:none"/></svg>`;
+    return { svg: s, X, Y, W, H, L, R, x0, x1 };
+  }
+  _chartBox(title, legend, c, onHover) {
+    // Rahmen mit Titel, Legende (ab zwei Reihen) und Tooltip; onHover(xWert, px, py) liefert {html, x} oder null
+    const box = document.createElement("div");
+    box.className = "cbox";
+    box.innerHTML = `<div class="ttl">${this._esc(title)}</div>${legend.length > 1 ? `<div class="lg">${legend.map(l => `<span><i style="background:${l.color}"></i>${this._esc(l.name)}</span>`).join("")}</div>` : ""}${c.svg}<div class="tip"></div>`;
+    const svg = box.querySelector("svg"), tip = box.querySelector(".tip"), xh = box.querySelector(".xh");
+    const move = ev => {
+      const r = svg.getBoundingClientRect(), sx = (ev.clientX - r.left) / r.width * c.W, sy = (ev.clientY - r.top) / r.height * c.H;
+      const xv = c.x0 + (sx - c.L) / (c.W - c.L - c.R) * (c.x1 - c.x0);
+      const hit = onHover(xv, sx, sy);
+      if (!hit) { tip.style.display = "none"; xh.style.display = "none"; return; }
+      if (hit.x != null) { xh.setAttribute("x1", hit.x); xh.setAttribute("x2", hit.x); xh.style.display = ""; }
+      tip.innerHTML = hit.html; tip.style.display = "block";
+      const bx = box.getBoundingClientRect(), left = ev.clientX - bx.left + 12;
+      tip.style.left = Math.min(left, bx.width - tip.offsetWidth - 4) + "px"; tip.style.top = (ev.clientY - bx.top - 34) + "px";
+    };
+    svg.addEventListener("pointermove", move);
+    svg.addEventListener("pointerdown", move);
+    svg.addEventListener("pointerleave", () => { tip.style.display = "none"; xh.style.display = "none"; });
+    return box;
+  }
+  async _curveDlg(v, e) {
+    // Ladekurve eines Eintrags: Leistung (Wallbox, Auto) und Ladestand, zwei Diagramme mit gemeinsamer Zeitachse
+    this._pvHide();
+    const dlg = document.createElement("div");
+    dlg.className = "dlg curve";
+    dlg.innerHTML = `<div class="card"><div class="dh">${this.T("Ladekurve")} · ${this._esc(this._date(e.ts))}</div><div class="bd">…</div><div class="df"><button data-d="ok" class="pri">OK</button></div></div>`;
+    this.shadowRoot.appendChild(dlg);
+    this._dlg = dlg;
+    const done = () => { dlg.remove(); this._dlg = null; this._render(); };
+    dlg.onclick = ev => { ev.stopPropagation(); if (ev.target === dlg || ev.target.closest("[data-d=ok]")) done(); };
+    dlg.onkeydown = ev => { if (ev.key === "Escape") done(); };
+    let data = null;
+    try { data = await this._hass.callWS({ type: "drive_energy_doc/curve", vehicle: v.id, entry: e.id }); } catch (err) { /* keine Kurve */ }
+    const bd = dlg.querySelector(".bd");
+    if (!data || !data.p || !data.p.length) { bd.textContent = this.T("Keine Ladekurve gespeichert."); return; }
+    const pts = data.p.map(q => [data.t0 + q[0], q[1], q[2], q[3]]);
+    const xr = [pts[0][0], pts[pts.length - 1][0]], tm = x => this._tm(x);
+    const BLUE = "#2a78d6", ORANGE = "#eb6834";
+    const wb = { name: "Wallbox", color: BLUE, pts: pts.map(q => [q[0], q[1] != null ? q[1] / 1000 : null]) };
+    const car = { name: this.T("Auto"), color: ORANGE, pts: pts.map(q => [q[0], q[2] != null ? q[2] / 1000 : null]) };
+    const ser = [wb, car].filter(sr => sr.pts.some(q => q[1] != null));
+    const kmax = Math.max(1, ...ser.flatMap(sr => sr.pts.map(q => q[1] || 0)));
+    const near = x => pts.reduce((b, q) => Math.abs(q[0] - x) < Math.abs(b[0] - x) ? q : b, pts[0]);
+    bd.innerHTML = "";
+    const c1 = this._chart({ series: ser, x: xr, y: [0, Math.ceil(kmax / 4) * 4], xfmt: tm, yfmt: y => this._fmt(y, 1) + " kW" });
+    bd.appendChild(this._chartBox(this.T("Ladeleistung"), ser, c1, x => { const q = near(x); return { x: c1.X(q[0]), html: `${tm(q[0])}<br>${ser.map(sr => `${this._esc(sr.name)}: ${sr === wb ? (q[1] != null ? this._fmt(q[1] / 1000, 1) : "–") : (q[2] != null ? this._fmt(q[2] / 1000, 1) : "–")} kW`).join("<br>")}` }; }));
+    const soc = pts.filter(q => q[3] != null);
+    if (soc.length) {
+      const lo = Math.max(0, Math.floor(Math.min(...soc.map(q => q[3])) / 10) * 10), hi = Math.min(100, Math.ceil(Math.max(...soc.map(q => q[3])) / 10) * 10);
+      const c2 = this._chart({ series: [{ name: this.T("Ladestand"), color: BLUE, pts: soc.map(q => [q[0], q[3]]) }], x: xr, y: [lo, lo + Math.max(20, Math.ceil((hi - lo) / 20) * 20)], xfmt: tm, yfmt: y => Math.round(y) + " %", h: 150 });
+      bd.appendChild(this._chartBox(this.T("Ladestand"), [], c2, x => { const q = soc.reduce((b, r) => Math.abs(r[0] - x) < Math.abs(b[0] - x) ? r : b, soc[0]); return { x: c2.X(q[0]), html: `${tm(q[0])}<br>${Math.round(q[3])} %` }; }));
+    }
+  }
+  _lossHtml(v, ents) {
+    // Ladeverlust nach mittlerer Ladeleistung: Punktdiagramm (eine Ladung = ein Punkt) und Tabelle je Leistungsbereich
+    const rows = ents.filter(e => this._loss(e) != null && this._pavg(e) != null).map(e => ({ e, kw: this._pavg(e), l: this._loss(e) }));
+    this._lossRows = rows;
+    const BANDS = [[0, 2.3], [2.3, 3.7], [3.7, 7.4], [7.4, 11.1], [11.1, 22.1], [22.1, 1e9]];
+    const band = BANDS.map(([a, b]) => { const r = rows.filter(x => x.kw >= a && x.kw < b); const wb = r.reduce((s, x) => s + x.e.wb_kwh, 0), est = r.reduce((s, x) => s + x.e.est_quantity, 0); return { a, b, n: r.length, wb, loss: est ? Math.round((wb / est - 1) * 100) : null }; }).filter(x => x.n);
+    const tbl = `<div class="wrap"><table class="agg"><thead><tr><th>${this.T("Ø Ladeleistung")}</th><th class="n">${this.T("Einträge")}</th><th class="n">Wallbox kWh</th><th class="n">${this.T("Ladeverlust")}</th></tr></thead><tbody>${band.map(x => `<tr><td>${this._fmt(x.a, 1)}${x.b < 1e8 ? "–" + this._fmt(x.b, 1) : "+"} kW</td><td class="n">${x.n}</td><td class="n">${this._fmt(x.wb)}</td><td class="n">${x.loss != null ? x.loss + " %" : "–"}</td></tr>`).join("") || `<tr><td colspan="4">–</td></tr>`}</tbody></table></div>`;
+    return `<div class="lossv" id="lossv">${rows.length ? "" : this._esc(this.T("Noch keine Ladung mit Wallbox-Menge und Ladeleistung."))}</div>${tbl}`;
+  }
+  _lossChart() {
+    // nach dem Zeichnen: Punktdiagramm in den Platzhalter (mit Tooltip je Punkt)
+    const host = this.shadowRoot.getElementById("lossv"), rows = this._lossRows || [];
+    if (!host || !rows.length) return;
+    const xmax = Math.max(4, Math.ceil(Math.max(...rows.map(r => r.kw)) / 4) * 4), ymin = Math.min(0, Math.floor(Math.min(...rows.map(r => r.l)) / 5) * 5), ymax = Math.max(10, Math.ceil(Math.max(...rows.map(r => r.l)) / 5) * 5);
+    const c = this._chart({ series: [{ name: this.T("Ladeverlust"), color: "#2a78d6", dots: true, pts: rows.map(r => [r.kw, r.l]) }], x: [0, xmax], y: [ymin, ymin + Math.ceil((ymax - ymin) / 20) * 20], xfmt: x => this._fmt(x, 1) + " kW", yfmt: y => Math.round(y) + " %", h: 240 });
+    host.innerHTML = "";
+    host.appendChild(this._chartBox(this.T("Ladeverlust") + " / " + this.T("Ø Ladeleistung"), [], c, (x, sx, sy) => {
+      let best = null, bd = 400;
+      rows.forEach(r => { const d = (c.X(r.kw) - sx) ** 2 + (c.Y(r.l) - sy) ** 2; if (d < bd) { bd = d; best = r; } });
+      return best ? { html: `${this._esc(this._date(best.e.ts))}<br>${this._fmt(best.kw, 1)} kW · ${best.l} %<br>${this._fmt(best.e.wb_kwh)} kWh Wallbox` } : null;
+    }));
+  }
+  _pavg(e) {
+    // mittlere Ladeleistung (kW): gespeichert, bei älteren Einträgen aus der Ladeart-Erkennung („mittel“)
+    return e.avg_kw != null ? e.avg_kw : (e.charge_src === "mittel" && e.charge_kw ? e.charge_kw : null);
+  }
+  _ppk(e) {
+    // Spitzenleistung (kW): gespeichert, bei älteren Einträgen aus Sensor oder Leistungsmessung
+    return e.peak_kw != null ? e.peak_kw : ((e.charge_src === "sensor" || e.charge_src === "leistung") && e.charge_kw ? e.charge_kw : null);
+  }
+  _dt(ts, ref) {
+    // Uhrzeit; liegt sie an einem anderen Tag als der Eintrag, mit Datum
+    return new Date(ts * 1000).toDateString() === new Date(ref * 1000).toDateString() ? this._tm(ts) : `<span>${this._d(ts)}</span> <span class="tm">${this._tm(ts)}</span>`;
+  }
+  _wbNote(e) {
+    // Vorschlag für die Notiz einer Heimladung (der Nutzer kann ergänzen; gespeichert wird beim Speichern)
+    if (!e || e.quantity_source !== "wallbox" || !e.est_quantity) return "";
+    const l = this._loss(e);
+    return `${this.T("Akku")} ${this._fmt(e.est_quantity)} kWh · Wallbox ${this._fmt(e.wb_kwh || e.quantity)} kWh${l != null ? ` · ${this.T("Ladeverlust")} ${l} %` : ""}`;
+  }
+  _loss(e) {
+    // Ladeverlust in % aus Wallbox-Menge und Schätzung aus dem Ladestand; None, wenn nicht bestimmbar (kleine Ladung, Anfang fehlt)
+    if (e.quantity_source !== "wallbox" || !(e.est_quantity >= 2) || !e.wb_kwh) return null;
+    return Math.round((e.wb_kwh / e.est_quantity - 1) * 100);
   }
   _order() {
     // gespeicherte Reihenfolge, falls sie genau die bekannten Spalten enthält; „act“ (Knöpfe) bleibt immer ganz rechts
@@ -329,8 +539,18 @@ class DriveEnergyDocPanel extends HTMLElement {
     inp.focus();
   }
 
+  _ck(k) { return `${k}:${this._colVeh || ""}`; }   // Spalten-Einstellungen je Fahrzeug
+  _loadCols(vid) {
+    // Spalten (Auswahl, Reihenfolge, Breiten) des Fahrzeugs laden; beim ersten Mal die bisherigen gemeinsamen Einstellungen übernehmen
+    const g = this._colsGlobal || (this._colsGlobal = { hide: [...this._hide], co: this._co, cw: { ...this._cw } });
+    this._colVeh = vid;
+    const rd = (k, dflt) => { try { const s = localStorage.getItem(this._ck(k)); return s != null ? JSON.parse(s) : dflt; } catch (e) { return dflt; } };
+    this._hide = rd("deHide", [...g.hide]) || [...DEF_HIDE];
+    this._co = rd("deCo", g.co);
+    this._cw = rd("deCw", { ...g.cw }) || {};
+  }
   _saveCw() {
-    try { localStorage.setItem("deCw", JSON.stringify(this._cw)); } catch (e) { /* ignore */ }
+    try { localStorage.setItem(this._ck("deCw"), JSON.stringify(this._cw)); } catch (e) { /* ignore */ }
   }
 
   _rsStart(ev) {
@@ -435,6 +655,25 @@ class DriveEnergyDocPanel extends HTMLElement {
       warn: '<path d="M12 3.5 2.5 20h19z"/><path d="M12 10v5M12 17.6v.4"/>',
       help: '<circle cx="12" cy="12" r="9"/><path d="M9.5 9.6a2.6 2.6 0 1 1 3.7 2.3c-.8.4-1.2 1-1.2 2M12 17v.4"/>',
       close: '<path d="M6 6l12 12M18 6L6 18"/>',
+      cal: '<rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M3.5 10h17M8 3v4M16 3v4"/>',
+      road: '<path d="M8 3 5 21M16 3l3 18M12 4v3M12 10.5v3M12 17v3"/>',
+      pin: '<path d="M12 21s-6-6.2-6-11a6 6 0 0 1 12 0c0 4.8-6 11-6 11z"/><circle cx="12" cy="10" r="2.2"/>',
+      drop: '<path d="M12 3.5s6 6.8 6 10.8a6 6 0 0 1-12 0c0-4 6-10.8 6-10.8z"/>',
+      batt: '<rect x="3" y="8" width="18" height="12" rx="1.5"/><path d="M6 8V5.5h3.5V8M14.5 8V5.5H18V8M6.5 14h3.5M15 12.2v3.6M13.2 14h3.6"/>',
+      gauge: '<path d="M4 18a8 8 0 1 1 16 0"/><path d="M12 18l3.5-5"/>',
+      chart: '<path d="M4 4v16h16"/><path d="M7 15l4-5 3 3 5-7"/>',
+      pwr: '<path d="M13 3 6 13h5l-1 8 7-10h-5z"/>',
+      pwrPk: '<path d="M11 3 5 13h5l-1 8 7-10h-5z"/><path d="M17 3h4M19 3v5"/>',
+      plug: '<path d="M9 3v5M15 3v5M6.5 8h11v3a5.5 5.5 0 0 1-11 0zM12 16.5V21"/>',
+      car: '<path d="M4 16v-3.5L6 8h12l2 4.5V16z"/><path d="M4 16v2.5h3V16M17 16v2.5h3V16M6.5 13h2M15.5 13h2"/>',
+      wbox: '<rect x="5" y="3" width="10" height="15" rx="2"/><path d="M8 7h4M15 12h2.5a2 2 0 0 1 2 2v3.5a2 2 0 0 1-4 0V21"/>',
+      battLow: '<rect x="2.5" y="7" width="16" height="10" rx="2"/><path d="M21 10.5v3M6 10v4"/>',
+      battFull: '<rect x="2.5" y="7" width="16" height="10" rx="2"/><path d="M21 10.5v3M6 10v4M9.5 10v4M13 10v4M15.5 10v4"/>',
+      clock: '<circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/>',
+      clockEnd: '<circle cx="12" cy="12" r="8.5"/><path d="M8.5 12.5l2.4 2.4 4.6-5"/>',
+      sun: '<circle cx="12" cy="12" r="4"/><path d="M12 2.5V5M12 19v2.5M2.5 12H5M19 12h2.5M5.3 5.3l1.8 1.8M16.9 16.9l1.8 1.8M5.3 18.7l1.8-1.8M16.9 7.1l1.8-1.8"/>',
+      loss: '<path d="M11 3 5 12h4.5L8.5 19 15 10h-4.5z"/><path d="M19 12v8M16.5 17.5 19 20l2.5-2.5"/>',
+      bon: '<path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6M9 12h6"/>',
       warn: '<path d="M12 4l9 16H3zM12 10v5M12 17.2v.3"/>',
     };
     return `<svg class="ico" viewBox="0 0 24 24" aria-hidden="true">${P[n] || ""}</svg>`;
@@ -443,6 +682,7 @@ class DriveEnergyDocPanel extends HTMLElement {
 
   _render() {
     this._render0();
+    if (this._agg === "power") this._lossChart();
     if (this._liveEl && this._liveEl.childElementCount) this._liveWrap();   // Hinweis/Meldung nach dem Neuzeichnen wieder einhängen
   }
 
@@ -486,6 +726,7 @@ class DriveEnergyDocPanel extends HTMLElement {
       .sum span{font-size:12px;color:var(--secondary-text-color)}
       .wrap{overflow:auto;background:var(--card-background-color);border-radius:10px}
       table{border-collapse:collapse;width:100%;font-size:13px;line-height:1.3}
+      table:not(.fx){width:auto}   /* kompakt: Spalten nur so breit wie ihr Inhalt */
       th,td{padding:4px 8px;text-align:left;border-bottom:1px solid var(--divider-color);white-space:nowrap}
       td.n,th.n{text-align:right}
       th.sortable{cursor:pointer;user-select:none}th.sortable:hover{background:var(--secondary-background-color,#f1f1f1)}.si{font-size:10px;margin-left:5px;opacity:.75}
@@ -526,7 +767,13 @@ class DriveEnergyDocPanel extends HTMLElement {
       .pbar{width:100%;height:6px;border-radius:3px;background:var(--divider-color);overflow:hidden}.pbar i{display:block;height:100%;background:var(--primary-color);transition:width .3s}
       .stopb{font:inherit;font-size:15px;padding:8px 22px;border-radius:8px;border:1px solid var(--divider-color);background:var(--card-background-color,#fff);color:var(--primary-text-color);cursor:pointer}
       .spin{width:26px;height:26px;border:4px solid var(--divider-color);border-top-color:var(--primary-color);border-radius:50%;animation:sp 1s linear infinite}@keyframes sp{to{transform:rotate(360deg)}}
-      .ck{display:flex;align-items:center;gap:12px;padding:8px 4px;font-size:16px;cursor:pointer}.ck input{padding:0;width:20px;height:20px;border:0;background:none;accent-color:var(--primary-color)}
+      .ck{display:flex;align-items:center;gap:12px;padding:8px 4px;font-size:16px;cursor:pointer}
+      .cols .card{width:min(440px,94vw);max-height:92vh;max-height:92dvh;overflow:hidden}
+      .cols .bd{display:grid;grid-template-columns:1fr 1fr;gap:0 12px;overflow:auto;min-height:0}
+      .cols .ck{gap:8px;padding:6px 2px;font-size:14px}.cols .ck .ico{width:18px;height:18px;color:var(--secondary-text-color)}
+      .cols .ck .cx{width:18px;text-align:center;font-weight:600;color:var(--secondary-text-color)}
+      .cols .df{justify-content:space-between}
+      @media (max-width:360px){.cols .bd{grid-template-columns:1fr}}.ck input{padding:0;width:20px;height:20px;border:0;background:none;accent-color:var(--primary-color)}
       .form .card{width:min(400px,94vw);padding:16px;gap:10px;max-height:92vh;max-height:92dvh;overflow:hidden}.form .bd{display:flex;flex-direction:column;gap:9px;overflow:auto;min-height:0;flex:1 1 auto;padding:2px}.form .dh{font-size:20px;font-weight:600}.form .g2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:9px 10px}.form .pr{display:flex;gap:6px}.form .fl .pr input{flex:1 1 0;width:0;min-width:0}.form .fl .pr select{flex:none;width:76px;padding:8px 4px}
       .phn{font-size:14px;color:var(--secondary-text-color)}
       .spin{width:44px;height:44px;border:5px solid var(--divider-color);border-top-color:var(--primary-color);border-radius:50%;animation:dspin 1s linear infinite}@keyframes dspin{to{transform:rotate(360deg)}}
@@ -555,6 +802,19 @@ class DriveEnergyDocPanel extends HTMLElement {
       tbody tr{cursor:pointer}tbody tr:hover{background:color-mix(in srgb,var(--primary-color) 8%,var(--card-background-color))}
       tbody tr.c-fu,tbody tr.c-fu:hover{background:color-mix(in srgb,#ff9800 22%,var(--card-background-color))}
       tbody tr.c-el,tbody tr.c-el:hover{background:color-mix(in srgb,#43a047 24%,var(--card-background-color))}
+      th.ctr,td.ctr{text-align:center}
+      .chart{width:100%;height:auto;display:block;font-size:11px;touch-action:none}
+      .chart .gl{stroke:var(--divider-color);stroke-width:1}.chart .ax{fill:var(--secondary-text-color)}
+      .chart .ln{fill:none;stroke-width:2;stroke-linejoin:round;stroke-linecap:round}.chart .dt{stroke:var(--card-background-color,#fff);stroke-width:2}
+      .chart .xh{stroke:var(--secondary-text-color);stroke-width:1;stroke-dasharray:3 3}
+      .cbox{position:relative;margin:4px 0 10px}.cbox .ttl{font-size:13px;font-weight:500;margin-bottom:2px}
+      .cbox .lg{display:flex;gap:14px;font-size:12px;color:var(--secondary-text-color);margin-bottom:2px}.cbox .lg i{display:inline-block;width:14px;height:3px;border-radius:2px;vertical-align:middle;margin-right:5px}
+      .tip{position:absolute;pointer-events:none;background:var(--card-background-color,#fff);color:var(--primary-text-color);border:1px solid var(--divider-color);border-radius:6px;padding:4px 7px;font-size:12px;white-space:nowrap;box-shadow:0 2px 6px #0003;display:none;z-index:2}
+      .curve .card{width:min(760px,96vw);max-height:92vh;max-height:92dvh;overflow:auto}
+      .lossv{background:var(--card-background-color);border-radius:10px;padding:10px 12px;margin-bottom:10px;max-width:760px}
+      table.agg tfoot td{font-weight:600;border-top:2px solid var(--divider-color);border-bottom:0}
+      .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+      thead th .ico{width:18px;height:18px;vertical-align:-4px}
       tbody tr.c-home,tbody tr.c-home:hover{background:color-mix(in srgb,#fdd835 38%,var(--card-background-color))}
       tbody tr.c-ex,tbody tr.c-ex:hover{background:color-mix(in srgb,#1e88e5 22%,var(--card-background-color))}
       tbody tr.c-live,tbody tr.c-live:hover{background:color-mix(in srgb,#00acc1 28%,var(--card-background-color))}
@@ -568,7 +828,7 @@ class DriveEnergyDocPanel extends HTMLElement {
       .livebn .spin{width:26px;height:26px;border-width:4px}
       .livetoast .h{font-weight:600;margin-bottom:4px}.livetoast .x{position:absolute;top:6px;right:8px;border:0;background:none;color:inherit;font-size:24px;cursor:pointer;line-height:1}
       .wq{display:inline-flex;vertical-align:middle;color:var(--secondary-text-color);cursor:help}.wq .ico{width:16px;height:16px;stroke-width:2}
-      td.est{color:var(--secondary-text-color);font-style:italic}
+      td.est,span.est{color:var(--secondary-text-color);font-style:italic}
       .wtri{display:inline-flex;vertical-align:middle;color:var(--warning-color,#e67e22);cursor:help}.wtri .ico{width:16px;height:16px;stroke-width:2.2}
       .bar{display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap;align-items:center}
       .bar .flt{font-size:14px;padding:8px 10px;border:1px solid var(--divider-color,#ccc);border-radius:8px;background:var(--card-background-color,#fff);color:var(--primary-text-color);max-width:46vw}
@@ -609,11 +869,13 @@ class DriveEnergyDocPanel extends HTMLElement {
     this._pvHide();
     if (this._err) { this.shadowRoot.innerHTML = `<style>${css}</style><p>${this._esc(this._err)}</p>`; return; }
     if (!d.length) { this.shadowRoot.innerHTML = `<style>${css}</style><h1>Drive Energy Doc</h1><p>${this.T("Noch kein Fahrzeug. Einstellungen → Geräte & Dienste → Integration „Drive Energy Doc“ hinzufügen.")}</p>`; return; }
+    if (v.id !== this._colVeh) this._loadCols(v.id);
     const s = v.summary, u = this.T(v.unit);
     const pic = this._pic(v);
     const cw = this._cw || {};
     const fixed = COLS.some(c => cw[c]);
-    const order = this._order().filter(c => c === "act" || !this._hide.includes(c));   // ausgeblendete Spalten weglassen
+    const hasSol = v.energy === "electric" || !!v.phev, hasLoss = hasSol;   // Solaranteil und Ladeverlust nur bei Elektroauto und Plug-in-Hybrid
+    const order = this._order().filter(c => c === "act" || !this._hide.includes(c)).filter(c => (c !== "sol" || hasSol) && (c !== "loss" || hasLoss) && (!["start", "end", "lfrom", "lto", "ctype", "kcar", "kwb", "pavg", "ppk"].includes(c) || hasSol));   // ausgeblendete Spalten weglassen; Solar und Ladeverlust nur bei Strom
     const sumW = order.reduce((t, c) => t + (cw[c] || DEFW[c] || 120), 0);
     const nums = {};
     [...v.entries].filter(x => x.kind !== "extra").sort((a, b) => a.ts - b.ts).forEach((x, i) => { nums[x.id] = i + 1; });
@@ -621,7 +883,7 @@ class DriveEnergyDocPanel extends HTMLElement {
     const sk = this._sort && COLS.includes(this._sort.c) ? this._sort : { c: "nr", dir: -1 };   // Standard: nach Nummer absteigend (neueste oben)
     const nrKey = {};   // Zubehör hat keine Nummer: es steht direkt hinter dem davor liegenden Tankvorgang, damit die Reihenfolge zeitlich stimmt
     { let last = 0; [...v.entries].sort((a, b) => a.ts - b.ts).forEach(x => { if (nums[x.id]) last = nums[x.id]; nrKey[x.id] = nums[x.id] || last + 0.5; }); }
-    const skey = (e, c) => ({ nr: nrKey[e.id], date: e.ts, km: e.odometer, station: (e.station || "").toLowerCase(), qty: e.quantity, price: e.unit_price, total: e.total, cons: e.consumption, receipt: (e.photo_urls || []).length, note: (e.note || "").toLowerCase() })[c];
+    const skey = (e, c) => ({ nr: nrKey[e.id], date: e.ts, km: e.odometer, station: (e.station || "").toLowerCase(), qty: e.quantity, price: e.unit_price, total: e.total, cons: e.consumption, start: e.ts_start, end: e.ts_start ? e.ts : null, lfrom: e.level_from, lto: e.level_to, ctype: e.charge_type || "", kcar: e.est_quantity, kwb: e.wb_kwh, pavg: this._pavg(e), ppk: this._ppk(e), sol: e.solar_pct, loss: this._loss(e), receipt: (e.photo_urls || []).length, note: (e.note || "").toLowerCase() })[c];
     const none = x => x == null || x === "" || (typeof x === "number" && isNaN(x));
     const list = [...v.entries].sort((a, b) => {   // leere Werte stehen immer unten, egal in welche Richtung
       const x = skey(a, sk.c), y = skey(b, sk.c);
@@ -643,7 +905,11 @@ class DriveEnergyDocPanel extends HTMLElement {
       .filter(([k]) => k === "all" || (k === "both" ? cnt.fuel && cnt.electric : cnt[k]));   // nur Gruppen, zu denen es Einträge gibt
     let flt = FLT.some(x => x[0] === this._flt) ? this._flt : "all";
     const shown = flt === "all" ? list : list.filter(e => flt === "extra" ? e.kind === "extra" : flt === "both" ? e.kind !== "extra" : flt === "home" ? isHome(e) : catOf(e) === flt);
-    const fltSel = `<select id="flt" class="flt" title="${this.T("Filter")}" aria-label="${this.T("Filter")}">${FLT.map(([k, l]) => `<option value="${k}"${k === flt ? " selected" : ""}>${this._esc(l)}${k === "all" ? "" : " (" + (cnt[k] || 0) + ")"}</option>`).join("")}</select>`;
+    const AGG = [["list", this.T("Liste")], ["week", this.T("Woche")], ["month", this.T("Monat")], ["year", this.T("Jahr")], ...(v.energy === "electric" || v.phev ? [["power", this.T("Verlust nach Leistung")]] : [])];
+    const agg = AGG.some(x => x[0] === this._agg) ? this._agg : "list";
+    const aggSel = `<select id="agg" class="flt" title="${this.T("Summen")}" aria-label="${this.T("Summen")}">${AGG.map(([k, l]) => `<option value="${k}"${k === agg ? " selected" : ""}>${this._esc(l)}</option>`).join("")}</select>`;
+    const aggHtml = agg === "list" ? "" : agg === "power" ? this._lossHtml(v, shown) : this._aggHtml(v, shown, agg);
+    const fltSel = FLT.length < 2 ? "" : `<select id="flt" class="flt" title="${this.T("Filter")}" aria-label="${this.T("Filter")}">${FLT.map(([k, l]) => `<option value="${k}"${k === flt ? " selected" : ""}>${this._esc(l)}${k === "all" ? "" : " (" + (cnt[k] || 0) + ")"}</option>`).join("")}</select>`;
     this._shownIds = flt === "all" ? null : new Set(shown.map(e => e.id)); this._fltLabel = (FLT.find(x => x[0] === flt) || [])[1] || "";   // der Ausdruck übernimmt den Filter
     const rows = shown.map(e => {
       const cell = {
@@ -651,27 +917,30 @@ class DriveEnergyDocPanel extends HTMLElement {
         date: `<td data-nr="${nums[e.id] ? "#" + nums[e.id] : ""}"><span>${this._d(e.ts)}</span><span class="tm">${this._tm(e.ts)}</span></td>`,
         km: `<td class="n${e.odometer_source === "bekannt" ? " est" : ""}"${e.odometer_source === "bekannt" ? ` title="${this._esc(this.T("Kilometerstand"))} (≈)"` : ""}>${e.odometer != null ? this._fmt(e.odometer, 0) : "–"}${this._warn(e, "km", v)}</td>`,
         station: `<td><div>${this._esc(e.station || "")}</div><div class="src">${this._esc(e.address || "")}</div><div class="src gps">${this._gps(e)}</div></td>`,
-        qty: `<td class="n">${e.quantity != null ? this._fmt(e.quantity) + " " + (e.kind === "extra" ? this._esc(e.unit || "") : (v.phev && e.energy === "electric" ? "kWh" : u)) : "–"}<div class="src">${e.fuel && e.kind !== "extra" ? this._esc(FUEL_GRADES[e.fuel] || "") + " " : ""}${e.level_from != null && e.level_to != null ? Math.round(e.level_from) + "→" + Math.round(e.level_to) + " %" : (e.increase != null ? "+" + Math.round(e.increase) + " %" : "")} <span${e.est_factor ? ` title="×${this._fmt(e.est_factor, 2)}"` : ""}>${this._esc(this.T(e.quantity_source || ""))}</span>${e.solar_pct != null ? ` <span class="sol" title="${this._esc(this.T("Solaranteil"))}">☀ ${Math.round(e.solar_pct)} %</span>` : ""}${e.charge_type ? ` <span class="ct ${e.charge_type}" title="${this._esc(this.T("Ladeart") + " " + e.charge_type.toUpperCase() + " · " + this.T({ sensor: "Sensor des Autos", beleg: "beleg", manuell: "manuell", leistung: "Spitzenleistung", mittel: "mittlere Leistung" }[e.charge_src] || "") + (e.charge_kw ? " · " + this._fmt(e.charge_kw, 1) + " kW" : ""))}">${e.charge_type.toUpperCase()}</span>` : ""}</div></td>`,
+        qty: `<td class="n">${e.quantity != null ? this._fmt(e.quantity) + " " + (e.kind === "extra" ? this._esc(e.unit || "") : (v.phev && e.energy === "electric" ? "kWh" : u)) : "–"}<div class="src">${e.fuel && e.kind !== "extra" ? this._esc(FUEL_GRADES[e.fuel] || "") + " " : ""}${e.level_from != null && e.level_to != null ? Math.round(e.level_from) + "→" + Math.round(e.level_to) + " %" : (e.increase != null ? "+" + Math.round(e.increase) + " %" : "")} ${e.quantity_source === "wallbox" ? "" : `<span${e.est_factor ? ` title="×${this._fmt(e.est_factor, 2)}"` : ""}>${this._esc(this.T(e.quantity_source || ""))}</span>`}${e.charge_type ? ` <span class="ct ${e.charge_type}" title="${this._esc(this.T("Ladeart") + " " + e.charge_type.toUpperCase() + " · " + this.T({ sensor: "Sensor des Autos", beleg: "beleg", manuell: "manuell", leistung: "Spitzenleistung", mittel: "mittlere Leistung" }[e.charge_src] || "") + (e.charge_kw ? " · " + this._fmt(e.charge_kw, 1) + " kW" : ""))}">${e.charge_type.toUpperCase()}</span>` : ""}</div></td>`,
         price: `<td class="n">${this._fmt(e.unit_price, 3)}${this._warn(e, "price", v)}<div class="src">${this._esc(this.T(e.price_source || ""))}</div></td>`,
         total: `<td class="n">${this._fmt(e.total)} €${this._warn(e, "total", v)}</td>`,
         cons: `<td class="n">${e.consumption != null ? this._fmt(e.consumption) + (v.phev ? `<div class="src">${e.energy === "electric" ? "kWh" : u}/100 ${this.T("km")}</div>` : "") : "–"}${this._warn(e, "cons", v)}</td>`,
-        receipt: (() => { const ph = e.photo_urls || [], im = (p, k) => `<img class="${k}" src="${p}" data-p="${p}" data-entry="${e.id}" data-name="${this._esc((e.photos || [])[ph.indexOf(p)] || "")}"${ph.length > 1 && k === "thumb" ? ` data-multi="${e.id}"` : ""} alt="${ph.indexOf(p) === 0 && e.receipt ? this.T("Beleg") : this.T("Zusatzfoto")}">`; return `<td>${ph.length ? im(ph[0], "thumb") : ""}${e.receipt ? "" : `<span class="no" title="${this.T("Beleg fehlt")}">${this._ico("warn")}</span>`}</td>`; })(),
-        note: (() => { const full = [e.kind === "extra" ? (e.item || this.T("Zubehör")) : "", e.note || ""].filter(Boolean).join("\n"); return `<td>${full ? `<span class="notec" data-note="${this._esc(full)}">` : ""}${e.kind === "extra" ? `<span class="tag">${this._esc(e.item || this.T("Zubehör"))}</span> ` : ""}${e.note ? `<span class="notei" tabindex="0" role="button" aria-label="${this.T("Notiz anzeigen")}">${this._ico("note")}</span>` : ""}${full ? "</span>" : ""}</td>`; })(),
-        act: `<td><button data-act="edit" title="${this.T("Bearbeiten")}" aria-label="${this.T("Bearbeiten")}">${this._ico("edit")}</button> <button data-act="del" title="${this.T("Eintrag löschen")}" aria-label="${this.T("Eintrag löschen")}">${this._ico("trash")}</button></td>`,
+        receipt: (() => { const ph = e.photo_urls || [], im = (p, k) => `<img class="${k}" src="${p}" data-p="${p}" data-entry="${e.id}" data-name="${this._esc((e.photos || [])[ph.indexOf(p)] || "")}"${ph.length > 1 && k === "thumb" ? ` data-multi="${e.id}"` : ""} alt="${ph.indexOf(p) === 0 && e.receipt ? this.T("Beleg") : this.T("Zusatzfoto")}">`; return `<td>${ph.length ? im(ph[0], "thumb") : ""}${e.receipt || e.quantity_source === "wallbox" ? "" : `<span class="no" title="${this.T("Beleg fehlt")}">${this._ico("warn")}</span>`}</td>`; })(),
+        start: `<td>${e.ts_start && e.kind !== "extra" ? this._dt(e.ts_start, e.ts) : ""}</td>`,
+        end: `<td>${e.ts_start && e.kind !== "extra" ? this._dt(e.ts, e.ts) : ""}</td>`,
+        lfrom: `<td class="n">${e.level_from != null && e.kind !== "extra" ? Math.round(e.level_from) + " %" : ""}</td>`,
+        lto: `<td class="n">${e.level_to != null && e.kind !== "extra" ? Math.round(e.level_to) + " %" : ""}</td>`,
+        ctype: `<td class="ctr">${e.charge_type ? `<span class="ct ${e.charge_type}">${e.charge_type.toUpperCase()}</span>` : ""}</td>`,
+        kcar: `<td class="n">${e.est_quantity != null && e.kind !== "extra" && (e.energy === "electric" || v.energy === "electric") ? this._fmt(e.est_quantity) + " kWh" : ""}</td>`,
+        pavg: `<td class="n">${this._pavg(e) != null ? this._fmt(this._pavg(e), 1) + " kW" : ""}</td>`,
+        ppk: `<td class="n">${this._ppk(e) != null ? this._fmt(this._ppk(e), 1) + " kW" : ""}</td>`,
+        kwb: `<td class="n">${e.wb_kwh != null ? this._fmt(e.wb_kwh) + " kWh" : ""}</td>`,
+        sol: `<td class="ctr">${e.solar_pct != null ? Math.round(e.solar_pct) + " %" : ""}</td>`,
+        loss: (() => { const l = this._loss(e); return `<td class="n"${e.quantity_source === "wallbox" && e.est_quantity ? ` title="${this._fmt(e.wb_kwh)} kWh Wallbox / ${this._fmt(e.est_quantity)} kWh ${this._esc(this.T("Akku"))}"` : ""}>${l != null ? (l < 0 ? `<span class="est">${l} %</span>` : l + " %") : (e.quantity_source === "wallbox" ? "–" : "")}</td>`; })(),
+        note: (() => { const full = [e.kind === "extra" ? (e.item || this.T("Zubehör")) : "", e.note || ""].filter(Boolean).join("\n"); return `<td>${full ? `<span class="notec" data-note="${this._esc(full)}">` : ""}${e.kind === "extra" ? `<span class="tag">${this._esc(e.item || this.T("Zubehör"))}</span> ` : ""}${e.note ? `<span class="notei" tabindex="0" role="button" aria-label="${this.T("Notiz anzeigen")}">${this._ico("note")}</span>` : ""}${full ? "</span>" : ""}${e.quantity_source === "wallbox" && e.est_quantity && !e.note ? `<div class="src">${this._esc(this.T("Akku"))} ${this._fmt(e.est_quantity)} kWh</div><div class="src">Wallbox ${this._fmt(e.wb_kwh || e.quantity)} kWh</div>` : ""}</td>`; })(),
+        act: `<td>${e.curve ? `<button data-act="curve" title="${this.T("Ladekurve")}" aria-label="${this.T("Ladekurve")}">${this._ico("chart")}</button> ` : ""}<button data-act="edit" title="${this.T("Bearbeiten")}" aria-label="${this.T("Bearbeiten")}">${this._ico("edit")}</button> <button data-act="del" title="${this.T("Eintrag löschen")}" aria-label="${this.T("Eintrag löschen")}">${this._ico("trash")}</button></td>`,
       };
       return `<tr data-id="${e.id}" class="${this._clr ? (e.kind === "extra" ? "c-ex" : isHome(e) ? "c-home" : (catOf(e) === "electric" ? "c-el" : "c-fu")) : ""}${this._selId === e.id ? " rsel" : ""}">${order.map(k => cell[k].replace("<td", `<td data-c="${k}"`)).join("")}</tr>`;
     }).join("");
     const lv = s.live && (flt === "all" || flt === "electric" || flt === "both" || flt === "home") ? s.live : null;   // laufende Ladung: türkise Zeile ganz oben
-    const liveRow = lv ? (() => {
-      const q = lv.wb_kwh != null ? lv.wb_kwh : lv.est_quantity, kwu = v.phev ? "kWh" : u;
-      const cell = {
-        nr: `<td class="n nr"><span class="pulse"></span></td>`,
-        date: `<td><span>${this._d(lv.ts_start)}</span><span class="tm">${this._tm(lv.ts_start)}</span></td>`,
-        station: `<td><div>${this._esc(this.T("Lädt gerade"))}</div>${lv.kw ? `<div class="src">${this._fmt(lv.kw, 1)} kW</div>` : lv.paused ? `<div class="src">${this._esc(this.T("pausiert"))}</div>` : ""}</td>`,
-        qty: `<td class="n">${q != null ? this._fmt(q) + " " + kwu : "–"}<div class="src">${Math.round(lv.level_from)}→${Math.round(lv.level_to)} % ${this._esc(this.T(lv.wb_kwh != null ? "wallbox" : "berechnet"))}</div></td>`,
-      };
-      return `<tr class="c-live">${order.map(k => (cell[k] || "<td></td>").replace("<td", `<td data-c="${k}"`)).join("")}</tr>`;
-    })() : "";
+    const liveRow = lv ? this._liveRowHtml(lv, v, u, order) : "";
+    this._liveCtx = { u, order, flt };
     this.shadowRoot.innerHTML = `<style>${css}</style>
       <div class="head${d.length > 1 ? " pick" : ""}"${d.length > 1 ? ` role="button" tabindex="0"` : ""}><div class="ttl"><img class="logo" src="/drive_energy_doc_static/icon.png?v=${VERSION}" alt=""><div><div class="app">Drive Energy Doc</div><h1>${this._esc(this._title(v))}${d.length > 1 ? ` <span class="chev">▾</span>` : ""}</h1></div>${v.plate ? this._plate(v) : ""}</div>${pic ? `<img class="car" src="${this._esc(pic)}" alt="${this._esc(v.name)}">` : ""}</div>
       <div class="sum">
@@ -680,8 +949,8 @@ class DriveEnergyDocPanel extends HTMLElement {
         <div><b>${this._fmt(s.cost_12m)} €</b><span>${this.T("Kosten 12 Monate")}</span></div>
         <button class="shoot" data-act="shoot" title="${this.T("Beleg fotografieren oder hochladen")}" aria-label="${this.T("Beleg fotografieren")}">${this._ico("camera")}<span>${this.T("Beleg / km Stand fotografieren")}</span></button>
       </div>
-      <div class="bar"><button data-act="csv" title="${this.T("CSV-Export")}" aria-label="${this.T("CSV-Export")}">${this._ico("csv")}</button><button data-act="print" title="${this.T("Drucken / PDF")}" aria-label="${this.T("Drucken")}">${this._ico("print")}</button><button data-act="ori" title="${this._ori === "portrait" ? this.T("Hochformat") : this.T("Querformat")} (${this.T("zum Wechseln klicken")})" aria-label="${this.T("Seitenformat")}">${this._ico(this._ori)}</button><button data-act="rcp" title="${this.T("Belege im Druck")}: ${this._rcp ? this.T("mit") : this.T("ohne")} (${this.T("zum Wechseln klicken")})" aria-label="${this.T("Belege im Druck")}" aria-pressed="${this._rcp}">${this._ico(this._rcp ? "photo" : "photoOff")}</button><button data-act="clr" title="${this.T("Zeilenfarben")}: ${this._clr ? this.T("an") : this.T("aus")} (${this.T("zum Wechseln klicken")})" aria-label="${this.T("Zeilenfarben")}" aria-pressed="${this._clr}">${this._ico(this._clr ? "palette" : "paletteOff")}</button><button data-act="cols" title="${this.T("Spalten")}" aria-label="${this.T("Spalten")}">${this._ico("cols")}</button><button data-act="add" title="${this.T("Eintrag von Hand hinzufügen")}" aria-label="${this.T("Eintrag von Hand")}">${this._ico("plus")}</button>${fltSel}${(() => { const c = (s.correction || {}); return ["electric", "fuel"].filter(k => c[k] && c[k].all && c[k].all.factor).map(k => { const row = c[k], tip = ["all", "ac", "dc"].filter(g => row[g]).map(g => (g === "all" ? "" : g.toUpperCase() + " ") + (row[g].factor ? "×" + this._fmt(row[g].factor, 2) : "–") + " (" + row[g].n + " " + this.T("Einträge") + ")").join(" · "); return `<span class="stat" title="${this._esc(tip)}"><b>×${this._fmt(row.all.factor, 2)}</b><span>${this.T("Korrektur")} ${this.T(k === "electric" ? "Strom" : "Kraftstoff")}</span></span>`; }).join(""); })()}<span class="stat"><b>${s.count}</b><span>${this.T("Einträge")}</span></span><span class="stat"><b>${this.T({ idle: "Bereit", candidate: "Anstieg erkannt", refuelling: "Tankt" }[s.status])}</b><span>${this.T("Status")}</span></span><input type="file" id="cam" accept="image/*" capture="environment" hidden><input type="file" id="pic" accept="image/*" multiple hidden></div>
-      <div class="wrap"><table class="${fixed ? "fx" : ""}" ${fixed ? `style="width:${sumW}px"` : ""}><colgroup>${order.map(c => `<col data-c="${c}" ${cw[c] || (fixed && DEFW[c]) ? `style="width:${cw[c] || DEFW[c]}px"` : ""}>`).join("")}</colgroup><thead><tr>${order.map(c => { const H = { nr: [this.T("Nr."), "n"], date: [this.T("Datum"), ""], km: [this.T("km"), "n"], station: [this.T("Tankstelle"), ""], qty: [this.T("Menge"), "n"], price: [`€/${u}`, "n"], total: [this.T("Betrag"), "n"], cons: [`${u}/100 ${this.T("km")}`, "n"], receipt: [this.T("Beleg"), ""], note: [this.T("Notiz"), ""], act: ["", ""] }[c]; return `<th data-c="${c}" class="${H[1]}${c === "act" ? "" : " sortable"}" ${sk && sk.c === c ? `aria-sort="${sk.dir > 0 ? "ascending" : "descending"}"` : ""} ${c === "act" ? "" : `draggable="true" title="${this.T("Auf eine andere Überschrift ziehen: Reihenfolge ändern")}"`}>${H[0]}${sk && sk.c === c ? `<span class="si">${sk.dir > 0 ? "▲" : "▼"}</span>` : ""}<span class="rs" data-c="${c}" title="${this.T("Ziehen: Spaltenbreite ändern · Doppelklick: Breiten und Reihenfolge zurücksetzen")}"></span></th>`; }).join("")}</tr></thead><tbody>${liveRow}${rows}</tbody></table></div>
+      <div class="bar"><button data-act="csv" title="${this.T("CSV-Export")}" aria-label="${this.T("CSV-Export")}">${this._ico("csv")}</button><button data-act="print" title="${this.T("Drucken / PDF")}" aria-label="${this.T("Drucken")}">${this._ico("print")}</button><button data-act="ori" title="${this._ori === "portrait" ? this.T("Hochformat") : this.T("Querformat")} (${this.T("zum Wechseln klicken")})" aria-label="${this.T("Seitenformat")}">${this._ico(this._ori)}</button><button data-act="rcp" title="${this.T("Belege im Druck")}: ${this._rcp ? this.T("mit") : this.T("ohne")} (${this.T("zum Wechseln klicken")})" aria-label="${this.T("Belege im Druck")}" aria-pressed="${this._rcp}">${this._ico(this._rcp ? "photo" : "photoOff")}</button><button data-act="clr" title="${this.T("Zeilenfarben")}: ${this._clr ? this.T("an") : this.T("aus")} (${this.T("zum Wechseln klicken")})" aria-label="${this.T("Zeilenfarben")}" aria-pressed="${this._clr}">${this._ico(this._clr ? "palette" : "paletteOff")}</button><button data-act="cols" title="${this.T("Spalten")}" aria-label="${this.T("Spalten")}">${this._ico("cols")}</button><button data-act="add" title="${this.T("Eintrag von Hand hinzufügen")}" aria-label="${this.T("Eintrag von Hand")}">${this._ico("plus")}</button>${aggSel}${fltSel}${(() => { const c = (s.correction || {}); return ["electric", "fuel"].filter(k => c[k] && c[k].all && c[k].all.factor).map(k => { const row = c[k], tip = ["all", "ac", "dc"].filter(g => row[g]).map(g => (g === "all" ? "" : g.toUpperCase() + " ") + (row[g].factor ? "×" + this._fmt(row[g].factor, 2) : "–") + " (" + row[g].n + " " + this.T("Einträge") + ")").join(" · "); return `<span class="stat" title="${this._esc(tip)}"><b>×${this._fmt(row.all.factor, 2)}</b><span>${this.T("Korrektur")} ${this.T(k === "electric" ? "Strom" : "Kraftstoff")}</span></span>`; }).join(""); })()}<span class="stat"><b>${s.count}</b><span>${this.T("Einträge")}</span></span><span class="stat"><b>${this.T(s.status === "refuelling" && (v.energy === "electric" || s.live) ? "Lädt gerade" : { idle: "Bereit", candidate: "Anstieg erkannt", refuelling: "Tankt" }[s.status])}</b><span>${this.T("Status")}</span></span><input type="file" id="cam" accept="image/*" capture="environment" hidden><input type="file" id="pic" accept="image/*" multiple hidden></div>
+      ${aggHtml || `<div class="wrap"><table class="${fixed ? "fx" : ""}" ${fixed ? `style="width:${sumW}px"` : ""}><colgroup>${order.map(c => `<col data-c="${c}" ${cw[c] || (fixed && DEFW[c]) ? `style="width:${cw[c] || DEFW[c]}px"` : ""}>`).join("")}</colgroup><thead><tr>${order.map(c => { const sym = (ic, txt) => `${this._ico(ic)}<span class="sr">${this._esc(txt)}</span>`; const H = { nr: ["#", "n"], date: [sym("cal", this.T("Datum")), ""], km: [sym("road", this.T("km")), "n"], station: [sym("pin", this.T("Tankstelle")), ""], qty: [sym(v.energy === "electric" ? "batt" : "drop", this.T("Menge")), "n"], price: [`€/${u}`, "n"], total: ["€", "n"], cons: [sym("gauge", `${u}/100 ${this.T("km")}`), "n"], sol: [sym("sun", this.T("Solaranteil")), "ctr"], start: [sym("clock", this.T("Laden von")), ""], end: [sym("clockEnd", this.T("Laden bis")), ""], lfrom: [sym("battLow", this.T("Ladestand von")), "n"], lto: [sym("battFull", this.T("Ladestand bis")), "n"], ctype: [sym("plug", this.T("Ladeart")), "ctr"], kcar: [sym("car", this.T("Akku") + " kWh"), "n"], kwb: [sym("wbox", "Wallbox kWh"), "n"], pavg: [sym("pwr", this.T("Ø Ladeleistung")), "n"], ppk: [sym("pwrPk", this.T("Spitzenleistung")), "n"], loss: [sym("loss", this.T("Ladeverlust")), "n"], receipt: [sym("bon", this.T("Beleg")), ""], note: [sym("note", this.T("Notiz")), ""], act: ["", ""] }[c]; return `<th data-c="${c}" class="${H[1]}${c === "act" ? "" : " sortable"}" ${sk && sk.c === c ? `aria-sort="${sk.dir > 0 ? "ascending" : "descending"}"` : ""} ${c === "act" ? "" : `draggable="true" title="${this._esc(this._colName(c, u))} · ${this.T("Auf eine andere Überschrift ziehen: Reihenfolge ändern")}"`}>${H[0]}${sk && sk.c === c ? `<span class="si">${sk.dir > 0 ? "▲" : "▼"}</span>` : ""}<span class="rs" data-c="${c}" title="${this.T("Ziehen: Spaltenbreite ändern · Doppelklick: Breiten und Reihenfolge zurücksetzen")}"></span></th>`; }).join("")}</tr></thead><tbody>${liveRow}${rows}</tbody></table></div>`}
       <div class="ver">Drive Energy Doc ${VERSION}</div>`;
     this._cur = v;
     this.setAttribute("dir", this._rtl ? "rtl" : "ltr");
@@ -690,7 +959,7 @@ class DriveEnergyDocPanel extends HTMLElement {
   _select(id, scroll) {   // Zeilen-Cursor: die markierte Zeile bleibt, bis eine andere gewählt wird (Klick oder Pfeiltasten)
     this._selId = id;
     this.shadowRoot.querySelectorAll("tr.rsel").forEach(x => x.classList.remove("rsel"));
-    const r = [...this.shadowRoot.querySelectorAll("tbody tr[data-id]")].find(x => x.dataset.id === id);
+    const r = [...this.shadowRoot.querySelectorAll("tbody tr[data-id]:not(.c-live)")].find(x => x.dataset.id === id);
     if (r) { r.classList.add("rsel"); if (scroll) r.scrollIntoView({ block: "nearest" }); }
   }
 
@@ -705,7 +974,7 @@ class DriveEnergyDocPanel extends HTMLElement {
     }
     if (ev.key !== "ArrowDown" && ev.key !== "ArrowUp") return;
     if (this._dlg || this.shadowRoot.querySelector(".dlg, .busy") || /^(INPUT|SELECT|TEXTAREA)$/.test((ev.composedPath()[0] || {}).tagName || "")) return;
-    const rows = [...this.shadowRoot.querySelectorAll("tbody tr[data-id]")];
+    const rows = [...this.shadowRoot.querySelectorAll("tbody tr[data-id]:not(.c-live)")];
     if (!rows.length) return;
     let i = rows.findIndex(x => x.dataset.id === this._selId);
     i = i < 0 ? (ev.key === "ArrowDown" ? 0 : rows.length - 1) : Math.max(0, Math.min(rows.length - 1, i + (ev.key === "ArrowDown" ? 1 : -1)));
@@ -715,7 +984,7 @@ class DriveEnergyDocPanel extends HTMLElement {
 
   async _click(ev, v) {
     const rowEl = ev.target.closest ? ev.target.closest("tr[data-id]") : null;
-    if (rowEl && rowEl.closest("tbody")) this._select(rowEl.dataset.id);   // Klick setzt den Zeilen-Cursor
+    if (rowEl && rowEl.closest("tbody") && rowEl.dataset.id !== "live") this._select(rowEl.dataset.id);   // Klick setzt den Zeilen-Cursor
     const wb = ev.target.closest ? ev.target.closest("[data-wcol]") : null;
     if (wb) { this._ackDlg(v, wb.dataset.wid, wb.dataset.wcol); return; }   // Warnung antippen: Erklärung und Quittieren
     const hth = ev.target.closest ? ev.target.closest("th[data-c]") : null;
@@ -775,10 +1044,12 @@ class DriveEnergyDocPanel extends HTMLElement {
     if (act === "note") return this._noteDlg(v, v.entries.find(x => x.id === t.closest("tr").dataset.id));
     if (act === "photo") return this._pick(v, v.entries.find(x => x.id === t.closest("tr").dataset.id));
     const id = t.closest("tr").dataset.id;
+    if (id === "live" && act === "curve") return this._curveDlg(v, { id: "live", ts: (v.summary.live || {}).ts_start || Date.now() / 1000 });
     const e = v.entries.find(x => x.id === id);
     if (act === "del") {
       if (confirm(this.T("Eintrag vom {0} endgültig löschen?", this._date(e.ts)))) { await this._hass.callWS({ type: "drive_energy_doc/delete", vehicle: v.id, entry: id }); this._load(); }
     } else if (act === "edit") this._form(v, e);
+    else if (act === "curve") this._curveDlg(v, e);
   }
 
   _vehDlg() {
@@ -806,27 +1077,40 @@ class DriveEnergyDocPanel extends HTMLElement {
   }
 
   _colName(c, u) {
-    return { nr: this.T("Nr."), date: this.T("Datum"), km: this.T("km"), station: this.T("Tankstelle"), qty: this.T("Menge"), price: `€/${u}`, total: this.T("Betrag"), cons: `${u}/100 ${this.T("km")}`, receipt: this.T("Beleg"), note: this.T("Notiz") }[c] || c;
+    return { nr: this.T("Nr."), date: this.T("Datum"), km: this.T("km"), station: this.T("Tankstelle"), qty: this.T("Menge"), price: `€/${u}`, total: this.T("Betrag"), cons: `${u}/100 ${this.T("km")}`, start: this.T("Laden von"), end: this.T("Laden bis"), lfrom: this.T("Ladestand von"), lto: this.T("Ladestand bis"), ctype: this.T("Ladeart") + " AC/DC", kcar: this.T("Akku") + " kWh", kwb: "Wallbox kWh", pavg: this.T("Ø Ladeleistung"), ppk: this.T("Spitzenleistung"), sol: this.T("Solaranteil"), loss: this.T("Ladeverlust"), receipt: this.T("Beleg"), note: this.T("Notiz") }[c] || c;
+  }
+
+  _colIcon(c, v) {
+    // dasselbe Symbol wie in der Überschrift
+    const I = { date: "cal", start: "clock", end: "clockEnd", lfrom: "battLow", lto: "battFull", ctype: "plug", kcar: "car", kwb: "wbox", pavg: "pwr", ppk: "pwrPk", km: "road", station: "pin", qty: v.energy === "electric" ? "batt" : "drop", cons: "gauge", sol: "sun", loss: "loss", receipt: "bon", note: "note" };
+    return I[c] ? this._ico(I[c]) : `<span class="cx">${c === "nr" ? "#" : "€"}</span>`;
   }
 
   _colsDlg(v) {
-    // Spalten ein- und ausblenden (pro Browser gemerkt); die Knöpfe ganz rechts bleiben immer
+    // Spalten ein- und ausblenden (pro Browser gemerkt); die Knöpfe ganz rechts bleiben immer. Nur Spalten, die es beim Fahrzeug gibt.
     this._pvHide();
-    const u = this.T(v.unit);
+    const u = this.T(v.unit), el = v.energy === "electric" || !!v.phev;
+    const cols = this._order().filter(c => c !== "act" && (el || !["start", "end", "lfrom", "lto", "ctype", "kcar", "kwb", "pavg", "ppk", "sol", "loss"].includes(c)));
     const dlg = document.createElement("div");
-    dlg.className = "dlg";
-    dlg.innerHTML = `<div class="card"><div class="dh">${this.T("Spalten")}</div>${this._order().filter(c => c !== "act").map(c => `<label class="ck"><input type="checkbox" data-col="${c}" ${this._hide.includes(c) ? "" : "checked"}> ${this._esc(this._colName(c, u))}</label>`).join("")}<div class="df"><button data-d="ok" class="pri">OK</button></div></div>`;
+    dlg.className = "dlg cols";
+    const list = () => cols.map(c => `<label class="ck"><input type="checkbox" data-col="${c}" ${this._hide.includes(c) ? "" : "checked"}>${this._colIcon(c, v)}<span>${this._esc(this._colName(c, u))}</span></label>`).join("");
+    dlg.innerHTML = `<div class="card"><div class="dh">${this.T("Spalten")}</div><div class="bd">${list()}</div><div class="df"><button data-d="def">${this.T("Standard")}</button><button data-d="ok" class="pri">OK</button></div></div>`;
     this.shadowRoot.appendChild(dlg);
     this._dlg = dlg;
+    const save = () => { try { localStorage.setItem(this._ck("deHide"), JSON.stringify(this._hide)); } catch (e) { /* ignore */ } };
     const done = () => { dlg.remove(); this._dlg = null; this._render(); };
     dlg.onchange = ev => {
       const cb = ev.target.closest("[data-col]");
       if (!cb) return;
       this._hide = this._hide.filter(x => x !== cb.dataset.col);
       if (!cb.checked) this._hide.push(cb.dataset.col);
-      try { localStorage.setItem("deHide", JSON.stringify(this._hide)); } catch (e) { /* ignore */ }
+      save();
     };
-    dlg.onclick = ev => { ev.stopPropagation(); if (ev.target === dlg || ev.target.closest("[data-d=ok]")) done(); };
+    dlg.onclick = ev => {
+      ev.stopPropagation();
+      if (ev.target.closest("[data-d=def]")) { this._hide = [...DEF_HIDE]; save(); dlg.querySelector(".bd").innerHTML = list(); return; }   // Standard: alles an außer „Laden von/bis“
+      if (ev.target === dlg || ev.target.closest("[data-d=ok]")) done();
+    };
     dlg.onkeydown = ev => { if (ev.key === "Escape" || ev.key === "Enter") done(); };
     dlg.querySelector("[data-d=ok]").focus();
   }
@@ -1106,7 +1390,6 @@ class DriveEnergyDocPanel extends HTMLElement {
       <div class="g2"><label class="fl"><span>${this.T("Art")}</span><select id="f_kind"><option value="fuel">${esc(v.energy === "electric" ? this.T("Strom") : this.T("Kraftstoff"))}</option>${v.phev ? `<option value="electric"${e && e.kind !== "extra" && e.energy === "electric" ? " selected" : ""}>${esc(this.T("Strom"))}</option>` : ""}${PRESETS.map(x => `<option value="${x.k}"${isExtra && subSel === x.k ? " selected" : ""}>${esc(this.T(x.k))}</option>`).join("")}<option value="other"${isExtra && subSel === "other" ? " selected" : ""}>${esc(this.T("Sonstiges"))}</option></select></label>
       <label class="fl" id="w_grade"${isExtra || v.energy === "electric" || (e && e.energy === "electric") ? ' style="display:none"' : ""}><span>${this.T("Kraftstoffart")}</span><select id="f_grade">${gradeOpts.map(k => `<option value="${k}"${k === gradeCur ? " selected" : ""}>${esc(FUEL_GRADES[k])}</option>`).join("")}</select></label>
       <label class="fl" id="w_ctype"${!isExtra && isEl(e && e.energy === "electric" ? "electric" : "fuel") ? "" : ' style="display:none"'}><span>${this.T("Ladeart")}</span><select id="f_ctype"><option value=""${ctOrig ? "" : " selected"}>${this.T("unbekannt")}</option><option value="ac"${ctOrig === "ac" ? " selected" : ""}>AC</option><option value="dc"${ctOrig === "dc" ? " selected" : ""}>DC</option></select></label></div>
-      ${estHint ? `<div class="hint">${esc(estHint)}</div>` : ""}
       <div class="g2">${fld("f_item", this.T("Bezeichnung"), e ? e.item || "" : "", ` id="w_item"${isExtra ? "" : ' style="display:none"'}`)}
       ${fld("f_unit", this.T("Einheit"), e ? e.unit : "", ` id="w_unit" title="${esc(this.T("Einheit (z. B. l, Stk), leer = keine"))}"${isExtra ? "" : ' style="display:none"'}`)}</div>
       <div class="g2">
@@ -1115,7 +1398,7 @@ class DriveEnergyDocPanel extends HTMLElement {
         ${fld("f_t", this.T("Betrag") + " €", e ? e.total : "")}
         ${fld("f_km", this.T("Kilometerstand"), e ? e.odometer : "")}
       </div>
-      <label class="fl"><span>${this.T("Notiz")}</span><textarea id="f_note" maxlength="1000">${esc(e ? e.note : "")}</textarea></label>
+      <label class="fl"><span>${this.T("Notiz")}</span><textarea id="f_note" maxlength="1000">${esc(e ? (e.note || this._wbNote(e)) : "")}</textarea></label>${estHint && !this._wbNote(e) ? `<div class="hint">${esc(estHint)}</div>` : ""}
       <div id="f_ph" class="phn" style="display:none"></div>
     </div><div class="df"><button data-d="photo" class="ico" title="${this.T("Foto zu diesem Eintrag")}" aria-label="${this.T("Foto hinzufügen")}">${this._ico("camera")}</button><button data-d="cancel">${this.T("Abbrechen")}</button><button data-d="save" class="pri">${this.T("Speichern")}</button></div></div>`;
     this.shadowRoot.appendChild(dlg);

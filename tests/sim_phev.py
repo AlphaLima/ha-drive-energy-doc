@@ -59,7 +59,7 @@ print("OK: Plug-in-Hybrid-Zuordnung")
 import asyncio
 detmod = importlib.import_module("drive_energy_doc.detector")
 FuelDetector = detmod.FuelDetector
-ns2 = {"stats": stats, "time": time, "datetime": datetime, "uuid": __import__("uuid"), "asyncio": asyncio, "FuelDetector": FuelDetector, "CONF_LEVEL_EL": "lvl_el", "CONF_ODOMETER": "odo", "CONF_TRACKER": "trk", "CONF_POWER": "pwr", "CONF_CHARGE_TYPE": "ctype", "CONF_LEVEL": "lvl", "charge": charge, "DOMAIN": "drive_energy_doc",
+ns2 = {"stats": stats, "time": time, "datetime": datetime, "uuid": __import__("uuid"), "asyncio": asyncio, "FuelDetector": FuelDetector, "CONF_LEVEL_EL": "lvl_el", "CONF_ODOMETER": "odo", "CONF_TRACKER": "trk", "CONF_POWER": "pwr", "CONF_WB_ENERGY": "wbe", "CONF_WB_POWER": "wbp", "CONF_PLUG": "plug", "CONF_WB_PRICE": "wbpr", "wallbox": __import__("wallbox") if False else None, "CONF_CHARGE_TYPE": "ctype", "CONF_LEVEL": "lvl", "charge": charge, "DOMAIN": "drive_energy_doc",
        "callback": lambda f: f, "Event": object, "dt_util": ns["dt_util"]}
 for name in ("_state_changed", "_tick", "_detectors", "_pending_for", "_valid_pending", "_finish"):
     node = fns[name]
@@ -98,6 +98,10 @@ class V2:
     async def _say(self, m, quick=False, phase=None, el=False): self.said.append(m)
     def _detected_text(self, entry): return "detected"
     def _sample_charge(self): pass
+    def _wb_sample(self): pass
+    def _plugged(self): return None
+    def _curve_sample(self): pass
+    _curve = []
     def _charge_det(self): return self.detector_el
     def _ac_max(self): return None
     def _push_at_start(self, det): return True

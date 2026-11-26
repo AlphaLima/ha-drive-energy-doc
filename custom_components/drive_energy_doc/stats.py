@@ -48,6 +48,7 @@ def add_consumption(entries: list[dict[str, Any]], full_increase: float = FULL_I
             continue
         if ch[1] is not None and e["odometer"] > ch[1] and ch[0] > 0:
             e["consumption"] = round(ch[0] / (e["odometer"] - ch[1]) * 100, 2)
+            e["cons_km"] = round(e["odometer"] - ch[1], 1)   # Strecke, auf die sich der Verbrauch bezieht (für gewichtete Mittel)
         ch[0], ch[1] = 0.0, e["odometer"]
     return out
 

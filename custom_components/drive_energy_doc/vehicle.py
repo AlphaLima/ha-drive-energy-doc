@@ -22,7 +22,7 @@ from homeassistant.helpers.storage import Store
 from homeassistant.util import dt as dt_util
 
 from . import channels as chan
-from . import charge, messages, receipt, stats, wallbox
+from . import charge, curve, messages, receipt, stats, wallbox
 from .const import *  # noqa: F403
 from .detector import FuelDetector
 from .price import lookup, resolve_provider
@@ -93,6 +93,11 @@ class Vehicle:
             reject_moving=True,   # Anstieg des Akkus beim Fahren (Rekuperation) ist kein Laden
         ) if self.phev and o.get(CONF_LEVEL_EL) else None
         self._wb = wallbox.Log()   # Verlauf der Heim-Wallbox (nur im Speicher)
+        self._wb_run: tuple[float, float] | None = None   # (Beginn, Zählerstand), seit die Wallbox liefert
+        self._wb_idle_since: float | None = None
+        self._curve: list[list] = []   # Ladekurve der laufenden Ladung (ein Punkt pro Minute)
+        self._curve_saved = 0.0
+        self.curve_dir = Path(hass.config.path(DOMAIN, entry.entry_id, "curves"))
         self._pos: tuple[float, float] | None = None
         self._exif_pos: tuple[float, float] | None = None   # Aufnahmeort des Fotos, das gerade gelesen wird (Foto-Metadaten)
         self._capture: list[str] | None = None
@@ -111,6 +116,16 @@ class Vehicle:
         self.data.update(saved)
         await self.hass.async_add_executor_job(self._import_folder)   # Erstimport (leeres Fahrzeug) oder Neuimport (Datei REPLACE im Importordner)
         self.detector.pending = FuelDetector(pending=self.data.get("pending")).pending
+        wr = self.data.get("wb_run")
+        self._wb_run = (float(wr[0]), float(wr[1])) if wr else None
+        running = self.curve_dir / "running.json"
+        if self._wb_run or self.data.get("pending") or self.data.get("pending_el"):
+            self._curve = curve.restore(await self.hass.async_add_executor_job(curve.read, running))
+        for x in self.data.get("wb_log") or []:   # Wallbox-Verlauf wiederherstellen (Beginn einer Ladung bleibt berechenbar)
+            try:
+                self._wb.s.append((float(x[0]), float(x[1]), None if x[2] is None else float(x[2])))
+            except (TypeError, ValueError, IndexError):
+                pass
         if self.detector_el:
             self.detector_el.pending = FuelDetector(pending=self.data.get("pending_el")).pending
         o = self.o
@@ -134,7 +149,7 @@ class Vehicle:
             except Exception as err:  # noqa: BLE001 - die Fotos bleiben dann unverändert
                 _LOGGER.warning("Foto-Migration übersprungen: %r", err)
         self._save()
-        if self._rescan_marker().is_file():   # Datei config/drive_energy_doc/rescan/<Fahrzeugname>: alle Fotos mit der KI neu einlesen und neu ablegen (einmalig, kurz nach dem Start)
+        if await self.hass.async_add_executor_job(self._rescan_marker().is_file):   # Datei config/drive_energy_doc/rescan/<Fahrzeugname>: alle Fotos mit der KI neu einlesen und neu ablegen (einmalig, kurz nach dem Start)
             @callback
             def _start_rescan(_now) -> None:   # als callback markiert: läuft im Event-Loop (ein Lambda würde im Thread-Pool laufen)
                 self.hass.async_create_task(self.rescan_photos())
@@ -148,8 +163,12 @@ class Vehicle:
             lvl_el = self._read_float(o.get(CONF_LEVEL_EL))
             if lvl_el is not None:
                 self.detector_el.prev_level = lvl_el
+        for d, v in ((self.detector, lvl), (self.detector_el, self._read_float(o.get(CONF_LEVEL_EL)) if self.detector_el else None)):
+            if d and d.pending and d.pending.valid and v is not None and v > d.pending.level:
+                d.pending.level = v   # während des Neustarts weitergeladen: Endstand nachziehen (sonst fehlt der Zuwachs in der Schätzung)
         tracked = [e for e in (o.get(CONF_LEVEL), o.get(CONF_LEVEL_EL) if self.detector_el else None, o.get(CONF_TRACKER), o.get(CONF_POWER), o.get(CONF_CHARGE_TYPE), o.get(CONF_WB_ENERGY), o.get(CONF_WB_POWER), o.get(CONF_PLUG)) if e]
         self._wb_sample()
+        self._unsubs.append(async_call_later(self.hass, 25, self._recover_wb_run))   # Beginn einer laufenden Wallbox-Lieferung aus dem Verlauf holen (Neustart, Neukonfigurieren)
         self._unsubs.append(async_track_state_change_event(self.hass, tracked, self._state_changed))
         self._unsubs.append(async_track_time_interval(self.hass, self._tick, CHECK_EVERY))
         if o.get(CONF_TG_TOKEN) and o.get(CONF_TG_CHAT) and o.get(CONF_CH_ON["telegram"], True):
@@ -243,7 +262,10 @@ class Vehicle:
             for e in list(self.data["entries"]):
                 for i, n in enumerate(list(e.get("photos") or [])):
                     when = dt_util.as_local(dt_util.utc_from_timestamp(e["ts"])).strftime("%d.%m.%Y %H:%M")
-                    src = next((p for p in (self.orig_dir / n, self.photo_dir / n) if p.is_file()), None)
+                    if not receipt.safe_photo_name(n):
+                        rows.append(f"{when};{n};;ungültiger Name, übersprungen;")
+                        continue
+                    src = await self.hass.async_add_executor_job(lambda n=n: next((p for p in (self.orig_dir / n, self.photo_dir / n) if p.is_file()), None))
                     if src is None:
                         rows.append(f"{when};{n};;Datei fehlt;")
                         continue
@@ -275,11 +297,8 @@ class Vehicle:
                     label = "Zusatzfoto" if i else None
                     if e.get("kind") == "extra" and not (info or {}).get("category"):
                         label = label or e.get("item") or "Zubehoer"
-                    new = receipt.new_photo_name(info or {"station": e.get("station")}, e["ts"], label, self.photo_dir)
-                    box = (ai or {}).get("crop")
-                    await self.hass.async_add_executor_job(receipt.crop_and_save, image, box, self.photo_dir, new, self.orig_dir)
-                    for d in (self.photo_dir, self.orig_dir):
-                        (d / n).unlink(missing_ok=True)
+                    new = await self.hass.async_add_executor_job(receipt.save_new_photo, image, (ai or {}).get("crop"), self.photo_dir, info or {"station": e.get("station")}, e["ts"], label, self.orig_dir)
+                    await self._remove_files([n])
                     e["photos"][i] = new
                     rows.append(f"{when};{n};{new};{'gelesen' if ai else 'KI ohne Ergebnis, nur neu abgelegt'};{' | '.join(note)}")
                     self._save()
@@ -289,6 +308,8 @@ class Vehicle:
         _LOGGER.info("%s: %d Fotos neu eingelesen, Bericht %s", self.name, len(rows) - 1, rep)
 
     async def async_unload(self) -> None:
+        if self._curve:
+            await self.hass.async_add_executor_job(curve.write, self.curve_dir / "running.json", [list(x) for x in self._curve])
         for u in self._unsubs:
             u()
         self._unsubs.clear()
@@ -340,7 +361,7 @@ class Vehicle:
         if result in ("started", "valid"):
             self._sample_charge()
         elif det.pending and det.pending.valid and det is self._charge_det():
-            self._panel("changed")   # laufende Ladung: die türkise Zeile im Panel nachführen
+            self._panel("changed", live=True)   # laufende Ladung: nur die türkise Zeile im Panel nachführen
         if result == "valid":
             self.hass.async_create_task(self._fetch_price(None, det))
             if self._push_at_start(det):
@@ -401,6 +422,7 @@ class Vehicle:
         self._pos = self._read_pos() or self._pos
         self._wb_sample()
         self._sample_charge()
+        self._curve_sample()
         finished = False
         plugged, odo = self._plugged(), self._read_float(self.o.get(CONF_ODOMETER))
         for det in self._detectors():
@@ -410,10 +432,44 @@ class Vehicle:
                 self.hass.async_create_task(self._finish(done, det is self.detector_el))
         if not finished:
             self._notify_entities()
-            lv = self._charge_det()
-            if lv and lv.pending and lv.pending.valid and time.time() - getattr(self, "_live_ts", 0) >= 60:
+            if self.live() and time.time() - getattr(self, "_live_ts", 0) >= 60:
                 self._live_ts = time.time()
-                self._panel("changed")   # laufende Ladung: Zeile im Panel jede Minute nachführen
+                self.store.async_delay_save(self._store_data, 30)   # laufenden Vorgang regelmäßig sichern (Absturz, Stromausfall)
+                self._panel("changed", live=True)   # laufende Ladung: Zeile im Panel jede Minute nachführen
+
+    def _car_power_w(self) -> float | None:
+        pe = self.o.get(CONF_POWER)
+        w = self._read_float(pe) if pe else None
+        if w is None:
+            return None
+        st = self.hass.states.get(pe)
+        return w * 1000 if str((st.attributes.get("unit_of_measurement") if st else "") or "").lower() == "kw" else w
+
+    def _curve_sample(self) -> None:
+        """Ladekurve: während einer Ladung einmal pro Minute Leistung (Wallbox, Auto) und Ladestand merken; in Pausen seltener."""
+        now = time.time()
+        if not self.live():
+            if self._curve and self._wb_run is None and not any(d.pending for d in self._detectors()):
+                self._curve = []   # keine Ladung (Anstieg verworfen): Kurve verwerfen
+                self.hass.async_add_executor_job(lambda: (self.curve_dir / "running.json").unlink(missing_ok=True))
+            return
+        wb = self._wb.s[-1][2] if (self.o.get(CONF_WB_POWER) and self._wb.s) else None
+        car = self._car_power_w()
+        soc = self._read_float(self.o.get(CONF_LEVEL_EL if self.detector_el else CONF_LEVEL))
+        if curve.skip_idle(self._curve, now, wb, car, soc):
+            return
+        if curve.add(self._curve, now, wb, car, soc) and now - self._curve_saved > 300:
+            self._curve_saved = now
+            pts = [list(x) for x in self._curve]
+            self.hass.async_add_executor_job(curve.write, self.curve_dir / "running.json", pts)   # übersteht einen Neustart
+
+    async def load_curve(self, entry_id: str) -> dict | None:
+        """Gespeicherte Ladekurve eines Eintrags (für das Panel); „live“ = Kurve der laufenden Ladung."""
+        if entry_id == "live":
+            return curve.payload(self._curve) if self._curve else None
+        if not self.get_entry(entry_id):
+            return None
+        return await self.hass.async_add_executor_job(curve.read, self.curve_dir / f"{entry_id}.json")
 
     def _plugged(self) -> bool | None:
         """Stecker-Sensor: True angesteckt, False abgesteckt, None ohne Sensor oder unbekannt."""
@@ -438,6 +494,51 @@ class Vehicle:
         elif pe and (self.hass.states.get(pe) is None or self.hass.states.get(pe).state in ("unavailable", "unknown")):
             w = 0.0   # Wallbox stromlos oder abgeschaltet: der letzte Leistungswert bleibt nicht stehen
         self._wb.add(time.time(), kwh, w)
+        now = time.time()
+        if w is not None and w >= wallbox.IDLE_WATT:   # die Wallbox liefert: Beginn merken, solange das Auto noch keinen Anstieg meldet
+            self._wb_idle_since = None
+            if self._wb_run is None and kwh is not None:
+                self._wb_run = (now, kwh)
+        elif w is not None and self._wb_run is not None:
+            self._wb_idle_since = self._wb_idle_since or now
+            if now - self._wb_idle_since > 900:
+                self._wb_run = None
+
+    async def _recover_wb_run(self, _now=None) -> None:
+        """Beim Start: lieferte die Wallbox schon vor dem Start, den Beginn und den Zählerstand davor aus dem Recorder holen (der Speicher kennt nur die Zeit seit dem Start)."""
+        pe, ee = self.o.get(CONF_WB_POWER), self.o.get(CONF_WB_ENERGY)
+        cur = self._wb.s[-1] if self._wb.s else None
+        if not (pe and ee) or not cur or not cur[2] or cur[2] < wallbox.IDLE_WATT:
+            return
+        try:
+            from functools import partial
+
+            from homeassistant.components.recorder import get_instance, history
+
+            end = dt_util.utcnow()
+            res = await get_instance(self.hass).async_add_executor_job(partial(
+                history.get_significant_states, self.hass, end - timedelta(hours=12), end, [pe, ee],
+                include_start_time_state=True, significant_changes_only=False, no_attributes=False))
+        except Exception as err:  # noqa: BLE001 - ohne Verlauf bleibt der Beginn der Zeitpunkt des Starts
+            _LOGGER.debug("Wallbox-Verlauf nicht lesbar (%s): %r", self.name, err)
+            return
+        power: list[tuple[float, float]] = []
+        energy: list[tuple[float, float]] = []
+        for s in res.get(pe, []):
+            try:
+                power.append((s.last_updated.timestamp(), wallbox.to_watt(float(s.state), s.attributes.get("unit_of_measurement"))))
+            except (TypeError, ValueError):
+                power.append((s.last_updated.timestamp(), 0.0))   # nicht verfügbar: Wallbox stromlos
+        for s in res.get(ee, []):
+            try:
+                energy.append((s.last_updated.timestamp(), wallbox.to_kwh(float(s.state), s.attributes.get("unit_of_measurement"))))
+            except (TypeError, ValueError):
+                pass
+        run = wallbox.find_run(power, energy)
+        if run and (self._wb_run is None or run[0] < self._wb_run[0]):
+            self._wb_run = run
+            self._save(panel=False)
+            self._panel("changed", live=True)
 
     def _wb_price_now(self) -> float | None:
         raw = self.o.get(CONF_WB_PRICE)
@@ -491,16 +592,25 @@ class Vehicle:
         ex = p.extras
         if self.o.get(CONF_WB_ENERGY) and self._wb.s:
             if ex.get("wb_base") is None:
-                b = self._wb.baseline(p.start_ts)
+                b = self._wb_run[1] if (self._wb_run and self._wb_run[0] <= p.start_ts + 60) else self._wb.baseline(p.start_ts)
                 if b is not None:
                     ex["wb_base"] = b
-                    self._save()
+                    self._save(panel=False)
             cur = self._wb.s[-1]
+            now = time.time()
+            if cur[2] is not None:
+                if "wb_on_s" not in ex:   # Lieferung lief schon vor dem ersten Anstieg des Ladestands: diese Zeit zählt mit
+                    ex["wb_on_s"] = round(max(0.0, p.start_ts - self._wb_run[0]) if (self._wb_run and self._wb_run[0] <= p.start_ts) else 0.0)
+                if cur[2] >= wallbox.IDLE_WATT:
+                    ex["wb_peak_w"] = round(max(cur[2], ex.get("wb_peak_w") or 0))
+                    if ex.get("wb_on_last"):
+                        ex["wb_on_s"] = round(ex["wb_on_s"] + min(now - ex["wb_on_last"], 120))   # aktive Ladezeit ohne Pausen
+                ex["wb_on_last"] = now
             if ex.get("wb_base") is not None and cur[1] > (ex.get("wb_end") or [0, ex["wb_base"]])[1]:
                 ex["wb_end"] = [cur[0], cur[1]]   # letzter Zählerstand, bei dem die Wallbox noch geliefert hat
                 if time.time() - getattr(self, "_wb_saved", 0) > 300:
                     self._wb_saved = time.time()
-                    self._save()
+                    self._save(panel=False)
         pe = self.o.get(CONF_POWER)
         if pe:
             w = self._read_float(pe)
@@ -527,14 +637,14 @@ class Vehicle:
             t = charge.parse_type(st.state if st else None)
             if t and (t == "dc" or ex.get("ctype") is None) and ex.get("ctype") != t:
                 ex["ctype"] = t   # DC gewinnt: ein später gemeldetes AC überschreibt es nicht
-                self._save()
+                self._save(panel=False)
 
     def live(self) -> dict | None:
         """Laufende Ladung (gültiger Anstieg, noch nicht abgeschlossen) für die türkise Zeile im Panel."""
         det = self._charge_det()
         p = det.pending if det else None
         if not p or not p.valid:
-            return None
+            return self._live_provisional(det)
         cap = self.capacity_el if self.detector_el else self.capacity
         est = round((p.level - p.start_level) / 100 * cap, 2) if cap else None
         ex = p.extras
@@ -543,7 +653,41 @@ class Vehicle:
         if w is not None and w < wallbox.IDLE_WATT:
             w = None
         paused = time.time() - p.last_increase_ts > max(det.settle_seconds, 300) and not w
-        return {"ts_start": p.start_ts, "level_from": round(p.start_level, 1), "level_to": round(p.level, 1), "est_quantity": est, "wb_kwh": kwh if (kwh and kwh > 0) else None, "kw": round(w / 1000, 1) if w else None, "paused": paused}
+        out = {"ts_start": p.start_ts, "level_from": round(p.start_level, 1), "level_to": round(p.level, 1), "est_quantity": est, "wb_kwh": kwh if (kwh and kwh > 0) else None, "kw": round(w / 1000, 1) if w else None, "paused": paused}
+        self._live_money(out, ex, p.odometer, est)
+        stable = not w and time.time() - p.last_increase_ts >= 600   # Wallbox liefert nicht und der Ladestand blieb 10 Minuten gleich: das Auto ist nachgekommen, sonst täuscht der Verzug der Audi-Cloud einen hohen Verlust vor
+        if out["wb_kwh"] and est and est >= 2 and stable:
+            out["loss_pct"] = round((out["wb_kwh"] / est - 1) * 100)   # Ladeverlust: Wallbox-Energie gegenüber dem, was im Akku ankam
+        return out
+
+    def _live_money(self, out: dict, ex: dict, odometer: float | None, est: float | None) -> None:
+        """Kilometerstand, Preis und Betrag der laufenden Ladung (vorläufig: mittlerer Preis bisher, sonst aktueller Preis)."""
+        out["odometer"] = odometer if odometer is not None else self._read_float(self.o.get(CONF_ODOMETER))
+        n = ex.get("wbp_n")
+        price = (ex["wbp_sum"] / n) if n else (self._wb_price_now() if out.get("wb_kwh") else None) or self._electric_price()
+        out["unit_price"] = round(price, 4) if price else None
+        q = out.get("wb_kwh") if out.get("wb_kwh") is not None else est
+        out["total"] = round(q * price, 2) if (q and price) else None
+
+    def _live_provisional(self, det) -> dict | None:
+        """Die Wallbox liefert, das Auto hat aber noch keinen Anstieg gemeldet (der Ladestand kommt oft erst nach Minuten): Zeile schon jetzt anzeigen."""
+        if det is None or not self.o.get(CONF_WB_POWER) or self._wb_run is None or not self._wb.s:
+            return None
+        if self._plugged() is False:
+            return None
+        if self._plugged() is not True:   # ohne Stecker-Sensor nur, wenn kein anderes Fahrzeug dieselbe Wallbox mitbenutzt
+            ent = self.o.get(CONF_WB_ENERGY)
+            if any(v is not self and v.o.get(CONF_WB_ENERGY) == ent for v in self.hass.data.get(DOMAIN, {}).get("vehicles", {}).values()):
+                return None
+        start, base = self._wb_run
+        cur = self._wb.s[-1]
+        w = cur[2] if cur[2] and cur[2] >= wallbox.IDLE_WATT else None
+        kwh = round(cur[1] - base, 3) if cur[1] >= base else None
+        cand = det.pending   # Anstieg noch unter der Schwelle: Kandidat mit Start- und aktuellem Stand
+        lvl = self._read_float(self.o.get(CONF_LEVEL_EL if self.detector_el else CONF_LEVEL))
+        out = {"ts_start": start, "level_from": round(cand.start_level, 1) if cand else None, "level_to": round(cand.level, 1) if cand else (round(lvl, 1) if lvl is not None else None), "est_quantity": None, "wb_kwh": kwh if kwh and kwh > 0 else None, "kw": round(w / 1000, 1) if w else None, "paused": False, "provisional": True}
+        self._live_money(out, {}, None, None)
+        return out
 
     def correction(self) -> dict:
         """Korrekturfaktoren (Beleg geteilt durch Schätzung) je Energieart und Ladeart für die Anzeige im Panel."""
@@ -663,6 +807,17 @@ class Vehicle:
             entry["charge_type"], entry["charge_src"] = ctype, csrc
         if ckw and kind == "electric":
             entry["charge_kw"] = ckw
+        if kind == "electric":
+            pk = ex.get("peak_w") or ex.get("wb_peak_w")   # Leistungssensor des Autos, sonst die Wallbox
+            if pk:
+                entry["peak_kw"] = round(pk / 1000, 1)
+            on = ex.get("wb_on_s")
+            if wb and on and on >= 600:
+                entry["avg_kw"] = round(wb / (on / 3600), 1)   # gelieferte Energie durch aktive Ladezeit (Pausen zählen nicht)
+            else:
+                av = charge.avg_power_kw(qty, done.get("start_ts"), done.get("last_increase_ts"), pct)
+                if av:
+                    entry["avg_kw"] = round(av, 1)
         if wb:
             entry["wb_kwh"] = wb
             if ex.get("wbs_n"):
@@ -674,6 +829,13 @@ class Vehicle:
         elif wb_note:
             entry["wb_note"] = wb_note   # Wallbox ist eingerichtet, aber die Menge wurde nicht übernommen (geteilt, kein Verlauf, passt nicht)
         entry["total"] = round(qty * entry["unit_price"], 2) if qty and entry["unit_price"] else None
+        if kind == "electric" and self._curve:
+            pts = curve.trim([x for x in self._curve if x[0] >= done["start_ts"] - 6 * 3600])
+            self._curve = []
+            if len(pts) >= 3:
+                entry["curve"] = True
+                await self.hass.async_add_executor_job(curve.write, self.curve_dir / f"{entry['id']}.json", pts)
+            await self.hass.async_add_executor_job(lambda: (self.curve_dir / "running.json").unlink(missing_ok=True))
         entry["photos"].extend(ex.get("extra_photos", []))
         r = ex.get("receipt")
         if r:
@@ -1098,8 +1260,7 @@ class Vehicle:
                 ai = await receipt.ai_read(self.hass, self._ai_entity(), image, self.media_dir, self._pos, self._exif_pos)
                 if ai and receipt.plausible(ai):
                     values, box = ai, ai.get("crop")
-            name = receipt.new_photo_name(values, sent_ts, item or "Zubehoer", self.photo_dir)
-            await self.hass.async_add_executor_job(receipt.crop_and_save, image, box, self.photo_dir, name, self.orig_dir)
+            name = await self.hass.async_add_executor_job(receipt.save_new_photo, image, box, self.photo_dir, values, sent_ts, item or "Zubehoer", self.orig_dir)
             return await self._extra(item, rest, name, values)
         extra = low.startswith(tuple(messages.keywords("photo")))
         values = None if extra else receipt.parse_text(caption)
@@ -1123,8 +1284,7 @@ class Vehicle:
                 rejected_km = float(ai["odometer"])
                 _LOGGER.warning("Kilometerstand %s vom Foto passt nicht zur Reihenfolge der Einträge (%s)", rejected_km, self.name)
         info = values if isinstance(values, dict) and values else (ai if isinstance(ai, dict) and not ai.get("busy") else None)
-        name = receipt.new_photo_name(info, sent_ts, "Tacho" if (km is not None and not values) else ("Zusatzfoto" if extra else None), self.photo_dir)
-        await self.hass.async_add_executor_job(receipt.crop_and_save, image, box, self.photo_dir, name, self.orig_dir)
+        name = await self.hass.async_add_executor_job(receipt.save_new_photo, image, box, self.photo_dir, info, sent_ts, "Tacho" if (km is not None and not values) else ("Zusatzfoto" if extra else None), self.orig_dir)
         cat = (values or {}).get("category") if isinstance(values, dict) else None
         if cat in ("adblue", "oil", "washer", "carwash", "other"):   # Beleg für Zubehör/Verbrauchsmaterial: eigener Eintrag, nie einen Tankvorgang überschreiben
             item = {"adblue": "AdBlue", "oil": "Öl", "washer": "Scheibenreiniger", "carwash": "Waschen"}.get(cat) or (values.get("item") or "Zubehör")
@@ -1653,7 +1813,7 @@ class Vehicle:
             else:
                 e.pop("fuel", None)
         for n in fields.get("photos") or []:   # im Bearbeiten-Dialog aufgenommene, schon abgelegte Fotos
-            if isinstance(n, str) and n not in e["photos"] and (self.photo_dir / n).is_file():
+            if self._take_scanned(n) and n not in e["photos"]:
                 e["photos"].append(n)
         if fields.get("ts"):   # Datum und Uhrzeit ändern
             e["ts"] = e["ts_start"] = float(fields["ts"])
@@ -1691,20 +1851,32 @@ class Vehicle:
                 box = ai.get("crop")
                 out = {"note": self.currency_note(ai.get("orig")), "found": True, "quantity": ai.get("quantity"), "unit_price": ai.get("unit_price"), "total": ai.get("total"), "odometer": km,
                        "station": ai.get("station"), "address": ai.get("address"), "ts": when, "receipt": bool(receipt.plausible(ai)), "category": ai.get("category"), "item": ai.get("item"), "fuel_grade": ai.get("fuel_grade"), "ai_secs": ai.get("ai_secs")}
-        name = receipt.new_photo_name(ai if isinstance(ai, dict) else None, sent, None, self.photo_dir)
-        await self.hass.async_add_executor_job(receipt.crop_and_save, image, box, self.photo_dir, name, self.orig_dir)
+        name = await self.hass.async_add_executor_job(receipt.save_new_photo, image, box, self.photo_dir, ai if isinstance(ai, dict) else None, sent, None, self.orig_dir)
+        issued = self.data.setdefault("scan_photos", [])
+        issued.append(name)
+        del issued[:-50]
+        self._save(panel=False)
         out["photo"] = name
         return out
 
+    def _take_scanned(self, name: object) -> bool:
+        """Foto-Namen aus dem Panel nur annehmen, wenn scan_photo ihn selbst vergeben hat (einmalig; nie einen vom Browser erfundenen Pfad)."""
+        issued = self.data.get("scan_photos") or []
+        if not receipt.safe_photo_name(name) or name not in issued:
+            return False
+        issued.remove(name)
+        return True
+
     async def discard_photo(self, name: str) -> None:
         """Noch keinem Eintrag zugeordnetes Foto (aus scan_photo) verwerfen."""
-        if not any(name in (e.get("photos") or []) for e in self.data["entries"]):
+        if self._take_scanned(name) and not any(name in (e.get("photos") or []) for e in self.data["entries"]):
             await self._remove_files([name])
+            self._save(panel=False)
 
     def add_manual(self, fields: dict) -> dict:
         e = self._new_manual_entry()
         for n in fields.get("photos") or []:   # vorher mit scan_photo abgelegte Fotos
-            if isinstance(n, str) and "/" not in n and "\\" not in n and ".." not in n and (self.photo_dir / n).is_file():
+            if self._take_scanned(n):
                 e["photos"].append(n)
                 e["receipt"] = True
         if fields.get("kind") == "extra":
@@ -1723,7 +1895,7 @@ class Vehicle:
         """Foto und gesichertes Original löschen (Namen werden geprüft, nur der Dateiname zählt)."""
         def _go() -> None:
             for n in names:
-                if n and "/" not in n and "\\" not in n and ".." not in n:
+                if receipt.safe_photo_name(n):
                     (self.photo_dir / n).unlink(missing_ok=True)
                     (self.orig_dir / n).unlink(missing_ok=True)
 
@@ -1735,6 +1907,7 @@ class Vehicle:
             return False
         self.data["entries"].remove(e)
         await self._remove_files(list(e.get("photos", [])))
+        await self.hass.async_add_executor_job(lambda: (self.curve_dir / f"{entry_id}.json").unlink(missing_ok=True))
         self._save()
         self._notify_entities()
         return True
@@ -1821,11 +1994,18 @@ class Vehicle:
         return buf.getvalue()
 
     # ---------------------------------------------------------------- Speichern
-    def _save(self) -> None:
-        self._panel("changed")
+    def _save(self, panel: bool = True) -> None:
+        if panel:
+            self._panel("changed")
+        self.store.async_delay_save(self._store_data, 2)
+
+    def _store_data(self) -> dict:
+        """Daten zum Speichern; der laufende Vorgang wird erst hier abgezogen, damit auch beim Herunterfahren der neueste Stand (Füllstand, letzter Anstieg) gesichert wird."""
         self.data["pending"] = self.detector.dump()
         self.data["pending_el"] = self.detector_el.dump() if self.detector_el else None
-        self.store.async_delay_save(lambda: self.data, 2)
+        self.data["wb_run"] = list(self._wb_run) if self._wb_run else None   # Wallbox liefert seit …: sonst geht die Zeile „Lädt gerade“ beim Neustart oder Neukonfigurieren verloren
+        self.data["wb_log"] = [list(x) for x in list(self._wb.s)[-40:]]
+        return self.data
 
     def _notify_entities(self) -> None:
         async_dispatcher_send(self.hass, signal(self.entry.entry_id))

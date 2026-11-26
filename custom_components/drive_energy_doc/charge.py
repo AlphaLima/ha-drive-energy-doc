@@ -59,8 +59,8 @@ def samples(entries: list[dict[str, Any]], kind: str, capacity: float, ctype: st
         if ctype is not None and e.get("charge_type") != ctype:
             continue
         est = est_quantity(e, capacity)
-        if not est:
-            continue
+        if not est or (e.get("quantity_source") == "wallbox" and est < 3):
+            continue   # kleine Ladungen: ganze Prozentschritte und der Verzug der Auto-Cloud verfälschen den Faktor
         f = float(e["quantity"]) / est
         if FACTOR_RANGE[0] <= f <= FACTOR_RANGE[1]:
             out.append(f)
