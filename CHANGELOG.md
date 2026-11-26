@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.1.86 (26.11.2026)
+- Panel: Direkt nach einem HA-Neustart geöffnet, blieb es bei „Noch kein Fahrzeug“ stehen (seit 0.1.84 kein minütliches Neuladen mehr). Jetzt wird alle 5 Sekunden erneut nachgesehen, bis die Fahrzeuge da sind; ebenso nach einem Fehler.
+
 ## 0.1.85 (26.11.2026)
 - Hassfest: `recorder` in `after_dependencies` (Wallbox-Verlauf nach Neustart), doppeltes `brand/logo.png` entfernt (gleich `icon.png`).
 

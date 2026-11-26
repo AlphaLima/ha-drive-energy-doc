@@ -5,7 +5,7 @@ const FUEL_GRADES = { diesel: "Diesel", diesel_premium: "Diesel Premium", e10: "
 const COLS = ["nr", "date", "start", "end", "lfrom", "lto", "km", "station", "qty", "ctype", "kcar", "kwb", "pavg", "ppk", "price", "total", "cons", "sol", "loss", "receipt", "note", "act"];
 const DEF_HIDE = ["start", "end", "lfrom", "lto", "ctype", "kcar", "kwb", "pavg", "ppk"];   // Laden von / bis: vorhanden, aber zunächst ausgeblendet
 
-const VERSION = "0.1.85";
+const VERSION = "0.1.86";
 
 class DriveEnergyDocPanel extends HTMLElement {
   set hass(h) {
@@ -210,6 +210,7 @@ class DriveEnergyDocPanel extends HTMLElement {
   }
   disconnectedCallback() {
     clearInterval(this._timer);
+    clearTimeout(this._emptyT);
     if (this._locCb) window.removeEventListener("location-changed", this._locCb);
     if (this._sub) { try { this._sub(); } catch (e) { /* ignore */ } this._sub = null; }
   }
@@ -234,6 +235,9 @@ class DriveEnergyDocPanel extends HTMLElement {
   async _load() {
     try {
       const data = await this._hass.callWS({ type: "drive_energy_doc/list" });
+      clearTimeout(this._emptyT);
+      if (!data.length) this._emptyT = setTimeout(() => this._load(), 5000);   // direkt nach einem HA-Neustart sind die Fahrzeuge evtl. noch nicht geladen: weiter nachsehen
+      if (this._err) { this._err = null; this._sig = null; }
       const sig = JSON.stringify(data);
       if (this._tabInit && sig === this._sig && !this._jumpId && !this._err) return;   // nichts geändert: nicht neu zeichnen (kein Flackern)
       this._data = data;
@@ -253,7 +257,11 @@ class DriveEnergyDocPanel extends HTMLElement {
         clearTimeout(this._retryT);
         this._retryT = setTimeout(() => this._load(), 2000);
       }
-    } catch (e) { this._err = String(e.message || e); this._render(); }
+    } catch (e) {
+      this._err = String(e.message || e); this._render();
+      clearTimeout(this._emptyT);
+      this._emptyT = setTimeout(() => this._load(), 5000);   // z. B. Befehl nach dem Neustart noch nicht registriert: erneut versuchen
+    }
   }
   _quick() {
     // Link aus der Push-Nachricht „Tankvorgang erkannt“ (?quick=<Fahrzeug>): das Fahrzeug wählen und gleich die Aufnahme anbieten (Kamera oder Galerie). Der Browser erlaubt den Kamera-Start nur nach einem Antippen, darum der große Dialog.
