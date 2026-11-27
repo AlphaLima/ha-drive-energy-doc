@@ -5,7 +5,7 @@ const FUEL_GRADES = { diesel: "Diesel", diesel_premium: "Diesel Premium", e10: "
 const COLS = ["nr", "date", "start", "end", "lfrom", "lto", "km", "station", "qty", "ctype", "kcar", "kwb", "pavg", "ppk", "price", "total", "cons", "sol", "loss", "receipt", "note", "act"];
 const DEF_HIDE = ["start", "end", "lfrom", "lto", "ctype", "kcar", "kwb", "pavg", "ppk"];   // Laden von / bis: vorhanden, aber zunächst ausgeblendet
 
-const VERSION = "0.1.87b3";
+const VERSION = "0.1.87b4";
 
 class DriveEnergyDocPanel extends HTMLElement {
   set hass(h) {
@@ -58,20 +58,20 @@ class DriveEnergyDocPanel extends HTMLElement {
       const cell = {
         nr: `<td class="n nr"><span class="pulse"></span></td>`,
         date: `<td><span>${this._d(lv.ts_start)}</span><span class="tm">${this._tm(lv.ts_start)}</span></td>`,
-        km: `<td class="n">${lv.odometer != null ? this._fmt(lv.odometer, 0) : "–"}</td>`,
+        km: `<td class="n">${lv.odometer != null ? this._fmt(this._dk(v, lv.odometer), 0) : "–"}</td>`,
         price: `<td class="n">${lv.unit_price != null ? this._fmt(lv.unit_price, 3) : ""}</td>`,
-        total: `<td class="n">${lv.total != null ? this._fmt(lv.total) + " " + this._sym : ""}</td>`,
+        total: `<td class="n">${lv.total != null ? this._fmt(lv.total) + this._u(this._sym) : ""}</td>`,
         station: `<td><div>${this._esc(this.T("Lädt gerade"))}</div>${lv.kw ? `<div class="src">${this._fmt(lv.kw, 1)} kW</div>` : lv.paused ? `<div class="src">${this._esc(this.T("pausiert"))}</div>` : ""}</td>`,
-        qty: `<td class="n">${q != null ? this._fmt(q) + " " + kwu : "–"}<div class="src">${lv.level_from != null ? Math.round(lv.level_from) + "→" + Math.round(lv.level_to) + " % " : lv.level_to != null ? Math.round(lv.level_to) + " % " : ""}${lv.wb_kwh != null ? "" : this._esc(this.T("berechnet")) + " "}${lv.charge_type ? `<span class="ct ${lv.charge_type}">${lv.charge_type.toUpperCase()}</span>` : ""}</div></td>`,
+        qty: `<td class="n">${q != null ? this._fmt(q) + (kwu === u ? this._u(u) : " " + kwu) : "–"}<div class="src">${lv.level_from != null ? Math.round(lv.level_from) + "→" + Math.round(lv.level_to) + " % " : lv.level_to != null ? Math.round(lv.level_to) + " % " : ""}${lv.wb_kwh != null ? "" : this._esc(this.T("berechnet")) + " "}${lv.charge_type ? `<span class="ct ${lv.charge_type}">${lv.charge_type.toUpperCase()}</span>` : ""}</div></td>`,
         ctype: `<td class="ctr">${lv.charge_type ? `<span class="ct ${lv.charge_type}">${lv.charge_type.toUpperCase()}</span>` : ""}</td>`,
         start: `<td>${this._tm(lv.ts_start)}</td>`,
-        kcar: `<td class="n">${lv.est_quantity != null ? this._fmt(lv.est_quantity) + " kWh" : ""}</td>`,
-        pavg: `<td class="n">${lv.avg_kw ? this._fmt(lv.avg_kw, 1) + " kW" : ""}</td>`,
-        ppk: `<td class="n">${lv.kw ? this._fmt(lv.kw, 1) + " kW" : ""}</td>`,
-        kwb: `<td class="n">${lv.wb_kwh != null ? this._fmt(lv.wb_kwh) + " kWh" : ""}</td>`,
-        lfrom: `<td class="n">${lv.level_from != null ? Math.round(lv.level_from) + " %" : ""}</td>`,
-        lto: `<td class="n">${lv.level_to != null ? Math.round(lv.level_to) + " %" : ""}</td>`,
-        loss: `<td class="n">${lv.loss_pct != null ? (lv.loss_prov ? `<span class="src" title="${this._esc(this.T("Vorläufig: Wallbox-Energie bis zur letzten Meldung des Ladestands"))}">≈ ${lv.loss_pct} %</span>` : (lv.loss_pct < 0 ? `<span class="est">${lv.loss_pct} %</span>` : lv.loss_pct + " %")) : ""}</td>`,
+        kcar: `<td class="n">${lv.est_quantity != null ? this._fmt(lv.est_quantity) + this._u("kWh") : ""}</td>`,
+        pavg: `<td class="n">${lv.avg_kw ? this._fmt(lv.avg_kw, 1) + this._u("kW") : ""}</td>`,
+        ppk: `<td class="n">${lv.kw ? this._fmt(lv.kw, 1) + this._u("kW") : ""}</td>`,
+        kwb: `<td class="n">${lv.wb_kwh != null ? this._fmt(lv.wb_kwh) + this._u("kWh") : ""}</td>`,
+        lfrom: `<td class="n">${lv.level_from != null ? Math.round(lv.level_from) + this._u("%") : ""}</td>`,
+        lto: `<td class="n">${lv.level_to != null ? Math.round(lv.level_to) + this._u("%") : ""}</td>`,
+        loss: `<td class="n">${lv.loss_pct != null ? (lv.loss_prov ? `<span class="src" title="${this._esc(this.T("Vorläufig: Wallbox-Energie bis zur letzten Meldung des Ladestands"))}">≈ ${lv.loss_pct}${this._u("%")}</span>` : (lv.loss_pct < 0 ? `<span class="est">${lv.loss_pct}${this._u("%")}</span>` : lv.loss_pct + this._u("%"))) : ""}</td>`,
         note: `<td>${lv.est_quantity != null || lv.wb_kwh != null ? `${lv.est_quantity != null ? `<div class="src">${this._esc(this.T("Akku"))} ${this._fmt(lv.est_quantity)} kWh</div>` : ""}${lv.wb_kwh != null ? `<div class="src">Wallbox ${this._fmt(lv.wb_kwh)} kWh</div>` : ""}` : ""}</td>`,
       };
     cell.act = `<td><button data-act="curve" title="${this.T("Ladekurve")}" aria-label="${this.T("Ladekurve")}">${this._ico("chart")}</button>${lv.provisional ? "" : ` <button data-act="finish" title="${this.T("Ladung jetzt abschließen")}" aria-label="${this.T("Ladung jetzt abschließen")}">${this._ico("check")}</button>`}</td>`;   // Kurve der laufenden Ladung
@@ -153,6 +153,27 @@ class DriveEnergyDocPanel extends HTMLElement {
   }
   // Hauswährung der Installation (Einstellungen → System → Allgemein): Beträge sind darin gespeichert, Fremdwährungen werden dahin umgerechnet
   get _home() { const c = String((this._hass && this._hass.config && this._hass.config.currency) || "EUR").toUpperCase(); return /^[A-Z]{3}$/.test(c) ? c : "EUR"; }
+  // Einheitensystem (metrisch, US, GB) vom Backend; gespeichert ist immer km, Liter, l/100 km
+  _US(v) {   // Schalter „SI“ in der Werkzeugleiste: Anzeige metrisch, auch wenn HA imperial eingestellt ist (nur dieses Panel, je Browser)
+    const si = { sys: "metric", dist: "km", vol: "l", cons: "l/100km", mpg_l: null };
+    return this._si ? si : ((v && v.units) || si);
+  }
+  _r(x, d) { return x == null || isNaN(x) ? x : Math.round(x * 10 ** d) / 10 ** d; }
+  _dk(v, km) { return km == null ? km : (this._US(v).dist === "mi" ? km / 1.609344 : km); }   // km -> Anzeige
+  _vl(v, q, unit) { return q == null || unit !== "l" || this._US(v).vol !== "gal" ? q : q / 3.785411784; }   // Liter -> Gallonen (USA)
+  _pp(v, p, unit) { return p == null || unit !== "l" || this._US(v).vol !== "gal" ? p : p * 3.785411784; }   // Preis je Liter -> je Gallone
+  _cn(v, c, unit) {   // l/100 km -> mpg, kWh/100 km -> kWh/100 mi
+    const U = this._US(v);
+    if (c == null || U.dist !== "mi") return c;
+    return unit === "kWh" ? c * 1.609344 : (c > 0 ? 100 * U.mpg_l / 1.609344 / c : null);
+  }
+  _dl(v) { return this._US(v).dist === "mi" ? "mi" : this.T("km"); }   // Einheit Strecke
+  _ql(v, unit) { return unit === "l" && this._US(v).vol === "gal" ? "gal" : this.T(unit); }   // Einheit Menge
+  _cl(v, unit) { return this._US(v).dist === "mi" ? (unit === "kWh" ? "kWh/100 mi" : "mpg") : `${this.T(unit)}/100 ${this.T("km")}`; }   // Einheit Verbrauch
+  _kmIn(v, x) { return x == null || isNaN(x) ? x : (this._US(v).dist === "mi" ? Math.round(x * 1.609344) : x); }   // Eingabe -> km
+  _qIn(v, x, fuel) { return x == null || isNaN(x) || !fuel || this._US(v).vol !== "gal" ? x : Math.round(x * 3.785411784 * 100) / 100; }
+  _pIn(v, x, fuel) { return x == null || isNaN(x) || !fuel || this._US(v).vol !== "gal" ? x : Math.round(x / 3.785411784 * 1000) / 1000; }
+  _u(unit) { return `<span class="u"> ${unit}</span>`; }   // Einheit in einer Zelle: in der Tabelle steht sie in der Überschrift, in der Kartenansicht (Handy) an der Zahl
   get _sym() {
     const c = this._home;
     if (this._symFor !== c) {
@@ -237,6 +258,7 @@ class DriveEnergyDocPanel extends HTMLElement {
     this._hide = [];
     this._agg = "list";
     try { this._agg = localStorage.getItem("deAgg") || "list"; } catch (e) { /* ignore */ }
+    try { this._si = localStorage.getItem("deSI") === "1"; } catch (e) { /* ignore */ }
     try { const h = localStorage.getItem("deHide"); this._hide = h ? (JSON.parse(h) || []) : [...DEF_HIDE]; } catch (e) { /* ignore */ }
     try { if (localStorage.getItem("deHideV") !== "5") { DEF_HIDE.forEach(c => { if (!this._hide.includes(c)) this._hide.push(c); }); localStorage.setItem("deHide", JSON.stringify(this._hide)); localStorage.setItem("deHideV", "5"); } } catch (e) { /* ignore */ }   // neue Spalten zunächst aus
     this._sort = null;   // Sortierung per Klick auf die Spaltenüberschrift: {c: Spalte, dir: 1 aufsteigend | -1 absteigend}
@@ -368,8 +390,8 @@ class DriveEnergyDocPanel extends HTMLElement {
     const groups = new Map(), sum = blank();
     ents.forEach(e => { const [k, label] = key(e.ts); if (!groups.has(k)) groups.set(k, { label, ...blank() }); add(groups.get(k), e); add(sum, e); });
     const strom = el || phev;
-    const head = [this.T("Zeitraum"), this.T("Einträge"), this.T("km"), ...units.map(u => `${this.T("Menge")} ${this.T(u)}`), ...units.map(u => `${this.T(u)}/100 ${this.T("km")}`), ...units.map(u => `${this._sym}/${this.T(u)}`), this.T("Betrag"), ...(strom ? [this.T("Solaranteil"), this.T("Ladeverlust")] : [])];
-    const row = (g, lab, tag) => `<tr><${tag}>${this._esc(lab)}</${tag}><${tag} class="n">${g.n}</${tag}><${tag} class="n">${g.km ? this._fmt(g.km, 0) : "–"}</${tag}>${units.map(u => `<${tag} class="n">${g.q[u] ? this._fmt(g.q[u]) : "–"}</${tag}>`).join("")}${units.map(u => `<${tag} class="n">${g.ck[u] ? this._fmt(g.cq[u] / g.ck[u] * 100) : "–"}</${tag}>`).join("")}${units.map(u => `<${tag} class="n">${g.qp[u] ? this._fmt(g.tp[u] / g.qp[u], 3) : "–"}</${tag}>`).join("")}<${tag} class="n">${this._fmt(g.total)} ${this._sym}</${tag}>${strom ? `<${tag} class="ctr">${g.solQ ? Math.round(g.solW / g.solQ) + " %" : "–"}</${tag}><${tag} class="n">${g.wbEst ? Math.round((g.wb / g.wbEst - 1) * 100) + " %" : "–"}</${tag}>` : ""}</tr>`;
+    const head = [this.T("Zeitraum"), this.T("Einträge"), this._dl(v), ...units.map(u => `${this.T("Menge")} ${this._ql(v, u)}`), ...units.map(u => this._cl(v, u)), ...units.map(u => `${this._sym}/${this._ql(v, u)}`), this.T("Betrag"), ...(strom ? [this.T("Solaranteil"), this.T("Ladeverlust")] : [])];
+    const row = (g, lab, tag) => `<tr><${tag}>${this._esc(lab)}</${tag}><${tag} class="n">${g.n}</${tag}><${tag} class="n">${g.km ? this._fmt(this._dk(v, g.km), 0) : "–"}</${tag}>${units.map(u => `<${tag} class="n">${g.q[u] ? this._fmt(this._vl(v, g.q[u], u)) : "–"}</${tag}>`).join("")}${units.map(u => `<${tag} class="n">${g.ck[u] ? this._fmt(this._cn(v, g.cq[u] / g.ck[u] * 100, u)) : "–"}</${tag}>`).join("")}${units.map(u => `<${tag} class="n">${g.qp[u] ? this._fmt(this._pp(v, g.tp[u] / g.qp[u], u), 3) : "–"}</${tag}>`).join("")}<${tag} class="n">${this._fmt(g.total)} ${this._sym}</${tag}>${strom ? `<${tag} class="ctr">${g.solQ ? Math.round(g.solW / g.solQ) + " %" : "–"}</${tag}><${tag} class="n">${g.wbEst ? Math.round((g.wb / g.wbEst - 1) * 100) + " %" : "–"}</${tag}>` : ""}</tr>`;
     const body = [...groups.entries()].sort((a, b) => b[0].localeCompare(a[0])).map(([, g]) => row(g, g.label, "td")).join("");
     return `<div class="wrap"><table class="agg"><thead><tr>${head.map((h, i) => `<th class="${i === 0 ? "" : strom && i === head.length - 2 ? "ctr" : "n"}">${this._esc(h)}</th>`).join("")}</tr></thead><tbody>${body || `<tr><td colspan="${head.length}">–</td></tr>`}</tbody><tfoot>${row(sum, this.T("Summe"), "td")}</tfoot></table></div>`;
   }
@@ -665,7 +687,7 @@ class DriveEnergyDocPanel extends HTMLElement {
     const f = (x, d = 2) => this._fmt(x, d);
     let d = "";
     if (w.k === "calc") d = `${f(w.q)} × ${f(w.p, 3)} = ${f(w.calc)} ≠ ${f(w.t)} ${this._sym}`;
-    else if (w.k === "combined") d = `${f(w.v, 1)} kWh/100 km (> ${f(w.hi, 0)})`;
+    else if (w.k === "combined") d = `${f(this._cn(this._rv, w.v, "kWh"), 1)} ${this._cl(this._rv, "kWh")} (> ${f(this._cn(this._rv, w.hi, "kWh"), 0)})`;
     else if (w.k === "dup") d = `= ${this.T("Nr.")} ${(this._nums && this._nums[w.other]) || "?"}`;
     else if (w.k === "range") d = `${f(w.v, col === "price" ? 3 : 2)} (${f(w.lo)} – ${f(w.hi)})`;
     else if (w.k === "cap") d = `${f(w.v)} > ${f(w.cap, 0)}`;
@@ -735,6 +757,9 @@ class DriveEnergyDocPanel extends HTMLElement {
       pwrPk: '<path d="M11 3 5 13h5l-1 8 7-10h-5z"/><path d="M17 3h4M19 3v5"/>',
       plug: '<path d="M9 3v5M15 3v5M6.5 8h11v3a5.5 5.5 0 0 1-11 0zM12 16.5V21"/>',
       car: '<path d="M4 16v-3.5L6 8h12l2 4.5V16z"/><path d="M4 16v2.5h3V16M17 16v2.5h3V16M6.5 13h2M15.5 13h2"/>',
+      tank: '<rect x="3" y="2.5" width="6" height="3" rx=".5"/><path d="M4.5 5.5V8M7.5 5.5V8"/><rect x="1.5" y="8" width="21" height="13.5" rx="2.5"/><path d="M3.5 13.5q2.1-1.2 4.25 0t4.25 0 4.25 0 4.25 0"/>',
+      pump: '<path d="M4 21V5a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v16M2.5 21h13M6.5 6.5h5v4h-5zM14 9.5h1.5a1.5 1.5 0 0 1 1.5 1.5v4.5a1.5 1.5 0 0 0 3 0V8.5L17 5.5"/>',
+      pumpEl: '<path d="M4 21V5a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v16M2.5 21h13M10 6.5 7.5 11h3L8 15.5M14 9.5h1.5a1.5 1.5 0 0 1 1.5 1.5v4.5a1.5 1.5 0 0 0 3 0V8.5L17 5.5"/>',
       wbox: '<rect x="5" y="3" width="10" height="15" rx="2"/><path d="M8 7h4M15 12h2.5a2 2 0 0 1 2 2v3.5a2 2 0 0 1-4 0V21"/>',
       battLow: '<rect x="2.5" y="7" width="16" height="10" rx="2"/><path d="M21 10.5v3M6 10v4"/>',
       battFull: '<rect x="2.5" y="7" width="16" height="10" rx="2"/><path d="M21 10.5v3M6 10v4M9.5 10v4M13 10v4M15.5 10v4"/>',
@@ -886,6 +911,10 @@ class DriveEnergyDocPanel extends HTMLElement {
       table.agg tfoot td{font-weight:600;border-top:2px solid var(--divider-color);border-bottom:0}
       .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
       thead th .ico{width:18px;height:18px;vertical-align:-4px}
+      table:not(.agg) thead th{text-align:center}
+      table:not(.agg) thead th[data-c=qty]{text-align:right}
+      .hu{font-size:12px;font-weight:500;margin-left:1px}.u{display:none}
+      .unitbtn{font-weight:600;font-size:13px;min-width:44px}
       tbody tr.c-home,tbody tr.c-home:hover{background:color-mix(in srgb,#fdd835 38%,var(--card-background-color))}
       tbody tr.c-ex,tbody tr.c-ex:hover{background:color-mix(in srgb,#1e88e5 22%,var(--card-background-color))}
       tbody tr.c-live,tbody tr.c-live:hover{background:color-mix(in srgb,#00acc1 28%,var(--card-background-color))}
@@ -931,7 +960,8 @@ class DriveEnergyDocPanel extends HTMLElement {
         td[data-c=station] .gps,td[data-c=qty] .src,td[data-c=price] .src{display:none}
         td[data-c=qty]{grid-area:qty}td[data-c=price]{grid-area:price}td[data-c=km]{grid-area:km}td[data-c=cons]{grid-area:cons}
         td[data-c=qty],td[data-c=price],td[data-c=km],td[data-c=cons]{font-size:12px;color:var(--secondary-text-color)}
-        td[data-c=price]::after{content:" ${this._sym}"}td[data-c=km]::after{content:" km"}td[data-c=cons]::after{content:" /100 km"}
+        .u{display:inline}
+        td[data-c=price]::after{content:" ${this._sym}"}td[data-c=km]::after{content:" ${this._dl(v)}"}td[data-c=cons]::after{content:" ${this._US(v).dist === "mi" ? "" : "/100 km"}"}
         td[data-c=receipt]{grid-area:receipt;padding-top:4px}td[data-c=note]{grid-area:note;padding-top:4px;font-size:12px}
         td[data-c=act]{grid-area:act;justify-self:end;padding-top:4px;white-space:nowrap}
         td[data-c=act] button{padding:3px 7px}
@@ -941,7 +971,7 @@ class DriveEnergyDocPanel extends HTMLElement {
     if (this._err) { this.shadowRoot.innerHTML = `<style>${css}</style><p>${this._esc(this._err)}</p>`; this._menu(); return; }
     if (!d.length) { this.shadowRoot.innerHTML = `<style>${css}</style><h1>Drive Energy Doc</h1><p>${this.T("Noch kein Fahrzeug. Einstellungen → Geräte & Dienste → Integration „Drive Energy Doc“ hinzufügen.")}</p>`; this._menu(); return; }
     if (v.id !== this._colVeh) this._loadCols(v.id);
-    const s = v.summary, u = this.T(v.unit);
+    const s = v.summary, u = this._ql(v, v.unit);
     const pic = this._pic(v);
     const cw = this._cw || {};
     const fixed = COLS.some(c => cw[c]);
@@ -986,24 +1016,24 @@ class DriveEnergyDocPanel extends HTMLElement {
       const cell = {
         nr: `<td class="n nr">${nums[e.id] || ""}</td>`,
         date: `<td data-nr="${nums[e.id] ? "#" + nums[e.id] : ""}"><span>${this._d(e.ts)}</span><span class="tm">${this._tm(e.ts)}</span></td>`,
-        km: `<td class="n${e.odometer_source === "bekannt" ? " est" : ""}"${e.odometer_source === "bekannt" ? ` title="${this._esc(this.T("Kilometerstand"))} (≈)"` : ""}>${e.odometer != null ? this._fmt(e.odometer, 0) : "–"}${this._warn(e, "km", v)}</td>`,
+        km: `<td class="n${e.odometer_source === "bekannt" ? " est" : ""}"${e.odometer_source === "bekannt" ? ` title="${this._esc(this.T("Kilometerstand"))} (≈)"` : ""}>${e.odometer != null ? this._fmt(this._dk(v, e.odometer), 0) : "–"}${this._warn(e, "km", v)}</td>`,
         station: `<td><div>${this._esc(e.station || "")}</div><div class="src">${this._esc(e.address || "")}</div><div class="src gps">${this._gps(e)}</div></td>`,
-        qty: `<td class="n">${e.quantity != null ? this._fmt(e.quantity) + " " + (e.kind === "extra" ? this._esc(e.unit || "") : (v.phev && e.energy === "electric" ? "kWh" : u)) : "–"}<div class="src">${e.fuel && e.kind !== "extra" ? this._esc(FUEL_GRADES[e.fuel] || "") + " " : ""}${e.level_from != null && e.level_to != null ? Math.round(e.level_from) + "→" + Math.round(e.level_to) + " %" : (e.increase != null ? "+" + Math.round(e.increase) + " %" : "")} ${e.quantity_source === "wallbox" ? "" : `<span${e.est_factor ? ` title="×${this._fmt(e.est_factor, 2)}"` : ""}>${this._esc(this.T(e.quantity_source || ""))}</span>`}${e.charge_type ? ` <span class="ct ${e.charge_type}" title="${this._esc(this.T("Ladeart") + " " + e.charge_type.toUpperCase() + " · " + this.T({ sensor: "Sensor des Autos", beleg: "beleg", manuell: "manuell", leistung: "Spitzenleistung", mittel: "mittlere Leistung" }[e.charge_src] || "") + (e.charge_kw ? " · " + this._fmt(e.charge_kw, 1) + " kW" : ""))}">${e.charge_type.toUpperCase()}</span>` : ""}</div></td>`,
-        price: `<td class="n">${this._fmt(e.unit_price, 3)}${this._warn(e, "price", v)}<div class="src">${this._esc(this.T(e.price_source || ""))}</div></td>`,
-        total: `<td class="n">${this._fmt(e.total)} ${this._sym}${this._warn(e, "total", v)}</td>`,
-        cons: `<td class="n">${e.consumption != null ? this._fmt(e.consumption) + (v.phev ? `<div class="src">${e.energy === "electric" ? "kWh" : u}/100 ${this.T("km")}</div>` : "") : "–"}${this._warn(e, "cons", v)}</td>`,
+        qty: `<td class="n">${e.quantity != null ? this._fmt(e.kind === "extra" ? e.quantity : this._vl(v, e.quantity, v.phev && e.energy === "electric" ? "kWh" : v.unit)) + ((x => x === u ? this._u(u) : " " + x)(e.kind === "extra" ? this._esc(e.unit || "") : (v.phev && e.energy === "electric" ? "kWh" : u))) : "–"}<div class="src">${e.fuel && e.kind !== "extra" ? this._esc(FUEL_GRADES[e.fuel] || "") + " " : ""}${e.level_from != null && e.level_to != null ? Math.round(e.level_from) + "→" + Math.round(e.level_to) + this._u("%") : (e.increase != null ? "+" + Math.round(e.increase) + this._u("%") : "")} ${e.quantity_source === "wallbox" ? "" : `<span${e.est_factor ? ` title="×${this._fmt(e.est_factor, 2)}"` : ""}>${this._esc(this.T(e.quantity_source || ""))}</span>`}${e.charge_type ? ` <span class="ct ${e.charge_type}" title="${this._esc(this.T("Ladeart") + " " + e.charge_type.toUpperCase() + " · " + this.T({ sensor: "Sensor des Autos", beleg: "beleg", manuell: "manuell", leistung: "Spitzenleistung", mittel: "mittlere Leistung" }[e.charge_src] || "") + (e.charge_kw ? " · " + this._fmt(e.charge_kw, 1) + this._u("kW") : ""))}">${e.charge_type.toUpperCase()}</span>` : ""}</div></td>`,
+        price: `<td class="n">${this._fmt(e.kind === "extra" ? e.unit_price : this._pp(v, e.unit_price, v.phev && e.energy === "electric" ? "kWh" : v.unit), 3)}${this._warn(e, "price", v)}<div class="src">${this._esc(this.T(e.price_source || ""))}</div></td>`,
+        total: `<td class="n">${this._fmt(e.total)}${this._u(this._sym)}${this._warn(e, "total", v)}</td>`,
+        cons: `<td class="n">${e.consumption != null ? this._fmt(this._cn(v, e.consumption, e.energy === "electric" || v.energy === "electric" ? "kWh" : v.unit)) + (v.phev ? `<div class="src">${this._cl(v, e.energy === "electric" ? "kWh" : v.unit)}</div>` : "") : "–"}${this._warn(e, "cons", v)}</td>`,
         receipt: (() => { const ph = e.photo_urls || [], im = (p, k) => `<img class="${k}" src="${p}" data-p="${p}" data-entry="${e.id}" data-name="${this._esc((e.photos || [])[ph.indexOf(p)] || "")}"${ph.length > 1 && k === "thumb" ? ` data-multi="${e.id}"` : ""} alt="${ph.indexOf(p) === 0 && e.receipt ? this.T("Beleg") : this.T("Zusatzfoto")}">`; return `<td>${ph.length ? im(ph[0], "thumb") : ""}${e.receipt || e.quantity_source === "wallbox" ? "" : `<span class="no" title="${this.T("Beleg fehlt")}">${this._ico("warn")}</span>`}</td>`; })(),
         start: `<td>${e.ts_start && e.kind !== "extra" ? this._dt(e.ts_start, e.ts) : ""}</td>`,
         end: `<td>${e.ts_start && e.kind !== "extra" ? this._dt(e.ts, e.ts) : ""}</td>`,
-        lfrom: `<td class="n">${e.level_from != null && e.kind !== "extra" ? Math.round(e.level_from) + " %" : ""}</td>`,
-        lto: `<td class="n">${e.level_to != null && e.kind !== "extra" ? Math.round(e.level_to) + " %" : ""}</td>`,
+        lfrom: `<td class="n">${e.level_from != null && e.kind !== "extra" ? Math.round(e.level_from) + this._u("%") : ""}</td>`,
+        lto: `<td class="n">${e.level_to != null && e.kind !== "extra" ? Math.round(e.level_to) + this._u("%") : ""}</td>`,
         ctype: `<td class="ctr">${e.charge_type ? `<span class="ct ${e.charge_type}">${e.charge_type.toUpperCase()}</span>` : ""}</td>`,
-        kcar: `<td class="n">${e.est_quantity != null && e.kind !== "extra" && (e.energy === "electric" || v.energy === "electric") ? this._fmt(e.est_quantity) + " kWh" : ""}</td>`,
-        pavg: `<td class="n">${this._pavg(e) != null ? this._fmt(this._pavg(e), 1) + " kW" : (this._pavgEst(e) != null ? `<span class="src" title="${this._esc(this.T("Näherung aus Menge und Ladedauer (Pausen zählen mit)"))}">≈ ${this._fmt(this._pavgEst(e), 1)} kW</span>` : "")}</td>`,
-        ppk: `<td class="n">${this._ppk(e) != null ? this._fmt(this._ppk(e), 1) + " kW" : ""}</td>`,
-        kwb: `<td class="n">${e.wb_kwh != null ? this._fmt(e.wb_kwh) + " kWh" : ""}</td>`,
-        sol: `<td class="ctr">${e.solar_pct != null ? Math.round(e.solar_pct) + " %" : ""}</td>`,
-        loss: (() => { const l = this._loss(e); return `<td class="n"${e.quantity_source === "wallbox" && e.est_quantity ? ` title="${this._fmt(e.wb_kwh)} kWh Wallbox / ${this._fmt(e.est_quantity)} kWh ${this._esc(this.T("Akku"))}"` : ""}>${l != null ? (l < 0 ? `<span class="est">${l} %</span>` : l + " %") : (e.quantity_source === "wallbox" ? "–" : "")}</td>`; })(),
+        kcar: `<td class="n">${e.est_quantity != null && e.kind !== "extra" && (e.energy === "electric" || v.energy === "electric") ? this._fmt(e.est_quantity) + this._u("kWh") : ""}</td>`,
+        pavg: `<td class="n">${this._pavg(e) != null ? this._fmt(this._pavg(e), 1) + this._u("kW") : (this._pavgEst(e) != null ? `<span class="src" title="${this._esc(this.T("Näherung aus Menge und Ladedauer (Pausen zählen mit)"))}">≈ ${this._fmt(this._pavgEst(e), 1)}${this._u("kW")}</span>` : "")}</td>`,
+        ppk: `<td class="n">${this._ppk(e) != null ? this._fmt(this._ppk(e), 1) + this._u("kW") : ""}</td>`,
+        kwb: `<td class="n">${e.wb_kwh != null ? this._fmt(e.wb_kwh) + this._u("kWh") : ""}</td>`,
+        sol: `<td class="ctr">${e.solar_pct != null ? Math.round(e.solar_pct) + this._u("%") : ""}</td>`,
+        loss: (() => { const l = this._loss(e); return `<td class="n"${e.quantity_source === "wallbox" && e.est_quantity ? ` title="${this._fmt(e.wb_kwh)} kWh Wallbox / ${this._fmt(e.est_quantity)} kWh ${this._esc(this.T("Akku"))}"` : ""}>${l != null ? (l < 0 ? `<span class="est">${l}${this._u("%")}</span>` : l + this._u("%")) : (e.quantity_source === "wallbox" ? "–" : "")}</td>`; })(),
         note: (() => { const full = [e.kind === "extra" ? (e.item || this.T("Zubehör")) : "", e.note || ""].filter(Boolean).join("\n"); return `<td>${full ? `<span class="notec" data-note="${this._esc(full)}">` : ""}${e.kind === "extra" ? `<span class="tag">${this._esc(e.item || this.T("Zubehör"))}</span> ` : ""}${e.note ? `<span class="notei" tabindex="0" role="button" aria-label="${this.T("Notiz anzeigen")}">${this._ico("note")}</span>` : ""}${full ? "</span>" : ""}${e.quantity_source === "wallbox" && e.est_quantity && !e.note ? `<div class="src">${this._esc(this.T("Akku"))} ${this._fmt(e.est_quantity)} kWh</div><div class="src">Wallbox ${this._fmt(e.wb_kwh || e.quantity)} kWh</div>` : ""}</td>`; })(),
         act: `<td>${e.curve ? `<button data-act="curve" title="${this.T("Ladekurve")}" aria-label="${this.T("Ladekurve")}">${this._ico("chart")}</button> ` : ""}<button data-act="edit" title="${this.T("Bearbeiten")}" aria-label="${this.T("Bearbeiten")}">${this._ico("edit")}</button> <button data-act="del" title="${this.T("Eintrag löschen")}" aria-label="${this.T("Eintrag löschen")}">${this._ico("trash")}</button></td>`,
       };
@@ -1015,13 +1045,13 @@ class DriveEnergyDocPanel extends HTMLElement {
     this.shadowRoot.innerHTML = `<style>${css}</style>
       <div class="head${d.length > 1 ? " pick" : ""}"${d.length > 1 ? ` role="button" tabindex="0"` : ""}><div class="ttl"><img class="logo" src="/drive_energy_doc_static/icon.png?v=${VERSION}" alt=""><div><div class="app">Drive Energy Doc</div><h1>${this._esc(this._title(v))}${d.length > 1 ? ` <span class="chev">▾</span>` : ""}</h1></div>${v.plate ? this._plate(v) : ""}</div>${pic ? `<img class="car" src="${this._esc(pic)}" alt="${this._esc(v.name)}">` : ""}</div>
       <div class="sum">
-        <div><b>${this._fmt(s.avg_consumption)}</b><span>${u}/100 ${this.T("km")} (${this.T("Ø letzte 5")})</span></div>
-        ${v.phev ? `<div><b>${this._fmt(s.avg_consumption_electric)}</b><span>kWh/100 ${this.T("km")} (${this.T("Ø letzte 5")})</span></div>` : ""}
+        <div><b>${this._fmt(this._cn(v, s.avg_consumption, v.unit))}</b><span>${this._cl(v, v.unit)} (${this.T("Ø letzte 5")})</span></div>
+        ${v.phev ? `<div><b>${this._fmt(this._cn(v, s.avg_consumption_electric, "kWh"))}</b><span>${this._cl(v, "kWh")} (${this.T("Ø letzte 5")})</span></div>` : ""}
         <div><b>${this._fmt(s.cost_12m)} ${this._sym}</b><span>${this.T("Kosten 12 Monate")}</span></div>
         <button class="shoot" data-act="shoot" title="${this.T("Beleg fotografieren oder hochladen")}" aria-label="${this.T("Beleg fotografieren")}">${this._ico("camera")}<span>${this.T("Beleg / km Stand fotografieren")}</span></button>
       </div>
-      <div class="bar"><button data-act="csv" title="${this.T("CSV-Export")}" aria-label="${this.T("CSV-Export")}">${this._ico("csv")}</button><button data-act="print" title="${this.T("Drucken / PDF")}" aria-label="${this.T("Drucken")}">${this._ico("print")}</button><button data-act="ori" title="${this._ori === "portrait" ? this.T("Hochformat") : this.T("Querformat")} (${this.T("zum Wechseln klicken")})" aria-label="${this.T("Seitenformat")}">${this._ico(this._ori)}</button><button data-act="rcp" title="${this.T("Belege im Druck")}: ${this._rcp ? this.T("mit") : this.T("ohne")} (${this.T("zum Wechseln klicken")})" aria-label="${this.T("Belege im Druck")}" aria-pressed="${this._rcp}">${this._ico(this._rcp ? "photo" : "photoOff")}</button><button data-act="clr" title="${this.T("Zeilenfarben")}: ${this._clr ? this.T("an") : this.T("aus")} (${this.T("zum Wechseln klicken")})" aria-label="${this.T("Zeilenfarben")}" aria-pressed="${this._clr}">${this._ico(this._clr ? "palette" : "paletteOff")}</button><button data-act="cols" title="${this.T("Spalten")}" aria-label="${this.T("Spalten")}">${this._ico("cols")}</button><button data-act="add" title="${this.T("Eintrag von Hand hinzufügen")}" aria-label="${this.T("Eintrag von Hand")}">${this._ico("plus")}</button>${aggSel}${fltSel}${(() => { const c = (s.correction || {}); return ["electric", "fuel"].filter(k => c[k] && c[k].all && c[k].all.factor).map(k => { const row = c[k], tip = ["all", "ac", "dc"].filter(g => row[g]).map(g => (g === "all" ? "" : g.toUpperCase() + " ") + (row[g].factor ? "×" + this._fmt(row[g].factor, 2) : "–") + " (" + row[g].n + " " + this.T("Einträge") + ")").join(" · "); return `<span class="stat" title="${this._esc(tip)}"><b>×${this._fmt(row.all.factor, 2)}</b><span>${this.T("Korrektur")} ${this.T(k === "electric" ? "Strom" : "Kraftstoff")}</span></span>`; }).join(""); })()}<span class="stat"><b>${s.count}</b><span>${this.T("Einträge")}</span></span><span class="stat"><b>${this.T(s.status === "refuelling" && (v.energy === "electric" || s.live) ? "Lädt gerade" : { idle: "Bereit", candidate: "Anstieg erkannt", refuelling: "Tankt" }[s.status])}</b><span>${this.T("Status")}</span></span><input type="file" id="cam" accept="image/*" capture="environment" hidden><input type="file" id="pic" accept="image/*" multiple hidden></div>
-      ${aggHtml || `<div class="wrap"><table class="${fixed ? "fx" : ""}" ${fixed ? `style="width:${sumW}px"` : ""}><colgroup>${order.map(c => `<col data-c="${c}" ${cw[c] || (fixed && DEFW[c]) ? `style="width:${cw[c] || DEFW[c]}px"` : ""}>`).join("")}</colgroup><thead><tr>${order.map(c => { const sym = (ic, txt) => `${this._ico(ic)}<span class="sr">${this._esc(txt)}</span>`; const H = { nr: ["#", "n"], date: [sym("cal", this.T("Datum")), ""], km: [sym("road", this.T("km")), "n"], station: [sym("pin", this.T("Tankstelle")), ""], qty: [sym(v.energy === "electric" ? "batt" : "drop", this.T("Menge")), "n"], price: [`${this._sym}/${u}`, "n"], total: [this._sym, "n"], cons: [sym("gauge", `${u}/100 ${this.T("km")}`), "n"], sol: [sym("sun", this.T("Solaranteil")), "ctr"], start: [sym("clock", this.T("Laden von")), ""], end: [sym("clockEnd", this.T("Laden bis")), ""], lfrom: [sym("battLow", this.T("Ladestand von")), "n"], lto: [sym("battFull", this.T("Ladestand bis")), "n"], ctype: [sym("plug", this.T("Ladeart")), "ctr"], kcar: [sym("car", this.T("Akku") + " kWh"), "n"], kwb: [sym("wbox", "Wallbox kWh"), "n"], pavg: [sym("pwr", this.T("Ø Ladeleistung")), "n"], ppk: [sym("pwrPk", this.T("Spitzenleistung")), "n"], loss: [sym("loss", this.T("Ladeverlust")), "n"], receipt: [sym("bon", this.T("Beleg")), ""], note: [sym("note", this.T("Notiz")), ""], act: ["", ""] }[c]; return `<th data-c="${c}" class="${H[1]}${c === "act" ? "" : " sortable"}" ${sk && sk.c === c ? `aria-sort="${sk.dir > 0 ? "ascending" : "descending"}"` : ""} ${c === "act" ? "" : `draggable="true" title="${this._esc(this._colName(c, u))} · ${this.T("Auf eine andere Überschrift ziehen: Reihenfolge ändern")}"`}>${H[0]}${sk && sk.c === c ? `<span class="si">${sk.dir > 0 ? "▲" : "▼"}</span>` : ""}<span class="rs" data-c="${c}" title="${this.T("Ziehen: Spaltenbreite ändern · Doppelklick: Breiten und Reihenfolge zurücksetzen")}"></span></th>`; }).join("")}</tr></thead><tbody>${liveRow}${rows}</tbody></table></div>`}
+      <div class="bar"><button data-act="csv" title="${this.T("CSV-Export")}" aria-label="${this.T("CSV-Export")}">${this._ico("csv")}</button><button data-act="print" title="${this.T("Drucken / PDF")}" aria-label="${this.T("Drucken")}">${this._ico("print")}</button><button data-act="ori" title="${this._ori === "portrait" ? this.T("Hochformat") : this.T("Querformat")} (${this.T("zum Wechseln klicken")})" aria-label="${this.T("Seitenformat")}">${this._ico(this._ori)}</button><button data-act="rcp" title="${this.T("Belege im Druck")}: ${this._rcp ? this.T("mit") : this.T("ohne")} (${this.T("zum Wechseln klicken")})" aria-label="${this.T("Belege im Druck")}" aria-pressed="${this._rcp}">${this._ico(this._rcp ? "photo" : "photoOff")}</button><button data-act="clr" title="${this.T("Zeilenfarben")}: ${this._clr ? this.T("an") : this.T("aus")} (${this.T("zum Wechseln klicken")})" aria-label="${this.T("Zeilenfarben")}" aria-pressed="${this._clr}">${this._ico(this._clr ? "palette" : "paletteOff")}</button><button data-act="cols" title="${this.T("Spalten")}" aria-label="${this.T("Spalten")}">${this._ico("cols")}</button>${v.units && v.units.sys !== "metric" ? `<button data-act="si" class="unitbtn" title="${this.T("Einheiten: national oder SI (zum Wechseln klicken)")}" aria-label="${this.T("Einheiten: national oder SI (zum Wechseln klicken)")}" aria-pressed="${!!this._si}">${this._si ? "SI" : v.units.sys === "uk" ? "UK" : "US"}</button>` : ""}<button data-act="add" title="${this.T("Eintrag von Hand hinzufügen")}" aria-label="${this.T("Eintrag von Hand")}">${this._ico("plus")}</button>${aggSel}${fltSel}${(() => { const c = (s.correction || {}); return ["electric", "fuel"].filter(k => c[k] && c[k].all && c[k].all.factor).map(k => { const row = c[k], tip = ["all", "ac", "dc"].filter(g => row[g]).map(g => (g === "all" ? "" : g.toUpperCase() + " ") + (row[g].factor ? "×" + this._fmt(row[g].factor, 2) : "–") + " (" + row[g].n + " " + this.T("Einträge") + ")").join(" · "); return `<span class="stat" title="${this._esc(tip)}"><b>×${this._fmt(row.all.factor, 2)}</b><span>${this.T("Korrektur")} ${this.T(k === "electric" ? "Strom" : "Kraftstoff")}</span></span>`; }).join(""); })()}<span class="stat"><b>${s.count}</b><span>${this.T("Einträge")}</span></span><span class="stat"><b>${this.T(s.status === "refuelling" && (v.energy === "electric" || s.live) ? "Lädt gerade" : { idle: "Bereit", candidate: "Anstieg erkannt", refuelling: "Tankt" }[s.status])}</b><span>${this.T("Status")}</span></span><input type="file" id="cam" accept="image/*" capture="environment" hidden><input type="file" id="pic" accept="image/*" multiple hidden></div>
+      ${aggHtml || `<div class="wrap"><table class="${fixed ? "fx" : ""}" ${fixed ? `style="width:${sumW}px"` : ""}><colgroup>${order.map(c => `<col data-c="${c}" ${cw[c] || (fixed && DEFW[c]) ? `style="width:${cw[c] || DEFW[c]}px"` : ""}>`).join("")}</colgroup><thead><tr>${order.map(c => { const sym = (ic, txt, un) => `${this._ico(ic)}${un ? `<span class="hu">/${this._esc(un)}</span>` : ""}<span class="sr">${this._esc(txt)}</span>`; const H = { nr: ["#", "n"], date: [sym("cal", this.T("Datum")), ""], km: [this._esc(this._dl(v)), "n"], station: [v.phev ? `${this._ico("pump")}${this._ico("pumpEl")}<span class="sr">${this._esc(this.T("Tankstelle"))}</span>` : sym(v.energy === "electric" ? "pumpEl" : "pump", this.T("Tankstelle")), ""], qty: [this._esc(v.energy === "electric" ? "kWh" : `${this.T(u === "gal" ? "Gallonen" : "Liter")}/${this.T(u)}`), "n"], price: [`${this._sym}/${u}`, "n"], total: [`<span title="${this._esc(this.T("Betrag"))}">Σ</span>/${this._esc(this._sym)}`, "n"], cons: [this._esc(this._cl(v, v.unit)), "n"], sol: [sym("sun", this.T("Solaranteil"), "%"), "ctr"], start: [sym("clock", this.T("Laden von")), ""], end: [sym("clockEnd", this.T("Laden bis")), ""], lfrom: [sym("battLow", this.T("Ladestand von"), "%"), "n"], lto: [sym("battFull", this.T("Ladestand bis"), "%"), "n"], ctype: [sym("plug", this.T("Ladeart")), "ctr"], kcar: [sym("car", this.T("Akku") + " kWh", "kWh"), "n"], kwb: [sym("wbox", "Wallbox kWh", "kWh"), "n"], pavg: [sym("pwr", this.T("Ø Ladeleistung"), "kW"), "n"], ppk: [sym("pwrPk", this.T("Spitzenleistung"), "kW"), "n"], loss: [sym("loss", this.T("Ladeverlust"), "%"), "n"], receipt: [sym("bon", this.T("Beleg")), ""], note: [sym("note", this.T("Notiz")), ""], act: ["", ""] }[c]; return `<th data-c="${c}" class="${H[1]}${c === "act" ? "" : " sortable"}" ${sk && sk.c === c ? `aria-sort="${sk.dir > 0 ? "ascending" : "descending"}"` : ""} ${c === "act" ? "" : `draggable="true" title="${this._esc(this._colName(c, u))} · ${this.T("Auf eine andere Überschrift ziehen: Reihenfolge ändern")}"`}>${H[0]}${sk && sk.c === c ? `<span class="si">${sk.dir > 0 ? "▲" : "▼"}</span>` : ""}<span class="rs" data-c="${c}" title="${this.T("Ziehen: Spaltenbreite ändern · Doppelklick: Breiten und Reihenfolge zurücksetzen")}"></span></th>`; }).join("")}</tr></thead><tbody>${liveRow}${rows}</tbody></table></div>`}
       <div class="ver">Drive Energy Doc ${VERSION}</div>`;
     this._menu();
     this._cur = v;
@@ -1096,6 +1126,12 @@ class DriveEnergyDocPanel extends HTMLElement {
     if (act === "add") return this._form(v, null);
     if (act === "print") return this._print(v, this._ori);
     if (act === "plate") return this._openPlate(v);
+    if (act === "si") {
+      this._si = !this._si;
+      try { localStorage.setItem("deSI", this._si ? "1" : "0"); } catch (e) { /* ignore */ }
+      this._sig = null;
+      return this._render();
+    }
     if (act === "clr") {
       this._clr = !this._clr;
       try { localStorage.setItem("deClr", this._clr ? "1" : "0"); } catch (e) { /* ignore */ }
@@ -1156,12 +1192,13 @@ class DriveEnergyDocPanel extends HTMLElement {
   }
 
   _colName(c, u) {
-    return { nr: this.T("Nr."), date: this.T("Datum"), km: this.T("km"), station: this.T("Tankstelle"), qty: this.T("Menge"), price: `${this._sym}/${u}`, total: this.T("Betrag"), cons: `${u}/100 ${this.T("km")}`, start: this.T("Laden von"), end: this.T("Laden bis"), lfrom: this.T("Ladestand von"), lto: this.T("Ladestand bis"), ctype: this.T("Ladeart") + " AC/DC", kcar: this.T("Akku") + " kWh", kwb: "Wallbox kWh", pavg: this.T("Ø Ladeleistung"), ppk: this.T("Spitzenleistung"), sol: this.T("Solaranteil"), loss: this.T("Ladeverlust"), receipt: this.T("Beleg"), note: this.T("Notiz") }[c] || c;
+    return { nr: this.T("Nr."), date: this.T("Datum"), km: this._dl(this._rv), station: this.T("Tankstelle"), qty: this.T("Menge"), price: `${this._sym}/${u}`, total: this.T("Betrag"), cons: this._cl(this._rv, (this._rv || {}).unit || "l"), start: this.T("Laden von"), end: this.T("Laden bis"), lfrom: this.T("Ladestand von"), lto: this.T("Ladestand bis"), ctype: this.T("Ladeart") + " AC/DC", kcar: this.T("Akku") + " kWh", kwb: "Wallbox kWh", pavg: this.T("Ø Ladeleistung"), ppk: this.T("Spitzenleistung"), sol: this.T("Solaranteil"), loss: this.T("Ladeverlust"), receipt: this.T("Beleg"), note: this.T("Notiz") }[c] || c;
   }
 
   _colIcon(c, v) {
     // dasselbe Symbol wie in der Überschrift
-    const I = { date: "cal", start: "clock", end: "clockEnd", lfrom: "battLow", lto: "battFull", ctype: "plug", kcar: "car", kwb: "wbox", pavg: "pwr", ppk: "pwrPk", km: "road", station: "pin", qty: v.energy === "electric" ? "batt" : "drop", cons: "gauge", sol: "sun", loss: "loss", receipt: "bon", note: "note" };
+    const I = { date: "cal", start: "clock", end: "clockEnd", lfrom: "battLow", lto: "battFull", ctype: "plug", kcar: "car", kwb: "wbox", pavg: "pwr", ppk: "pwrPk", km: "road", station: v.energy === "electric" ? "pumpEl" : "pump", qty: v.energy === "electric" ? "batt" : "tank", cons: "gauge", sol: "sun", loss: "loss", receipt: "bon", note: "note" };
+    if (c === "station" && v.phev) return this._ico("pump") + this._ico("pumpEl");   // Hybrid: Tank- und Ladesäule
     return I[c] ? this._ico(I[c]) : `<span class="cx">${c === "nr" ? "#" : this._sym}</span>`;
   }
 
@@ -1409,16 +1446,17 @@ class DriveEnergyDocPanel extends HTMLElement {
 
   _print(v, orient = this._ori) {
     // A4 quer oder hoch; im Druckdialog "Als PDF speichern" wählen. Alle Einträge, darunter die Belegfotos je Eintrag (max. 4).
-    const u = this.T(v.unit), e = this._esc.bind(this);
+    const u = this._ql(v, v.unit), e = this._esc.bind(this);
+    const qu = x => x.kind === "extra" ? null : (v.phev && x.energy === "electric") || v.energy === "electric" ? "kWh" : v.unit;   // Einheit der Menge (intern)
     const pn = {}; [...v.entries].filter(x => x.kind !== "extra").sort((p, q) => p.ts - q.ts).forEach((x, i) => { pn[x.id] = i + 1; });
     const ents = this._shownIds ? v.entries.filter(x => this._shownIds.has(x.id)) : v.entries;   // gesetzter Filter der Liste
-    const rows = [...ents].reverse().map(x => `<tr><td class="n">${pn[x.id] || ""}</td><td>${this._date(x.ts)}</td><td class="n">${x.odometer != null ? this._fmt(x.odometer, 0) : ""}</td><td>${x.kind === "extra" ? "[" + e(x.item || this.T("Zubehör")) + "] " : ""}${e(x.station || "")}<br><small>${e(x.address || "")}</small><br><small>${this._gps(x, false)}</small></td><td class="n">${x.quantity != null ? this._fmt(x.quantity) + " " + (x.kind === "extra" ? e(x.unit || "") : (v.phev && x.energy === "electric" ? "kWh" : u)) : ""}</td><td class="n">${this._fmt(x.unit_price, 3)}</td><td class="n">${this._fmt(x.total)} ${this._sym}</td><td class="n">${x.consumption != null ? this._fmt(x.consumption) : ""}</td><td>${e(x.note || "")}</td></tr>`).join("");
+    const rows = [...ents].reverse().map(x => `<tr><td class="n">${pn[x.id] || ""}</td><td>${this._date(x.ts)}</td><td class="n">${x.odometer != null ? this._fmt(this._dk(v, x.odometer), 0) : ""}</td><td>${x.kind === "extra" ? "[" + e(x.item || this.T("Zubehör")) + "] " : ""}${e(x.station || "")}<br><small>${e(x.address || "")}</small><br><small>${this._gps(x, false)}</small></td><td class="n">${x.quantity != null ? this._fmt(qu(x) ? this._vl(v, x.quantity, qu(x)) : x.quantity) + " " + (x.kind === "extra" ? e(x.unit || "") : (v.phev && x.energy === "electric" ? "kWh" : u)) : ""}</td><td class="n">${this._fmt(qu(x) ? this._pp(v, x.unit_price, qu(x)) : x.unit_price, 3)}</td><td class="n">${this._fmt(x.total)} ${this._sym}</td><td class="n">${x.consumption != null ? this._fmt(this._cn(v, x.consumption, qu(x) || v.unit)) : ""}</td><td>${e(x.note || "")}</td></tr>`).join("");
     const photos = ents.filter(x => (x.photo_urls || []).length).map(x => `<div class="g"><div class="c">${this._date(x.ts)} · ${e(x.station || "")} · ${this._fmt(x.total)} ${this._sym}</div>${x.photo_urls.slice(0, 4).map(p => `<img src="${new URL(p, location.origin).href}">`).join("")}</div>`).join("");
     const abs = u => new URL(u, location.origin).href;   // im Druck-Frame brauchen Bilder absolute Adressen
     const logo = abs("/drive_energy_doc_static/icon.png");   // Logo Drive Energy Doc
     const carImg = this._pic(v) ? abs(this._pic(v)) : "";   // Bild des Autos wie im Kopf des Panels
     const plateImg = v.plate ? abs(`/api/drive_energy_doc/plate.svg?cc=${encodeURIComponent(v.plate_country || "DE")}&t=${encodeURIComponent(v.plate)}`) : "";   // das gezeichnete Kennzeichen
-    const total = ents.reduce((a, x) => a + (x.total || 0), 0), qty = ents.reduce((a, x) => a + (x.quantity || 0), 0);
+    const total = ents.reduce((a, x) => a + (x.total || 0), 0), qty = ents.reduce((a, x) => a + (qu(x) ? this._vl(v, x.quantity || 0, qu(x)) : 0), 0);
     const html = `<!doctype html><meta charset="utf-8"><title>Drive Energy Doc ${e(v.name)}${v.plate ? " " + e(v.plate) : ""}</title><style>
       @page{size:A4 ${orient};margin:${orient === "portrait" ? "10mm" : "12mm"}}body{font:${orient === "portrait" ? "9.5px" : "11px"}/1.35 Arial,sans-serif;color:#000}h1{font-size:16px;margin:0 0 4px}
       table{border-collapse:collapse;width:100%}th,td{border-bottom:1px solid #bbb;padding:3px 5px;text-align:left;vertical-align:top}
@@ -1427,7 +1465,7 @@ class DriveEnergyDocPanel extends HTMLElement {
       h2{margin:14px 0 0;font-size:13px;break-before:page}
       .hd{display:flex;align-items:center;gap:12px;margin-bottom:6px}.hd .logo{height:15mm;width:15mm;flex:none}.hd .tt{flex:1}.hd .plate{height:11mm;width:auto;flex:none}.hd .car{height:16mm;max-width:45mm;object-fit:contain;flex:none}.hd .sub{color:#555;font-size:11px}</style>
       <div class="hd"><img class="logo" src="${logo}" alt="Drive Energy Doc"><div class="tt"><h1>Drive Energy Doc</h1><div class="sub">${e(v.name)}${v.plate ? " · " + e(v.plate) : ""}${this._shownIds ? " · " + this.T("Filter") + ": " + e(this._fltLabel) : ""}</div></div>${carImg ? `<img class="car" src="${e(carImg)}" alt="">` : ""}${plateImg ? `<img class="plate" src="${plateImg}" alt="${e(v.plate)}">` : ""}</div><div>${v.entries.length} ${this.T("Einträge")} · ${this._fmt(qty)} ${u} · ${this._fmt(total)} ${this._sym} · ${this.T("erstellt")} ${new Date().toLocaleDateString(this._locale || "de-DE")}</div>
-      <table><thead><tr><th class="n">${this.T("Nr.")}</th><th>${this.T("Datum")}</th><th class="n">${this.T("km")}</th><th>${this.T("Tankstelle")}</th><th class="n">${this.T("Menge")}</th><th class="n">${this._sym}/${u}</th><th class="n">${this.T("Betrag")}</th><th class="n">${u}/100 ${this.T("km")}</th><th>${this.T("Notiz")}</th></tr></thead><tbody>${rows}</tbody></table>
+      <table><thead><tr><th class="n">${this.T("Nr.")}</th><th>${this.T("Datum")}</th><th class="n">${this._dl(v)}</th><th>${this.T("Tankstelle")}</th><th class="n">${this.T("Menge")}</th><th class="n">${this._sym}/${u}</th><th class="n">${this.T("Betrag")}</th><th class="n">${this._cl(v, v.unit)}</th><th>${this.T("Notiz")}</th></tr></thead><tbody>${rows}</tbody></table>
       ${photos && this._rcp ? `<h2>${this.T("Belege")}</h2>${photos}` : ""}`;
     if (this._printOnlyHtml) return html;  // Testhilfe
     const f = document.createElement("iframe");
@@ -1459,7 +1497,8 @@ class DriveEnergyDocPanel extends HTMLElement {
     const gradeOpts = v.energy === "diesel" ? ["diesel", "diesel_premium"] : v.energy === "lpg" ? ["lpg", "e10", "e5", "ron95", "ron98"] : ["e10", "e5", "ron95", "ron98", "lpg"];   // Sorten, die zum Fahrzeug passen
     const isEl = k => k === "electric" || (k === "fuel" && v.energy === "electric");   // Auswahl „Art“ bedeutet Strom (Elektroauto oder Plug-in-Hybrid mit Strom)
     const ctOrig = e && e.charge_type ? e.charge_type : "";
-    const estHint = e && e.est_quantity && e.quantity && (e.quantity_source === "beleg" || e.quantity_source === "wallbox") && e.kind !== "extra" ? this.T("Schätzung aus dem Füllstand: {0} {1} (Menge weicht um {2} % ab)", this._fmt(e.est_quantity), (v.phev && e.energy === "electric") || v.energy === "electric" ? "kWh" : this.T(v.unit), (e.quantity / e.est_quantity - 1 >= 0 ? "+" : "") + this._fmt((e.quantity / e.est_quantity - 1) * 100, 1)) : "";
+    const efuel = !!e && e.kind !== "extra" && e.energy !== "electric" && v.energy !== "electric";   // Liter/Preis je Liter: im Dialog in Gallonen (USA)
+    const estHint = e && e.est_quantity && e.quantity && (e.quantity_source === "beleg" || e.quantity_source === "wallbox") && e.kind !== "extra" ? this.T("Schätzung aus dem Füllstand: {0} {1} (Menge weicht um {2} % ab)", this._fmt(efuel ? this._vl(v, e.est_quantity, "l") : e.est_quantity), (v.phev && e.energy === "electric") || v.energy === "electric" ? "kWh" : this._ql(v, v.unit), (e.quantity / e.est_quantity - 1 >= 0 ? "+" : "") + this._fmt((e.quantity / e.est_quantity - 1) * 100, 1)) : "";
     const gradeCur = e && e.fuel && gradeOpts.includes(e.fuel) ? e.fuel : (gradeOpts.includes(v.energy) ? v.energy : gradeOpts[0]);
     const dlg = document.createElement("div");
     dlg.className = "dlg form";
@@ -1472,10 +1511,10 @@ class DriveEnergyDocPanel extends HTMLElement {
       <div class="g2">${fld("f_item", this.T("Bezeichnung"), e ? e.item || "" : "", ` id="w_item"${isExtra ? "" : ' style="display:none"'}`)}
       ${fld("f_unit", this.T("Einheit"), e ? e.unit : "", ` id="w_unit" title="${esc(this.T("Einheit (z. B. l, Stk), leer = keine"))}"${isExtra ? "" : ' style="display:none"'}`)}</div>
       <div class="g2">
-        ${fld("f_q", this.T("Menge"), e ? e.quantity : "")}
-        ${curSel ? `<label class="fl"><span>${this.T("Preis")} ${this._sym}</span><div class="pr"><input id="f_p" type="text" inputmode="decimal" value="${esc(e.unit_price)}" autocomplete="off" style="min-width:0"><select id="f_cur" title="${esc(this.T("Währung des Belegs"))}" aria-label="${esc(this.T("Währung des Belegs"))}">${e.orig.currency ? "" : '<option value="" selected>?</option>'}${[this._home, ...["EUR", ...CURRENCIES].filter(c => c !== this._home)].map(c => `<option value="${c}"${c === e.orig.currency ? " selected" : ""}>${c}</option>`).join("")}</select></div></label>` : fld("f_p", this.T("Preis") + " " + this._sym, e ? e.unit_price : "")}
+        ${fld("f_q", this.T("Menge"), e ? (efuel ? this._r(this._vl(v, e.quantity, "l"), 2) : e.quantity) : "")}
+        ${curSel ? `<label class="fl"><span>${this.T("Preis")} ${this._sym}</span><div class="pr"><input id="f_p" type="text" inputmode="decimal" value="${esc(efuel ? this._r(this._pp(v, e.unit_price, "l"), 3) : e.unit_price)}" autocomplete="off" style="min-width:0"><select id="f_cur" title="${esc(this.T("Währung des Belegs"))}" aria-label="${esc(this.T("Währung des Belegs"))}">${e.orig.currency ? "" : '<option value="" selected>?</option>'}${[this._home, ...["EUR", ...CURRENCIES].filter(c => c !== this._home)].map(c => `<option value="${c}"${c === e.orig.currency ? " selected" : ""}>${c}</option>`).join("")}</select></div></label>` : fld("f_p", this.T("Preis") + " " + this._sym, e ? (efuel ? this._r(this._pp(v, e.unit_price, "l"), 3) : e.unit_price) : "")}
         ${fld("f_t", this.T("Betrag") + " " + this._sym, e ? e.total : "")}
-        ${fld("f_km", this.T("Kilometerstand"), e ? e.odometer : "")}
+        ${fld("f_km", this.T("Kilometerstand") + (this._US(v).dist === "mi" ? " (mi)" : ""), e ? (e.odometer != null ? Math.round(this._dk(v, e.odometer)) : e.odometer) : "")}
       </div>
       <label class="fl"><span>${this.T("Notiz")}</span><textarea id="f_note" maxlength="1000">${esc(e ? (e.note || this._wbNote(e)) : "")}</textarea></label>${estHint && !this._wbNote(e) ? `<div class="hint">${esc(estHint)}</div>` : ""}
       <div id="f_ph" class="phn" style="display:none"></div>
@@ -1544,7 +1583,8 @@ class DriveEnergyDocPanel extends HTMLElement {
         if (!cat && r.item) $("f_item").value = r.item;
       } else if (r.receipt || r.quantity || r.total) { $("f_kind").value = v.phev && r.category === "charging" ? "electric" : "fuel"; $("f_kind").onchange(); }
       if (strong && r.fuel_grade && gradeOpts.includes(r.fuel_grade)) $("f_grade").value = r.fuel_grade;
-      set("f_q", r.quantity); set("f_p", r.unit_price); set("f_t", r.total); set("f_km", r.odometer ? Math.round(r.odometer) : null);
+      const rf = r.category !== "charging" && v.energy !== "electric";   // die KI liefert Liter und km: in die Einheiten des Dialogs
+      set("f_q", rf ? this._r(this._vl(v, r.quantity, "l"), 2) : r.quantity); set("f_p", rf ? this._r(this._pp(v, r.unit_price, "l"), 3) : r.unit_price); set("f_t", r.total); set("f_km", r.odometer ? Math.round(this._dk(v, r.odometer)) : null);
       if (r.note) $("f_note").value = $("f_note").value.trim() ? $("f_note").value.trim() + " · " + r.note : r.note;   // Fremdwährung: Originalpreis und Kurs
       if (r.ts && !e && strong) { const d = new Date(r.ts * 1000); if (!isNaN(d)) $("f_when").value = local(d); }
       ph(this.T("Foto gelesen: Werte eingetragen, bitte prüfen.") + (r.ai_secs != null ? ` (KI ${Math.round(r.ai_secs)} s)` : "") + (photos.length > 1 ? " · " + this.T("{0} Foto(s) angehängt", photos.length) : ""));
@@ -1563,6 +1603,8 @@ class DriveEnergyDocPanel extends HTMLElement {
     const save = async () => {
       const f = { quantity: num($("f_q").value), unit_price: num($("f_p").value), total: num($("f_t").value), odometer: num(/^\d{1,3}(\.\d{3})+$/.test($("f_km").value.trim()) ? $("f_km").value.trim().replace(/\./g, "") : $("f_km").value), note: $("f_note").value };
       const extra = $("f_kind").value !== "fuel" && $("f_kind").value !== "electric";
+      const sfuel = !extra && $("f_kind").value === "fuel" && v.energy !== "electric";   // Gallonen/Meilen -> Liter/km
+      f.quantity = this._qIn(v, f.quantity, sfuel); f.unit_price = this._pIn(v, f.unit_price, sfuel); f.odometer = this._kmIn(v, f.odometer);
       f.kind = extra ? "extra" : "fuel";
       f.fuel = !extra && $("f_kind").value !== "electric" && v.energy !== "electric" ? $("f_grade").value : "";
       if (!extra && isEl($("f_kind").value) && $("f_ctype").value !== ctOrig) f.charge_type = $("f_ctype").value;   // nur wenn von Hand geändert (sonst bleibt die Quelle Sensor oder Beleg)

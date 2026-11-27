@@ -265,7 +265,7 @@ async def ws_list(hass, connection, msg) -> None:
         entries = v.entries_with_stats()
         for e in entries:
             e["photo_urls"] = [_signed(hass, f"/api/drive_energy_doc/photo/{eid}/{n}") for n in e.get("photos", [])]
-        out.append({"id": eid, "name": v.name, "image": v.image_entity(), "image_url": _signed(hass, f"/api/drive_energy_doc/vehicle_image/{v.image_file}") if v.image_file else None, "plate": v.plate, "type": v.vehicle_type(), "plate_country": v.plate_country(), "plate_code": PLATE_CODES.get(v.plate_country(), "D"), "unit": v.unit, "phev": v.phev, "energy": v.energy, "summary": {**v.summary(), "last": None}, "entries": list(reversed(entries)), "csv_url": _signed(hass, f"/api/drive_energy_doc/export/{eid}", 10)})
+        out.append({"id": eid, "name": v.name, "image": v.image_entity(), "image_url": _signed(hass, f"/api/drive_energy_doc/vehicle_image/{v.image_file}") if v.image_file else None, "plate": v.plate, "type": v.vehicle_type(), "plate_country": v.plate_country(), "plate_code": PLATE_CODES.get(v.plate_country(), "D"), "unit": v.unit, "units": v.units, "phev": v.phev, "energy": v.energy, "summary": {**v.summary(), "last": None}, "entries": list(reversed(entries)), "csv_url": _signed(hass, f"/api/drive_energy_doc/export/{eid}", 10)})
     connection.send_result(msg["id"], out)
 
 

@@ -261,5 +261,8 @@
  "Heimladung erfasst": "Home charge recorded",
  "Die gewählte KI hat die Anfrage abgelehnt ({0}). Details stehen im Home-Assistant-Protokoll.": "The selected AI rejected the request ({0}). Details are in the Home Assistant log.",
  "Keine Währung erkannt, Land nicht ermittelbar: Werte als {0} angenommen. Bitte Währung prüfen.": "No currency recognised, country unknown: values assumed to be in {0}. Please check the currency.",
- "Beleg in {0}, Umrechnung nicht möglich, Werte nicht in {2}! Original: {1}": "Receipt in {0}, conversion not possible, values are NOT in {2}! Original: {1}"
+ "Beleg in {0}, Umrechnung nicht möglich, Werte nicht in {2}! Original: {1}": "Receipt in {0}, conversion not possible, values are NOT in {2}! Original: {1}",
+ "Liter": "Litres",
+ "Gallonen": "Gallons",
+ "Einheiten: national oder SI (zum Wechseln klicken)": "Units: national or SI (click to switch)"
 }

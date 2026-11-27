@@ -70,7 +70,7 @@ def parse_text(text: str) -> dict[str, Any] | None:
     return {"quantity": qty, "unit_price": price, "total": total, "date": parse_date_hint(text)}
 
 
-_KM_B = re.compile(r"(?is)^\s*(\d{1,3}(?:[. ]\d{3})+|\d{4,7})\s*km\s*$")
+_KM_B = re.compile(r"(?is)^\s*(\d{1,3}(?:[. ]\d{3})+|\d{4,7})\s*(?:km|mi|miles)\s*$")
 
 
 def _alt(words) -> str:
@@ -79,7 +79,7 @@ def _alt(words) -> str:
 
 def parse_km(text: str) -> float | None:
     """'km 54210', 'Kilometerstand: 54.210', 'tacho 54 210' oder '54210 km' -> 54210.0, sonst None."""
-    km_a = re.compile(r"(?is)^\s*(?:" + _alt(messages.keywords("km")) + r")(?![^\W\d_])[:=\s]*(\d{1,3}(?:[. ]\d{3})+|\d{3,7})(?:[.,]\d+)?\s*(?:km)?\s*$")
+    km_a = re.compile(r"(?is)^\s*(?:" + _alt(messages.keywords("km")) + r")(?![^\W\d_])[:=\s]*(\d{1,3}(?:[. ]\d{3})+|\d{3,7})(?:[.,]\d+)?\s*(?:km|mi|miles)?\s*$")
     m = km_a.match(text or "") or _KM_B.match(text or "")
     return float(re.sub(r"[. ]", "", m.group(1))) if m else None
 
@@ -331,9 +331,11 @@ STRUCTURE = {
     "category": {"description": "What was bought. One of: fuel (petrol, diesel, LPG, CNG, hydrogen), charging (EV electricity), adblue (AdBlue / DEF / urea), oil (engine oil), washer (windscreen washer fluid), carwash (car wash), other (anything else for the car, e.g. wiper blades, bulbs, cleaner). Use fuel if the receipt shows fuel, even with a shop item on it.", "required": False, "selector": {"text": {}}},
     "item": {"description": "For category other only: short name of the main article as printed, empty otherwise", "required": False, "selector": {"text": {}}},
     "quantity": {"description": "Amount of fuel (litres) or energy (kWh) as a number, dot as decimal separator", "required": False, "selector": {"number": {"mode": "box", "step": "any"}}},
-    "unit_price": {"description": "Price per litre or per kWh as a number (currency of the receipt)", "required": False, "selector": {"number": {"mode": "box", "step": "any"}}},
+    "volume_unit": {"description": "Unit of the quantity as printed: l (litres), gal (gallons) or kWh. Empty if not readable.", "required": False, "selector": {"text": {}}},
+    "unit_price": {"description": "Price per litre, per gallon or per kWh as a number, per the unit printed (currency of the receipt)", "required": False, "selector": {"number": {"mode": "box", "step": "any"}}},
     "total": {"description": "Total amount paid as a number", "required": False, "selector": {"number": {"mode": "box", "step": "any"}}},
     "odometer": {"description": "Total odometer reading in km as a number (NOT the trip meter). Two cases: (1) a photo of a car instrument cluster or dashboard: read the digit display of the odometer (usually 5-6 digits, often marked total or km), no text label is needed; (2) a receipt: only if a line is explicitly labelled Kilometerstand, km-Stand, Odometer, Mileage or Compteur - never a receipt number, pump number, card number, customer number, phone number, date or time. Empty if neither case applies.", "required": False, "selector": {"number": {"mode": "box", "step": "any"}}},
+    "odometer_unit": {"description": "Unit of the odometer reading: km or mi (miles), as shown on the display or receipt. Empty if not shown.", "required": False, "selector": {"text": {}}},
     "date": {"description": "Date of the transaction as DD.MM.YYYY, empty if not readable", "required": False, "selector": {"text": {}}},
     "time": {"description": "Time of the transaction as HH:MM (24 hours), empty if not readable", "required": False, "selector": {"text": {}}},
     "station": {"description": "Name of the filling station or merchant as printed at the top of the receipt, empty if not readable", "required": False, "selector": {"text": {}}},
@@ -499,6 +501,18 @@ async def ai_read(hass, entity_id: str, image: bytes, media_dir: Path, pos: tupl
             return None
 
     out = {"quantity": num("quantity"), "unit_price": num("unit_price"), "total": num("total"), "odometer": num("odometer"), "date": parse_date_hint(str(data.get("date") or "")), "time": parse_time(str(data.get("time") or "")), "currency": (re.sub(r"[^A-Z]", "", str(data.get("currency") or "").upper())[:3] or None), "category": (lambda c: c if c in ("fuel", "charging", "adblue", "oil", "washer", "carwash", "other") else None)(re.sub(r"[^a-z]", "", str(data.get("category") or "").lower())), "ai_secs": ai_secs, "fuel_grade": (lambda c: c if c in FUEL_GRADES else None)(re.sub(r"[^a-z0-9_]", "", str(data.get("fuel_grade") or "").lower())), "charge_type": (lambda c: c if c in ("ac", "dc") else None)(re.sub(r"[^a-z]", "", str(data.get("charge_type") or "").lower())), "item": clean_text(data.get("item"), 60), "station": clean_text(data.get("station"), 60), "address": clean_text(data.get("address"), 120), "crop": None}
+    # Gallonen und Meilen (USA, GB): intern immer Liter und km. Ohne Angabe gilt das Einheitensystem der Installation.
+    from . import units
+
+    sysu = units.system(hass)
+    vu = re.sub(r"[^a-z]", "", str(data.get("volume_unit") or "").lower()) or (sysu["vol"] if out["category"] != "charging" else "kwh")
+    if vu.startswith("gal") and out["category"] != "charging":
+        out["quantity"] = units.to_l(out["quantity"], "gal", sysu) and round(units.to_l(out["quantity"], "gal", sysu), 2)
+        out["unit_price"] = units.price_to_per_l(out["unit_price"], "gal", sysu) and round(units.price_to_per_l(out["unit_price"], "gal", sysu), 3)
+        _LOGGER.info("Beleg-KI: Gallonen in Liter umgerechnet (%s l, %s je l)", out["quantity"], out["unit_price"])
+    ou = re.sub(r"[^a-z]", "", str(data.get("odometer_unit") or "").lower()) or sysu["dist"]
+    if out["odometer"] and ou.startswith("mi"):
+        out["odometer"] = round(units.to_km(out["odometer"], "mi"))
     box = [int(float(x)) for x in re.findall(r"\d+(?:\.\d+)?", str(data.get("crop") or ""))]
     if len(box) == 4 and box[2] > box[0] and box[3] > box[1] and all(0 <= b <= 1000 for b in box):
         out["crop"] = box

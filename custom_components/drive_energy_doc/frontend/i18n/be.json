@@ -261,5 +261,8 @@
  "Heimladung erfasst": "Хатняя зарадка запісана",
  "Die gewählte KI hat die Anfrage abgelehnt ({0}). Details stehen im Home-Assistant-Protokoll.": "Абраны ШІ адхіліў запыт ({0}). Падрабязнасці ў журнале Home Assistant.",
  "Keine Währung erkannt, Land nicht ermittelbar: Werte als {0} angenommen. Bitte Währung prüfen.": "Валюта не распазнана, краіна невядомая: значэнні прынятыя ў {0}. Праверце валюту.",
- "Beleg in {0}, Umrechnung nicht möglich, Werte nicht in {2}! Original: {1}": "Чэк у {0}, канвертацыя немагчымая, значэнні НЕ ў {2}! Арыгінал: {1}"
+ "Beleg in {0}, Umrechnung nicht möglich, Werte nicht in {2}! Original: {1}": "Чэк у {0}, канвертацыя немагчымая, значэнні НЕ ў {2}! Арыгінал: {1}",
+ "Liter": "Літры",
+ "Gallonen": "Галоны",
+ "Einheiten: national oder SI (zum Wechseln klicken)": "Адзінкі: нацыянальныя або SI (націсніце, каб пераключыць)"
 }

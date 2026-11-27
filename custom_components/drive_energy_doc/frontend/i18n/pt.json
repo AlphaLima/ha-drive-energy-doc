@@ -261,5 +261,8 @@
  "Heimladung erfasst": "Carregamento em casa registado",
  "Die gewählte KI hat die Anfrage abgelehnt ({0}). Details stehen im Home-Assistant-Protokoll.": "A IA selecionada recusou o pedido ({0}). Os detalhes estão no registo do Home Assistant.",
  "Keine Währung erkannt, Land nicht ermittelbar: Werte als {0} angenommen. Bitte Währung prüfen.": "Nenhuma moeda reconhecida, país desconhecido: valores assumidos em {0}. Verifique a moeda.",
- "Beleg in {0}, Umrechnung nicht möglich, Werte nicht in {2}! Original: {1}": "Talão em {0}, conversão impossível, os valores NÃO estão em {2}! Original: {1}"
+ "Beleg in {0}, Umrechnung nicht möglich, Werte nicht in {2}! Original: {1}": "Talão em {0}, conversão impossível, os valores NÃO estão em {2}! Original: {1}",
+ "Liter": "Litros",
+ "Gallonen": "Galões",
+ "Einheiten: national oder SI (zum Wechseln klicken)": "Unidades: nacionais ou SI (clique para alternar)"
 }

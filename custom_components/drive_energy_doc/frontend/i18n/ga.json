@@ -261,5 +261,8 @@
  "Heimladung erfasst": "Luchtú baile taifeadta",
  "Die gewählte KI hat die Anfrage abgelehnt ({0}). Details stehen im Home-Assistant-Protokoll.": "Dhiúltaigh an IS roghnaithe don iarratas ({0}). Tá na sonraí i log Home Assistant.",
  "Keine Währung erkannt, Land nicht ermittelbar: Werte als {0} angenommen. Bitte Währung prüfen.": "Níor aithníodh aon airgeadra, tír anaithnid: glacadh leis na luachanna i {0}. Seiceáil an t-airgeadra.",
- "Beleg in {0}, Umrechnung nicht möglich, Werte nicht in {2}! Original: {1}": "Admháil i {0}, ní féidir tiontú, NÍL na luachanna i {2}! Bunaidh: {1}"
+ "Beleg in {0}, Umrechnung nicht möglich, Werte nicht in {2}! Original: {1}": "Admháil i {0}, ní féidir tiontú, NÍL na luachanna i {2}! Bunaidh: {1}",
+ "Liter": "Lítir",
+ "Gallonen": "Galúin",
+ "Einheiten: national oder SI (zum Wechseln klicken)": "Aonaid: náisiúnta nó SI (cliceáil chun athrú)"
 }

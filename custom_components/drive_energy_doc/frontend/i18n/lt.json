@@ -261,5 +261,8 @@
  "Heimladung erfasst": "Įkrovimas namuose užregistruotas",
  "Die gewählte KI hat die Anfrage abgelehnt ({0}). Details stehen im Home-Assistant-Protokoll.": "Pasirinktas DI atmetė užklausą ({0}). Išsami informacija – Home Assistant žurnale.",
  "Keine Währung erkannt, Land nicht ermittelbar: Werte als {0} angenommen. Bitte Währung prüfen.": "Valiuta neatpažinta, šalis nežinoma: reikšmės laikomos {0}. Patikrinkite valiutą.",
- "Beleg in {0}, Umrechnung nicht möglich, Werte nicht in {2}! Original: {1}": "Kvitas {0}, konvertuoti neįmanoma, reikšmės NE {2}! Originalas: {1}"
+ "Beleg in {0}, Umrechnung nicht möglich, Werte nicht in {2}! Original: {1}": "Kvitas {0}, konvertuoti neįmanoma, reikšmės NE {2}! Originalas: {1}",
+ "Liter": "Litrai",
+ "Gallonen": "Galonai",
+ "Einheiten: national oder SI (zum Wechseln klicken)": "Vienetai: nacionaliniai arba SI (spustelėkite, kad perjungtumėte)"
 }

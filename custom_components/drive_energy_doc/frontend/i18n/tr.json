@@ -261,5 +261,8 @@
  "Heimladung erfasst": "Evde şarj kaydedildi",
  "Die gewählte KI hat die Anfrage abgelehnt ({0}). Details stehen im Home-Assistant-Protokoll.": "Seçilen yapay zekâ isteği reddetti ({0}). Ayrıntılar Home Assistant günlüğünde.",
  "Keine Währung erkannt, Land nicht ermittelbar: Werte als {0} angenommen. Bitte Währung prüfen.": "Para birimi tanınmadı, ülke bilinmiyor: değerler {0} olarak varsayıldı. Lütfen para birimini kontrol edin.",
- "Beleg in {0}, Umrechnung nicht möglich, Werte nicht in {2}! Original: {1}": "{0} cinsinden fiş, dönüştürme mümkün değil, değerler {2} cinsinden DEĞİL! Orijinal: {1}"
+ "Beleg in {0}, Umrechnung nicht möglich, Werte nicht in {2}! Original: {1}": "{0} cinsinden fiş, dönüştürme mümkün değil, değerler {2} cinsinden DEĞİL! Orijinal: {1}",
+ "Liter": "Litre",
+ "Gallonen": "Galon",
+ "Einheiten: national oder SI (zum Wechseln klicken)": "Birimler: ulusal veya SI (değiştirmek için tıklayın)"
 }

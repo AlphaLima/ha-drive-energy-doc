@@ -261,5 +261,8 @@
  "Heimladung erfasst": "Încărcare acasă înregistrată",
  "Die gewählte KI hat die Anfrage abgelehnt ({0}). Details stehen im Home-Assistant-Protokoll.": "IA selectată a respins cererea ({0}). Detaliile se află în jurnalul Home Assistant.",
  "Keine Währung erkannt, Land nicht ermittelbar: Werte als {0} angenommen. Bitte Währung prüfen.": "Nicio monedă recunoscută, țară necunoscută: valori presupuse în {0}. Verificați moneda.",
- "Beleg in {0}, Umrechnung nicht möglich, Werte nicht in {2}! Original: {1}": "Bon în {0}, conversie imposibilă, valorile NU sunt în {2}! Original: {1}"
+ "Beleg in {0}, Umrechnung nicht möglich, Werte nicht in {2}! Original: {1}": "Bon în {0}, conversie imposibilă, valorile NU sunt în {2}! Original: {1}",
+ "Liter": "Litri",
+ "Gallonen": "Galoane",
+ "Einheiten: national oder SI (zum Wechseln klicken)": "Unități: naționale sau SI (clic pentru comutare)"
 }

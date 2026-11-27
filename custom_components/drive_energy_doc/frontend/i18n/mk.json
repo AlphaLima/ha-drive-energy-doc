@@ -261,5 +261,8 @@
  "Heimladung erfasst": "Домашното полнење е запишано",
  "Die gewählte KI hat die Anfrage abgelehnt ({0}). Details stehen im Home-Assistant-Protokoll.": "Избраната ВИ го одби барањето ({0}). Деталите се во дневникот на Home Assistant.",
  "Keine Währung erkannt, Land nicht ermittelbar: Werte als {0} angenommen. Bitte Währung prüfen.": "Не е препознаена валута, земјата е непозната: вредностите се земени во {0}. Проверете ја валутата.",
- "Beleg in {0}, Umrechnung nicht möglich, Werte nicht in {2}! Original: {1}": "Сметка во {0}, конверзијата не е можна, вредностите НЕ се во {2}! Оригинал: {1}"
+ "Beleg in {0}, Umrechnung nicht möglich, Werte nicht in {2}! Original: {1}": "Сметка во {0}, конверзијата не е можна, вредностите НЕ се во {2}! Оригинал: {1}",
+ "Liter": "Литри",
+ "Gallonen": "Галони",
+ "Einheiten: national oder SI (zum Wechseln klicken)": "Единици: национални или SI (кликнете за промена)"
 }

@@ -25,5 +25,5 @@
   "iot_class": "cloud_polling",
   "issue_tracker": "https://github.com/AlphaLima/ha-drive-energy-doc/issues",
   "requirements": [],
-  "version": "0.1.87b3"
+  "version": "0.1.87b4"
 }

@@ -261,5 +261,8 @@
  "Heimladung erfasst": "Domáce nabíjanie zaznamenané",
  "Die gewählte KI hat die Anfrage abgelehnt ({0}). Details stehen im Home-Assistant-Protokoll.": "Zvolená AI požiadavku odmietla ({0}). Podrobnosti sú v protokole Home Assistanta.",
  "Keine Währung erkannt, Land nicht ermittelbar: Werte als {0} angenommen. Bitte Währung prüfen.": "Mena nerozpoznaná, krajina neznáma: hodnoty predpokladané v {0}. Skontrolujte menu.",
- "Beleg in {0}, Umrechnung nicht möglich, Werte nicht in {2}! Original: {1}": "Doklad v {0}, prepočet nie je možný, hodnoty NIE SÚ v {2}! Originál: {1}"
+ "Beleg in {0}, Umrechnung nicht möglich, Werte nicht in {2}! Original: {1}": "Doklad v {0}, prepočet nie je možný, hodnoty NIE SÚ v {2}! Originál: {1}",
+ "Liter": "Litre",
+ "Gallonen": "Galóny",
+ "Einheiten: national oder SI (zum Wechseln klicken)": "Jednotky: národné alebo SI (kliknutím prepnete)"
 }

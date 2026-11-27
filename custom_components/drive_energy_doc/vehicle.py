@@ -22,7 +22,7 @@ from homeassistant.helpers.storage import Store
 from homeassistant.util import dt as dt_util
 
 from . import channels as chan
-from . import charge, curve, messages, receipt, stats, wallbox
+from . import charge, curve, messages, receipt, stats, units, wallbox
 from .const import *  # noqa: F403
 from .detector import FuelDetector
 from .price import lookup, resolve_provider
@@ -332,6 +332,34 @@ class Vehicle:
         except ValueError:
             return None
 
+    def _read_odo(self) -> float | None:
+        """Kilometerstand des Fahrzeug-Sensors in km (HA liefert ihn im imperialen Einheitensystem in Meilen)."""
+        eid = self.o.get(CONF_ODOMETER)
+        v = self._read_float(eid)
+        if v is None:
+            return None
+        st = self.hass.states.get(eid)
+        return units.to_km(v, (st.attributes.get("unit_of_measurement") if st else None))
+
+    @property
+    def units(self) -> dict:
+        return units.system(self.hass)
+
+    def _text_km(self, value: float | None) -> float | None:
+        """Kilometerstand aus einer Nachricht: im imperialen Einheitensystem sind es Meilen."""
+        return None if value is None else round(units.to_km(value, self.units["dist"]))
+
+    def _text_values(self, values: dict | None) -> dict | None:
+        """Getippte Menge/Preis (z. B. „12,5 45,10“): in den USA Gallonen und Preis je Gallone -> Liter."""
+        if not values or self.units["vol"] != "gal" or self.electric:
+            return values
+        v = dict(values)
+        if v.get("quantity"):
+            v["quantity"] = round(units.to_l(v["quantity"], "gal", self.units), 2)
+        if v.get("unit_price"):
+            v["unit_price"] = round(units.price_to_per_l(v["unit_price"], "gal", self.units), 3)
+        return v
+
     def _read_pos(self) -> tuple[float, float] | None:
         st = self.hass.states.get(self.o.get(CONF_TRACKER) or "")
         if st is None:
@@ -359,7 +387,7 @@ class Vehicle:
         if level is None:
             return
         det = self.detector_el if (self.detector_el and entity == self.o.get(CONF_LEVEL_EL)) else self.detector   # Akku (Laden) oder Tank
-        result = det.on_level(level, time.time(), self._pos, self._read_float(self.o.get(CONF_ODOMETER)))
+        result = det.on_level(level, time.time(), self._pos, self._read_odo())
         if result in ("started", "valid", "cancelled"):
             self._save()
         if result in ("started", "valid"):
@@ -429,7 +457,7 @@ class Vehicle:
         self._sample_charge()
         self._curve_sample()
         finished = False
-        plugged, odo = self._plugged(), self._read_float(self.o.get(CONF_ODOMETER))
+        plugged, odo = self._plugged(), self._read_odo()
         for det in self._detectors():
             done = det.check(time.time(), self._pos, odo, plugged if det is self._charge_det() else None)
             if done:
@@ -701,7 +729,7 @@ class Vehicle:
 
     def _live_money(self, out: dict, ex: dict, odometer: float | None, est: float | None) -> None:
         """Kilometerstand, Preis und Betrag der laufenden Ladung (vorläufig: mittlerer Preis bisher, sonst aktueller Preis)."""
-        out["odometer"] = odometer if odometer is not None else self._read_float(self.o.get(CONF_ODOMETER))
+        out["odometer"] = odometer if odometer is not None else self._read_odo()
         n = ex.get("wbp_n")
         price = (ex["wbp_sum"] / n) if n else (self._wb_price_now() if out.get("wb_kwh") else None) or self._electric_price()
         out["unit_price"] = round(price, 4) if price else None
@@ -1031,17 +1059,20 @@ class Vehicle:
         when = dt_util.as_local(dt_util.utc_from_timestamp(e["ts"])).strftime("%d.%m.%Y %H:%M")
         extra = e.get("kind") == "extra"
         unit = (e.get("unit") or "") if extra else self.unit_of(e)
+        fuel = not extra and unit == "l"
+        if fuel:
+            unit = self.units["vol"]   # Liter bzw. Gallonen (USA)
         lines = [f"{'🧰' if extra else '⛽'} {self.name}{f' ({self.plate})' if self.plate else ''}: {head} ({when})"]
         if e.get("station") or e.get("address"):
             lines.append(" ".join(x for x in (e.get("station"), e.get("address")) if x))
         if e.get("odometer") is not None:
-            lines.append(f"{e['odometer']:.0f} km")
-        q = self._dec(f"{e['quantity']:.2f} {unit}".strip()) if e.get("quantity") else "?"
+            lines.append(f"{self._fmt_km(e['odometer'])} {self.units['dist']}")
+        q = self._dec(f"{(units.vol(self.units, e['quantity']) if fuel else e['quantity']):.2f} {unit}".strip()) if e.get("quantity") else "?"
         lv = f"{e['level_from']:.0f} → {e['level_to']:.0f} %, " if e.get("level_from") is not None and e.get("level_to") is not None else ""
         if e.get("quantity") or not extra:
             lines.append(f"{q} ({lv}{self.tr(e['quantity_source'])})")
         if e.get("unit_price"):
-            lines.append(self._dec(f"{e['unit_price']:.3f} {self._sym()}{'/' + unit if unit else ''} ({self.tr(e.get('price_source') or '?')})"))
+            lines.append(self._dec(f"{(units.price(self.units, e['unit_price']) if fuel else e['unit_price']):.3f} {self._sym()}{'/' + unit if unit else ''} ({self.tr(e.get('price_source') or '?')})"))
         if e.get("total"):
             lines.append(self.tr("Summe {0} €", self._dec(f"{e['total']:.2f}")).replace("€", self._sym()))
         if e.get("note"):
@@ -1152,7 +1183,11 @@ class Vehicle:
         return self.o.get(CONF_LANGUAGE) or self.hass.config.language or "en"
 
     def tr(self, key: str, *args) -> str:
-        return messages.tr(self.lang, key, *args)
+        s = messages.tr(self.lang, key, *args)
+        if self.units["dist"] == "mi":   # Meilen: Einheit in allen Texten (Zahlen rechnet _fmt_km um), auch im Beispiel „km 61240“
+            s = re.sub(r"(?<=\d) km\b", " mi", s)
+            s = re.sub(r"\bkm(?= \d)", "mi", s)
+        return s
 
     def _sym(self) -> str:
         """Kurzzeichen der Hauswährung (€, £ …) für Texte an den Nutzer."""
@@ -1218,7 +1253,7 @@ class Vehicle:
         px = receipt.parse_extra(text)
         if px:
             return await self._extra(px[0], px[1], None)
-        km = receipt.parse_km(text)
+        km = self._text_km(receipt.parse_km(text))
         if km is not None:
             up = self.data.get("unread_photo")
             photo = up["name"] if up and time.time() - up["ts"] < AWAIT_TTL else None
@@ -1271,7 +1306,7 @@ class Vehicle:
                 else:
                     await self._say(self.tr("Zu {0} habe ich keinen Tankvorgang. Anderes Datum oder „neu“.", f"{d:%d.%m.%Y}"))
                 return
-        values = receipt.parse_text(text)
+        values = self._text_values(receipt.parse_text(text))
         aw_ad = self.data.get("awaiting_extra")
         if not values and not aw and aw_ad and time.time() - aw_ad["ts"] < AWAIT_TTL:
             values = receipt.parse_extra_values(text)  # bei Zubehör genügt auch nur der Betrag
@@ -1310,8 +1345,8 @@ class Vehicle:
             name = await self.hass.async_add_executor_job(receipt.save_new_photo, image, box, self.photo_dir, values, sent_ts, item or "Zubehoer", self.orig_dir)
             return await self._extra(item, rest, name, values)
         extra = low.startswith(tuple(messages.keywords("photo")))
-        values = None if extra else receipt.parse_text(caption)
-        km = None if (extra or values) else receipt.parse_km(caption)   # Tacho-Foto mit Bildtext „km 54210“
+        values = None if extra else self._text_values(receipt.parse_text(caption))
+        km = None if (extra or values) else self._text_km(receipt.parse_km(caption))   # Tacho-Foto mit Bildtext „km 54210“
         box = None
         ai = None
         rejected_km = None   # von der KI gelesen, aber unplausibel (Reihenfolge der Einträge): dem Nutzer sagen statt nur „nichts lesbar“
@@ -1365,9 +1400,9 @@ class Vehicle:
         await self._route(values, name)
 
     # ---------------------------------------------------------------- Kilometerstand (Tacho-Foto oder Text)
-    @staticmethod
-    def _fmt_km(km: float) -> str:
-        return f"{km:,.0f}".replace(",", ".")
+    def _fmt_km(self, km: float) -> str:
+        """Kilometerstand/Strecke für Texte, im imperialen System in Meilen."""
+        return f"{units.dist(self.units, km):,.0f}".replace(",", ".")
 
     async def _odometer(self, km: float, photo: str | None, sent_ts: float | None = None) -> None:
         """Kilometerstand dem Tankvorgang zuordnen, der zur Sendezeit passt (Foto oder Text)."""
@@ -1447,7 +1482,11 @@ class Vehicle:
         return "kWh" if e and e.get("energy") == "electric" else self.unit
 
     def _cons_txt(self, value: float, energy: str | None = None) -> str:
-        return self._dec(f"{value:.1f}") + f" {'kWh' if energy == 'electric' else self.unit}/100 km"
+        el = energy == "electric" or (energy is None and self.electric)
+        c = units.cons(self.units, value, el)
+        if c is None:
+            return "–"
+        return self._dec(f"{c:.1f}") + " " + units.cons_unit(self.units, el, self.unit)
 
     async def _apply_odometer(self, entry: dict, km: float, photo: str | None, dt: float) -> None:
         if self._batch is not None:
@@ -1493,7 +1532,7 @@ class Vehicle:
 
     def _new_manual_entry(self) -> dict:
         return {
-            "id": uuid.uuid4().hex[:12], "created": time.time(), "ts": time.time(), "ts_start": time.time(), "odometer": self._read_float(self.o.get(CONF_ODOMETER)), "odometer_source": "sensor" if self._read_float(self.o.get(CONF_ODOMETER)) is not None else None,
+            "id": uuid.uuid4().hex[:12], "created": time.time(), "ts": time.time(), "ts_start": time.time(), "odometer": self._read_odo(), "odometer_source": "sensor" if self._read_odo() is not None else None,
             "lat": self._pos[0] if self._pos else None, "lon": self._pos[1] if self._pos else None, "station": None, "address": None,
             "station_id": None, "level_from": None, "level_to": None, "quantity": None, "quantity_source": "manuell", "unit_price": None,
             "price_source": None, "total": None, "photos": [], "receipt": False, "note": "",
@@ -2045,9 +2084,15 @@ class Vehicle:
         def n(v, d=2):
             return "" if v is None else self._dec(f"{v:.{d}f}")
 
+        su = self.units
         for e in self.entries_with_stats():
             t = dt_util.as_local(dt_util.utc_from_timestamp(e["ts"]))
-            w.writerow([numbers.get(e["id"], ""), self.name, self.plate, self.tr("Zubehör") if e.get("kind") == "extra" else (self.tr("Strom") if (self.electric or e.get("energy") == "electric") else self.tr("Kraftstoff")), e.get("item") or "", t.strftime("%d.%m.%Y"), t.strftime("%H:%M"), n(e.get("odometer"), 0), e.get("station") or "", e.get("address") or "", n(e.get("lat"), 6), n(e.get("lon"), 6), n(e.get("level_from"), 0), n(e.get("level_to"), 0), n(e.get("quantity")), (e.get("unit") or "") if e.get("kind") == "extra" else self.unit, n(e.get("unit_price"), 3), n(e.get("total")), e.get("quantity_source") or "", e.get("price_source") or "", "ja" if e.get("receipt") else "nein", n(e.get("consumption")), e.get("note") or ""])
+            el = self.electric or e.get("energy") == "electric"
+            fuel = not el and e.get("kind") != "extra"
+            e = {**e, "odometer": units.dist(su, e.get("odometer")), "consumption": units.cons(su, e.get("consumption"), el) if e.get("kind") != "extra" else e.get("consumption")}   # Meilen, Gallonen, mpg je nach Einheitensystem
+            if fuel:
+                e["quantity"], e["unit_price"] = units.vol(su, e.get("quantity")), units.price(su, e.get("unit_price"))
+            w.writerow([numbers.get(e["id"], ""), self.name, self.plate, self.tr("Zubehör") if e.get("kind") == "extra" else (self.tr("Strom") if (self.electric or e.get("energy") == "electric") else self.tr("Kraftstoff")), e.get("item") or "", t.strftime("%d.%m.%Y"), t.strftime("%H:%M"), n(e.get("odometer"), 0), e.get("station") or "", e.get("address") or "", n(e.get("lat"), 6), n(e.get("lon"), 6), n(e.get("level_from"), 0), n(e.get("level_to"), 0), n(e.get("quantity")), (e.get("unit") or "") if e.get("kind") == "extra" else ("kWh" if el else su["vol"]), n(e.get("unit_price"), 3), n(e.get("total")), e.get("quantity_source") or "", e.get("price_source") or "", "ja" if e.get("receipt") else "nein", n(e.get("consumption")), e.get("note") or ""])
         return buf.getvalue()
 
     # ---------------------------------------------------------------- Speichern

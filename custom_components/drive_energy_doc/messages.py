@@ -26,7 +26,7 @@ _BUILTIN = {
     "photo": "zusatz|additional",
     "doc": "doku|dokumentation|nur dokumentation|doc|documentation",
     "del": "löschen|loeschen|delete|del",
-    "km": "km|kilometer|kilometerstand|tacho|odometer|mileage",
+    "km": "km|kilometer|kilometerstand|tacho|odometer|mileage|miles|mi",
     "items": "adblue=AdBlue=l|ad blue=AdBlue=l|ad-blue=AdBlue=l|motoröl=Motoröl=l|motoroel=Motoröl=l|öl=Öl=l|oel=Öl=l|oil=Oil=l|"
              "engine oil=Engine oil=l|scheibenwischer=Scheibenwischer|wischer=Scheibenwischer|wipers=Wipers|"
              "scheibenwasser=Scheibenwasser=l|washer fluid=Washer fluid=l|frostschutz=Frostschutz=l|antifreeze=Antifreeze=l",

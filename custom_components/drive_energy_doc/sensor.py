@@ -7,7 +7,7 @@ from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.dispatcher import async_dispatcher_connect
 from homeassistant.util import dt as dt_util
 
-from . import receipt
+from . import receipt, units
 from .const import DOMAIN
 from .vehicle import Vehicle, signal
 
@@ -53,7 +53,14 @@ class TankLast(_Base):
 
     @property
     def extra_state_attributes(self):
-        last = self.v.summary()["last"] or {}
+        last = dict(self.v.summary()["last"] or {})
+        su, fuel = self.v.units, not self.v.electric and last.get("energy") != "electric" and last.get("kind") != "extra"
+        if last.get("odometer") is not None:
+            last["odometer"] = round(units.dist(su, last["odometer"]))   # Meilen im imperialen System
+        if fuel and last.get("quantity") is not None:
+            last["quantity"] = round(units.vol(su, last["quantity"]), 2)
+        if fuel and last.get("unit_price") is not None:
+            last["unit_price"] = round(units.price(su, last["unit_price"]), 3)
         return {**{k: last.get(k) for k in ("odometer", "station", "address", "quantity", "unit_price", "total", "level_from", "level_to", "quantity_source", "receipt")}, "license_plate": self.v.plate or None}
 
 
@@ -63,12 +70,14 @@ class TankPrice(_Base):
 
     @property
     def native_unit_of_measurement(self):
-        return f"{receipt.currency_symbol(receipt.home_currency(self.hass))}/{self.v.unit}"
+        return f"{receipt.currency_symbol(receipt.home_currency(self.hass))}/{units.vol_unit(self.v.units, self.v.electric)}"
 
     @property
     def native_value(self):
         last = self.v.summary()["last"]
-        return last.get("unit_price") if last else None
+        if not last or last.get("unit_price") is None:
+            return None
+        return last["unit_price"] if self.v.electric else round(units.price(self.v.units, last["unit_price"]), 3)
 
 
 class TankConsumption(_Base):
@@ -77,11 +86,12 @@ class TankConsumption(_Base):
 
     @property
     def native_unit_of_measurement(self):
-        return f"{self.v.unit}/100 km"
+        return units.cons_unit(self.v.units, self.v.electric, self.v.unit)
 
     @property
     def native_value(self):
-        return self.v.summary()["avg_consumption"]
+        c = units.cons(self.v.units, self.v.summary()["avg_consumption"], self.v.electric)
+        return None if c is None else round(c, 2)
 
 
 class TankConsumptionElectric(_Base):
@@ -89,11 +99,14 @@ class TankConsumptionElectric(_Base):
 
     key = "consumption_electric"
     _attr_state_class = SensorStateClass.MEASUREMENT
-    _attr_native_unit_of_measurement = "kWh/100 km"
+    @property
+    def native_unit_of_measurement(self):
+        return units.cons_unit(self.v.units, True)
 
     @property
     def native_value(self):
-        return self.v.summary()["avg_consumption_electric"]
+        c = units.cons(self.v.units, self.v.summary()["avg_consumption_electric"], True)
+        return None if c is None else round(c, 2)
 
 
 class TankCost(_Base):

@@ -261,5 +261,8 @@
  "Heimladung erfasst": "Ricarica domestica registrata",
  "Die gewählte KI hat die Anfrage abgelehnt ({0}). Details stehen im Home-Assistant-Protokoll.": "L'IA selezionata ha rifiutato la richiesta ({0}). I dettagli sono nel registro di Home Assistant.",
  "Keine Währung erkannt, Land nicht ermittelbar: Werte als {0} angenommen. Bitte Währung prüfen.": "Nessuna valuta riconosciuta, paese sconosciuto: valori presunti in {0}. Controllare la valuta.",
- "Beleg in {0}, Umrechnung nicht möglich, Werte nicht in {2}! Original: {1}": "Scontrino in {0}, conversione impossibile, i valori NON sono in {2}! Originale: {1}"
+ "Beleg in {0}, Umrechnung nicht möglich, Werte nicht in {2}! Original: {1}": "Scontrino in {0}, conversione impossibile, i valori NON sono in {2}! Originale: {1}",
+ "Liter": "Litri",
+ "Gallonen": "Galloni",
+ "Einheiten: national oder SI (zum Wechseln klicken)": "Unità: nazionali o SI (clic per cambiare)"
 }

@@ -261,5 +261,8 @@
  "Heimladung erfasst": "Hjemmelading registrert",
  "Die gewählte KI hat die Anfrage abgelehnt ({0}). Details stehen im Home-Assistant-Protokoll.": "Den valgte KI-en avviste forespørselen ({0}). Detaljer finnes i Home Assistant-loggen.",
  "Keine Währung erkannt, Land nicht ermittelbar: Werte als {0} angenommen. Bitte Währung prüfen.": "Ingen valuta gjenkjent, land ukjent: verdier antatt i {0}. Kontroller valutaen.",
- "Beleg in {0}, Umrechnung nicht möglich, Werte nicht in {2}! Original: {1}": "Kvittering i {0}, omregning ikke mulig, verdiene er IKKE i {2}! Original: {1}"
+ "Beleg in {0}, Umrechnung nicht möglich, Werte nicht in {2}! Original: {1}": "Kvittering i {0}, omregning ikke mulig, verdiene er IKKE i {2}! Original: {1}",
+ "Liter": "Liter",
+ "Gallonen": "Gallon",
+ "Einheiten: national oder SI (zum Wechseln klicken)": "Enheter: nasjonale eller SI (klikk for å bytte)"
 }

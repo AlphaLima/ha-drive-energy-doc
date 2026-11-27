@@ -261,5 +261,8 @@
  "Heimladung erfasst": "Doheem-Lueden erfaasst",
  "Die gewählte KI hat die Anfrage abgelehnt ({0}). Details stehen im Home-Assistant-Protokoll.": "Déi gewielte KI huet d'Ufro ofgeleent ({0}). Detailer stinn am Home-Assistant-Protokoll.",
  "Keine Währung erkannt, Land nicht ermittelbar: Werte als {0} angenommen. Bitte Währung prüfen.": "Keng Währung erkannt, Land onbekannt: Wäerter als {0} ugeholl. Währung w.e.g. préiwen.",
- "Beleg in {0}, Umrechnung nicht möglich, Werte nicht in {2}! Original: {1}": "Bong an {0}, Ëmrechnung net méiglech, Wäerter NET an {2}! Original: {1}"
+ "Beleg in {0}, Umrechnung nicht möglich, Werte nicht in {2}! Original: {1}": "Bong an {0}, Ëmrechnung net méiglech, Wäerter NET an {2}! Original: {1}",
+ "Liter": "Liter",
+ "Gallonen": "Gallonen",
+ "Einheiten: national oder SI (zum Wechseln klicken)": "Eenheeten: national oder SI (klicken fir ze wiesselen)"
 }

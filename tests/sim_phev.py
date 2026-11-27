@@ -89,6 +89,7 @@ class V2:
         self._pos = (51.0, 6.0)
         self.said = []
     def _read_float(self, x): return 50000.0 if x == "sensor.km" else None
+    def _read_odo(self): return self._read_float("sensor.km")
     def _read_pos(self): return self._pos
     def _save(self): pass
     def _notify_entities(self): pass

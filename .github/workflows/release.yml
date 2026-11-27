@@ -33,10 +33,21 @@ jobs:
             echo "Tag $TAG does not match manifest version v$v"
             exit 1
           fi
-      - name: Create the release
+      - name: Build the zip for HACS
+        # HACS installs from this file (hacs.json: zip_release) and shows its download count in the store.
+        # The zip holds the content of custom_components/drive_energy_doc at its root.
+        run: |
+          cd custom_components/drive_energy_doc
+          zip -r -X "$GITHUB_WORKSPACE/drive_energy_doc.zip" . -x "__pycache__/*" "*/__pycache__/*" "*.pyc"
+      - name: Create the release (or replace the zip of an existing one)
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           # tags like v1.17.0b1 are PRE-releases: only people who enabled "show beta versions" in HACS see them
           if [[ "$TAG" =~ [0-9](a|b|rc)[0-9]+$ ]]; then FLAG="--prerelease"; else FLAG="--latest"; fi
-          gh release create "$TAG" --title "$TAG" --generate-notes $FLAG
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            # tag moved to a new commit (beta overwritten): keep the release, replace the zip
+            gh release upload "$TAG" drive_energy_doc.zip --clobber
+          else
+            gh release create "$TAG" drive_energy_doc.zip --title "$TAG" --generate-notes $FLAG
+          fi

@@ -261,5 +261,8 @@
  "Heimladung erfasst": "Iċ-ċarġ fid-dar ġie rreġistrat",
  "Die gewählte KI hat die Anfrage abgelehnt ({0}). Details stehen im Home-Assistant-Protokoll.": "L-IA magħżula ċaħdet it-talba ({0}). Id-dettalji jinsabu fil-log ta' Home Assistant.",
  "Keine Währung erkannt, Land nicht ermittelbar: Werte als {0} angenommen. Bitte Währung prüfen.": "L-ebda munita ma ġiet rikonoxxuta, pajjiż mhux magħruf: il-valuri meqjusa f'{0}. Iċċekkja l-munita.",
- "Beleg in {0}, Umrechnung nicht möglich, Werte nicht in {2}! Original: {1}": "Irċevuta f'{0}, il-konverżjoni mhix possibbli, il-valuri MHUMIEX f'{2}! Oriġinali: {1}"
+ "Beleg in {0}, Umrechnung nicht möglich, Werte nicht in {2}! Original: {1}": "Irċevuta f'{0}, il-konverżjoni mhix possibbli, il-valuri MHUMIEX f'{2}! Oriġinali: {1}",
+ "Liter": "Litri",
+ "Gallonen": "Galuni",
+ "Einheiten: national oder SI (zum Wechseln klicken)": "Unitajiet: nazzjonali jew SI (ikklikkja biex tibdel)"
 }

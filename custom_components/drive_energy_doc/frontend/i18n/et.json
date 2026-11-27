@@ -261,5 +261,8 @@
  "Heimladung erfasst": "Kodune laadimine salvestatud",
  "Die gewählte KI hat die Anfrage abgelehnt ({0}). Details stehen im Home-Assistant-Protokoll.": "Valitud tehisintellekt lükkas päringu tagasi ({0}). Üksikasjad on Home Assistanti logis.",
  "Keine Währung erkannt, Land nicht ermittelbar: Werte als {0} angenommen. Bitte Währung prüfen.": "Valuutat ei tuvastatud, riik teadmata: väärtused eeldatud valuutas {0}. Kontrollige valuutat.",
- "Beleg in {0}, Umrechnung nicht möglich, Werte nicht in {2}! Original: {1}": "Tšekk valuutas {0}, teisendamine pole võimalik, väärtused EI OLE valuutas {2}! Originaal: {1}"
+ "Beleg in {0}, Umrechnung nicht möglich, Werte nicht in {2}! Original: {1}": "Tšekk valuutas {0}, teisendamine pole võimalik, väärtused EI OLE valuutas {2}! Originaal: {1}",
+ "Liter": "Liitrid",
+ "Gallonen": "Gallonid",
+ "Einheiten: national oder SI (zum Wechseln klicken)": "Ühikud: riiklikud või SI (klõpsake vahetamiseks)"
 }

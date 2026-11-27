@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.1.87b4 (Beta, 27.11.2026)
+- HACS: Jedes Release bekommt die Datei `drive_energy_doc.zip` (Inhalt von `custom_components/drive_energy_doc`), HACS installiert daraus (`zip_release` in hacs.json) und zeigt im Store die Zahl der Downloads. Wird der Tag einer Beta verschoben, ersetzt der Release-Workflow nur die ZIP-Datei, statt mit „Release existiert schon“ abzubrechen.
+- Imperiale Einheiten: Ist Home Assistant auf das imperiale Einheitensystem gestellt, zeigt DED Meilen, Gallonen und mpg (USA: US-Gallone; GB: Meilen und mpg mit britischer Gallone, getankt wird weiter in Litern), Stromverbrauch in kWh/100 mi. Gespeichert wird weiter metrisch (km, Liter), umgerechnet wird nur bei Ein- und Ausgabe: Kilometerstand-Sensor in Meilen, Belege in Gallonen (die Beleg-KI liest die Einheit mit), getippte Werte und Tacho-Fotos, Panel (Liste, Summen, Auswertung, Druck, Bearbeiten), Messenger-Texte, CSV-Export und Sensoren (Verbrauch, Preis, letzter Tankvorgang). Im Panel schaltet ein Knopf „US“/„UK“ ↔ „SI“ in der Werkzeugleiste die Anzeige auf metrische Einheiten um (je Browser gemerkt, nur sichtbar, wenn HA nicht metrisch eingestellt ist).
+- Liste: Spaltenüberschriften (Symbole) zentriert.
+- Liste: Spalte „Tankstelle“ mit Zapfsäulen-Symbol (bei E-Autos Ladesäule mit Blitz, bei Plug-in-Hybriden beide) statt Ortsmarke; „Menge“ als „Liter/l“ bzw. „kWh“ (rechtsbündig), „km“ und „l/100 km“ ohne Symbol, Betrag als „Σ/€“, nur als Text.
+- Liste: Einheiten stehen in der Spaltenüberschrift als „Symbol/Einheit“ (z. B. /km, /l, /l/100 km, /kWh, /kW, /%), die Zellen zeigen nur noch die Zahl; abweichende Einheiten (PHEV-Strom in kWh, Zubehör in Stück) bleiben an der Zahl. In der Kartenansicht am Handy stehen die Einheiten weiter an den Zahlen.
+
 ## 0.1.87b3 (Beta, 27.11.2026)
 - Installationen außerhalb des Euroraums (z. B. GB): Beträge werden jetzt in die in Home Assistant eingestellte Währung (Einstellungen → System → Allgemein) umgerechnet statt immer in Euro; Euro-Belege werden dort wie jede Fremdwährung zum EZB-Tageskurs umgerechnet. Panel, Druck, Messenger-Texte und Sensoren (Preis, Kosten 12 Monate) zeigen die Hauswährung (£, $, CHF …). Für Euro-Installationen ändert sich nichts.
 - Menü-Button am Handy erschien in b3 nicht: HA setzte `narrow` vor dem Laden der Panel-Datei, der Wert verdeckte den Setter (wie früher bei `hass`); wird jetzt beim Einhängen übernommen. Das Logo wird nicht mehr links abgeschnitten.

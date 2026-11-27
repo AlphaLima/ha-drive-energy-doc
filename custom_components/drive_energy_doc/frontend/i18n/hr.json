@@ -261,5 +261,8 @@
  "Heimladung erfasst": "Kućno punjenje zabilježeno",
  "Die gewählte KI hat die Anfrage abgelehnt ({0}). Details stehen im Home-Assistant-Protokoll.": "Odabrana UI odbila je zahtjev ({0}). Pojedinosti su u zapisniku Home Assistanta.",
  "Keine Währung erkannt, Land nicht ermittelbar: Werte als {0} angenommen. Bitte Währung prüfen.": "Valuta nije prepoznata, zemlja nepoznata: vrijednosti pretpostavljene u {0}. Provjerite valutu.",
- "Beleg in {0}, Umrechnung nicht möglich, Werte nicht in {2}! Original: {1}": "Račun u {0}, preračunavanje nije moguće, vrijednosti NISU u {2}! Izvornik: {1}"
+ "Beleg in {0}, Umrechnung nicht möglich, Werte nicht in {2}! Original: {1}": "Račun u {0}, preračunavanje nije moguće, vrijednosti NISU u {2}! Izvornik: {1}",
+ "Liter": "Litre",
+ "Gallonen": "Galoni",
+ "Einheiten: national oder SI (zum Wechseln klicken)": "Jedinice: nacionalne ili SI (kliknite za promjenu)"
 }

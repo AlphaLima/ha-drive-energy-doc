@@ -261,5 +261,8 @@
  "Heimladung erfasst": "Karikimi në shtëpi u regjistrua",
  "Die gewählte KI hat die Anfrage abgelehnt ({0}). Details stehen im Home-Assistant-Protokoll.": "IA e zgjedhur e refuzoi kërkesën ({0}). Detajet janë në regjistrin e Home Assistant.",
  "Keine Währung erkannt, Land nicht ermittelbar: Werte als {0} angenommen. Bitte Währung prüfen.": "Asnjë monedhë nuk u njoh, vend i panjohur: vlerat u morën në {0}. Kontrolloni monedhën.",
- "Beleg in {0}, Umrechnung nicht möglich, Werte nicht in {2}! Original: {1}": "Faturë në {0}, konvertimi nuk është i mundur, vlerat NUK janë në {2}! Origjinali: {1}"
+ "Beleg in {0}, Umrechnung nicht möglich, Werte nicht in {2}! Original: {1}": "Faturë në {0}, konvertimi nuk është i mundur, vlerat NUK janë në {2}! Origjinali: {1}",
+ "Liter": "Litra",
+ "Gallonen": "Galona",
+ "Einheiten: national oder SI (zum Wechseln klicken)": "Njësitë: kombëtare ose SI (klikoni për të ndërruar)"
 }

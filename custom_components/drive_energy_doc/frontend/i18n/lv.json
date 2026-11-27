@@ -261,5 +261,8 @@
  "Heimladung erfasst": "Mājas uzlāde reģistrēta",
  "Die gewählte KI hat die Anfrage abgelehnt ({0}). Details stehen im Home-Assistant-Protokoll.": "Izvēlētais MI noraidīja pieprasījumu ({0}). Sīkāka informācija ir Home Assistant žurnālā.",
  "Keine Währung erkannt, Land nicht ermittelbar: Werte als {0} angenommen. Bitte Währung prüfen.": "Valūta nav atpazīta, valsts nezināma: vērtības pieņemtas {0}. Pārbaudiet valūtu.",
- "Beleg in {0}, Umrechnung nicht möglich, Werte nicht in {2}! Original: {1}": "Čeks valūtā {0}, konvertēšana nav iespējama, vērtības NAV valūtā {2}! Oriģināls: {1}"
+ "Beleg in {0}, Umrechnung nicht möglich, Werte nicht in {2}! Original: {1}": "Čeks valūtā {0}, konvertēšana nav iespējama, vērtības NAV valūtā {2}! Oriģināls: {1}",
+ "Liter": "Litri",
+ "Gallonen": "Galoni",
+ "Einheiten: national oder SI (zum Wechseln klicken)": "Mērvienības: nacionālās vai SI (noklikšķiniet, lai pārslēgtu)"
 }

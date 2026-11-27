@@ -261,5 +261,8 @@
  "Heimladung erfasst": "Recharge à domicile enregistrée",
  "Die gewählte KI hat die Anfrage abgelehnt ({0}). Details stehen im Home-Assistant-Protokoll.": "L'IA sélectionnée a refusé la requête ({0}). Les détails figurent dans le journal de Home Assistant.",
  "Keine Währung erkannt, Land nicht ermittelbar: Werte als {0} angenommen. Bitte Währung prüfen.": "Aucune devise reconnue, pays inconnu : valeurs supposées en {0}. Vérifiez la devise.",
- "Beleg in {0}, Umrechnung nicht möglich, Werte nicht in {2}! Original: {1}": "Ticket en {0}, conversion impossible, valeurs pas en {2} ! Original : {1}"
+ "Beleg in {0}, Umrechnung nicht möglich, Werte nicht in {2}! Original: {1}": "Ticket en {0}, conversion impossible, valeurs pas en {2} ! Original : {1}",
+ "Liter": "Litres",
+ "Gallonen": "Gallons",
+ "Einheiten: national oder SI (zum Wechseln klicken)": "Unités : nationales ou SI (cliquer pour changer)"
 }
