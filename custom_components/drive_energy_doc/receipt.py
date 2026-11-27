@@ -349,7 +349,34 @@ INSTRUCTIONS_JSON = INSTRUCTIONS + (
     + "; ".join(f'"{k}": {v["description"]}' for k, v in STRUCTURE.items())
 )
 
-_NO_SCHEMA: set[str] = set()   # KI-Entitäten, die die strukturierte Abfrage abgelehnt haben (bis zum Neustart gemerkt)
+_NO_SCHEMA: set[str] = set()   # KI-Entitäten, die die strukturierte Abfrage abgelehnt haben (dauerhaft gemerkt, siehe _no_schema_load)
+_NO_SCHEMA_LOADED = False
+
+
+def _no_schema_store(hass):
+    from homeassistant.helpers.storage import Store
+
+    return Store(hass, 1, "drive_energy_doc.ai_no_schema")
+
+
+async def _no_schema_load(hass) -> None:
+    """Gemerkte KI-Entitäten ohne strukturierte Abfrage laden (einmal je HA-Start): sonst käme nach jedem Neustart die erste Anfrage wieder mit 400 zurück."""
+    global _NO_SCHEMA_LOADED
+    if _NO_SCHEMA_LOADED:
+        return
+    _NO_SCHEMA_LOADED = True
+    try:
+        data = await _no_schema_store(hass).async_load() or {}
+        _NO_SCHEMA.update(e for e in data.get("entities", []) if isinstance(e, str))
+    except Exception as err:  # noqa: BLE001 - dann wird eben einmal neu probiert
+        _LOGGER.debug("Beleg-KI: gemerkte Abfrageart nicht lesbar: %r", err)
+
+
+async def _no_schema_save(hass) -> None:
+    try:
+        await _no_schema_store(hass).async_save({"entities": sorted(_NO_SCHEMA)})
+    except Exception as err:  # noqa: BLE001
+        _LOGGER.debug("Beleg-KI: Abfrageart nicht gespeichert: %r", err)
 
 
 def parse_json_answer(text: Any) -> dict[str, Any]:
@@ -402,6 +429,7 @@ async def ai_read(hass, entity_id: str, image: bytes, media_dir: Path, pos: tupl
     await hass.async_add_executor_job(_write)
     t_ai = time.monotonic()
     resp = None
+    await _no_schema_load(hass)
     structured = entity_id not in _NO_SCHEMA
     try:
         waits = [4, 10, None]
@@ -439,7 +467,8 @@ async def ai_read(hass, entity_id: str, image: bytes, media_dir: Path, pos: tupl
                 await asyncio.sleep(wait)
         if not structured and entity_id not in _NO_SCHEMA and resp is not None:
             _NO_SCHEMA.add(entity_id)
-            _LOGGER.info("Beleg-KI %s: strukturierte Abfrage abgelehnt, ab jetzt JSON als Text", entity_id)
+            await _no_schema_save(hass)
+            _LOGGER.info("Beleg-KI %s: strukturierte Abfrage abgelehnt, ab jetzt dauerhaft JSON als Text", entity_id)
     finally:
         await hass.async_add_executor_job(lambda: (folder / name).unlink(missing_ok=True))
     ai_secs = round(time.monotonic() - t_ai, 1)

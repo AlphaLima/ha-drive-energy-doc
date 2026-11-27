@@ -5,7 +5,7 @@ const FUEL_GRADES = { diesel: "Diesel", diesel_premium: "Diesel Premium", e10: "
 const COLS = ["nr", "date", "start", "end", "lfrom", "lto", "km", "station", "qty", "ctype", "kcar", "kwb", "pavg", "ppk", "price", "total", "cons", "sol", "loss", "receipt", "note", "act"];
 const DEF_HIDE = ["start", "end", "lfrom", "lto", "ctype", "kcar", "kwb", "pavg", "ppk"];   // Laden von / bis: vorhanden, aber zunächst ausgeblendet
 
-const VERSION = "0.1.87b1";
+const VERSION = "0.1.87b2";
 
 class DriveEnergyDocPanel extends HTMLElement {
   set hass(h) {

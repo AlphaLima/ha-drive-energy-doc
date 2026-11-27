@@ -188,3 +188,20 @@ def test_safe_photo_name():
         assert r.safe_photo_name(ok)
     for bad in ("../../../configuration.yaml", "..", "a/b.jpg", r"a\b.jpg", "C:x.jpg", ".hidden", "", None, 5, "x" * 300):
         assert not r.safe_photo_name(bad), bad
+
+def test_no_schema_persists():
+    import asyncio
+    saved = {}
+    class FakeStore:
+        async def async_load(self): return saved.get("d")
+        async def async_save(self, d): saved["d"] = d
+    old = r._no_schema_store
+    r._no_schema_store = lambda hass: FakeStore()
+    try:
+        r._NO_SCHEMA.clear(); r._NO_SCHEMA.add("ai_task.claude_ai_task")
+        asyncio.run(r._no_schema_save(None))
+        r._NO_SCHEMA.clear(); r._NO_SCHEMA_LOADED = False   # wie nach einem HA-Neustart
+        asyncio.run(r._no_schema_load(None))
+        assert "ai_task.claude_ai_task" in r._NO_SCHEMA
+    finally:
+        r._no_schema_store = old; r._NO_SCHEMA.clear(); r._NO_SCHEMA_LOADED = False

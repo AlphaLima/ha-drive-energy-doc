@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.1.87b2 (Beta, 27.11.2026)
+- Beleg-KI mit Claude: Den Rückfall auf „JSON als Text“ merkt sich DED jetzt dauerhaft (`.storage/drive_energy_doc.ai_no_schema`), nicht nur bis zum nächsten Neustart; die erste Anfrage nach einem HA-Neustart läuft nicht mehr erst in den 400-Fehler.
+
 ## 0.1.87b1 (Beta, 26.11.2026)
 - Beleg-KI mit Claude (offizielle Anthropic-Integration): Die Anthropic-API lehnte die strukturierte Abfrage mit „Schema is too complex“ ab (zu viele optionale Felder), es wurde kein Beleg erkannt. Lehnt eine KI die Abfrage ab, fragt DED jetzt einmal ohne `structure` nach, verlangt dieselben Felder als JSON und liest die Antwort selbst; das bleibt für diese KI bis zum nächsten Neustart so. Gemini und OpenAI laufen unverändert.
 - Lehnt die KI eine Anfrage trotzdem ab (z. B. Konto oder Einstellungen der KI), sagt DED das jetzt im Messenger und im Panel („Die gewählte KI hat die Anfrage abgelehnt …“), statt still „nichts lesbar“ zu melden; das Foto wird dann nicht abgelegt.
