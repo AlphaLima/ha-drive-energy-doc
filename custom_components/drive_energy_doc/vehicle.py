@@ -1041,11 +1041,11 @@ class Vehicle:
         if e.get("quantity") or not extra:
             lines.append(f"{q} ({lv}{self.tr(e['quantity_source'])})")
         if e.get("unit_price"):
-            lines.append(self._dec(f"{e['unit_price']:.3f} €{'/' + unit if unit else ''} ({self.tr(e.get('price_source') or '?')})"))
+            lines.append(self._dec(f"{e['unit_price']:.3f} {self._sym()}{'/' + unit if unit else ''} ({self.tr(e.get('price_source') or '?')})"))
         if e.get("total"):
-            lines.append(self.tr("Summe {0} €", self._dec(f"{e['total']:.2f}")))
+            lines.append(self.tr("Summe {0} €", self._dec(f"{e['total']:.2f}")).replace("€", self._sym()))
         if e.get("note"):
-            lines.append("💱 " + e["note"] if "EZB" in e["note"] or "EUR" in e["note"] else "📝 " + e["note"])
+            lines.append("💱 " + e["note"] if (e.get("orig") or {}).get("note") or "EZB" in e["note"] or "EUR" in e["note"] else "📝 " + e["note"])
         return "\n".join(lines)
 
     async def handle_message(self, msg: dict[str, Any]) -> None:
@@ -1153,6 +1153,10 @@ class Vehicle:
 
     def tr(self, key: str, *args) -> str:
         return messages.tr(self.lang, key, *args)
+
+    def _sym(self) -> str:
+        """Kurzzeichen der Hauswährung (€, £ …) für Texte an den Nutzer."""
+        return receipt.currency_symbol(receipt.home_currency(self.hass))
 
     def _dec(self, s: str) -> str:
         return s.replace(".", messages.decimal(self.lang))
@@ -1598,7 +1602,7 @@ class Vehicle:
     async def _ask_duplicate(self, target: dict, values: dict, photo: str | None) -> None:
         """Gleicher Beleg noch einmal geschickt: ja = dem vorhandenen Eintrag zuordnen (Foto kommt dazu), nein = verwerfen. Es entsteht kein zweiter Eintrag."""
         when = dt_util.as_local(dt_util.utc_from_timestamp(target["ts"])).strftime("%d.%m.%Y %H:%M")
-        have = ", ".join(x for x in (self._dec(f"{target['quantity']:.2f}") + f" {self.unit_of(target)}" if target.get("quantity") else "", self._dec(f"{target['total']:.2f}") + " €" if target.get("total") else "") if x)
+        have = ", ".join(x for x in (self._dec(f"{target['quantity']:.2f}") + f" {self.unit_of(target)}" if target.get("quantity") else "", self._dec(f"{target['total']:.2f}") + " " + self._sym() if target.get("total") else "") if x)
         self.data["awaiting_overwrite"] = {"id": target["id"], "values": {k: (v if k != "date" else None) for k, v in values.items()}, "photo": photo, "ts": time.time()}
         self._save()
         await self._say(self.tr("Dieser Beleg ist schon eingetragen (Eintrag vom {0}: {1}). Antworte „ja“, um ihn trotzdem zu überschreiben, oder „nein“.", when, have))
@@ -1686,7 +1690,7 @@ class Vehicle:
         if target.get("receipt") and (values.get("quantity") or values.get("total")):
             same = abs((target.get("quantity") or 0) - (values.get("quantity") or 0)) < 0.011 and abs((target.get("total") or 0) - (values.get("total") or 0)) < 0.011
             when = dt_util.as_local(dt_util.utc_from_timestamp(target["ts"])).strftime("%d.%m.%Y %H:%M")
-            have = ", ".join(x for x in (self._dec(f"{target['quantity']:.2f}") + f" {self.unit_of(target)}" if target.get("quantity") else "", self._dec(f"{target['total']:.2f}") + " €" if target.get("total") else "") if x)
+            have = ", ".join(x for x in (self._dec(f"{target['quantity']:.2f}") + f" {self.unit_of(target)}" if target.get("quantity") else "", self._dec(f"{target['total']:.2f}") + " " + self._sym() if target.get("total") else "") if x)
             self.data["awaiting_overwrite"] = {"id": target["id"], "values": {k: (v if k != "date" else None) for k, v in values.items()}, "photo": photo, "ts": time.time()}
             self._save()
             key = "Dieser Beleg ist schon eingetragen (Eintrag vom {0}: {1}). Antworte „ja“, um ihn trotzdem zu überschreiben, oder „nein“." if same else "Es gibt schon einen Beleg-Eintrag vom {0} ({1}). Antworte „ja“, um ihn mit dem neuen Beleg zu überschreiben, oder „nein“."
@@ -1770,18 +1774,23 @@ class Vehicle:
         if orig.get("unit_price"):
             parts.append(self.tr("Preis {0}", f"{f(orig['unit_price'], 3)} {orig['currency']}"))
         original = ", ".join(parts)
+        home = receipt.home_currency(self.hass)
         if orig.get("unknown"):
+            if home != "EUR":
+                return "⚠ " + self.tr("Keine Währung erkannt, Land nicht ermittelbar: Werte als {0} angenommen. Bitte Währung prüfen.", home)
             return "⚠ " + self.tr("Keine Währung erkannt, Land nicht ermittelbar: Werte als Euro angenommen. Bitte Währung prüfen.")
         hint = (self.tr("Währung manuell gesetzt: {0}.", orig["currency"]) + " ") if orig.get("manual") else ""
         if orig.get("assumed"):
             hint = self.tr("Keine Währung erkannt, Landeswährung {0} angenommen ({1}).", orig["currency"], orig["assumed"]) + " "   # Währung aus dem Land der GPS-Position
-        if orig.get("currency") == "EUR":
+        if orig.get("currency") == home:
             return hint.strip()
         if not orig.get("rate"):
+            if home != "EUR":
+                return hint + self.tr("Beleg in {0}, Umrechnung nicht möglich, Werte nicht in {2}! Original: {1}", orig["currency"], original, home)
             return hint + self.tr("Beleg in {0}, Umrechnung nicht möglich, Werte nicht in Euro! Original: {1}", orig["currency"], original)
         day = dt_util.parse_date(orig["date"]) if orig.get("date") else None
         eur = f"{receipt.round_half_up(orig['total'] / orig['rate'], 2):.2f}".replace(".", dec) if orig.get("total") else "?"
-        return hint + self.tr("Original: {0} → {4} € · Kurs: 1 EUR = {1} {2} (EZB, {3})", original, f(orig["rate"], 4), orig["currency"], day.strftime("%d.%m.%Y") if day else orig.get("date") or "", eur)
+        return hint + self.tr("Original: {0} → {4} € · Kurs: 1 EUR = {1} {2} (EZB, {3})", original, f(orig["rate"], 4), orig["currency"], day.strftime("%d.%m.%Y") if day else orig.get("date") or "", eur).replace("1 EUR", f"1 {home}").replace("€", self._sym())
 
     async def set_currency(self, entry_id: str, currency: str) -> bool:
         """Währung eines Belegs von Hand ändern (z. B. wenn sie nicht erkannt wurde): Betrag und Preis werden aus den Originalwerten zum Tageskurs neu umgerechnet, die Notiz wird ersetzt."""
@@ -1792,9 +1801,10 @@ class Vehicle:
             return False
         total, price = o.get("total"), o.get("unit_price")
         rate, day = None, None
-        if cur != "EUR":
+        home = receipt.home_currency(self.hass)
+        if cur != home:
             on = dt_util.as_local(dt_util.utc_from_timestamp(e["ts"])).date()
-            got = await receipt.eur_rate(self.hass, cur, on)
+            got = await receipt.eur_rate(self.hass, cur, on, home)
             if got:
                 rate, day = got
         new = {"currency": cur, "total": total, "unit_price": price, "rate": rate, "date": day, "assumed": None, "manual": True}

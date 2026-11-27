@@ -261,5 +261,7 @@
  "Ladung jetzt abschließen": "Завершить зарядку сейчас",
  "Laufende Ladung jetzt abschließen? Lädt das Auto weiter, beginnt danach eine neue Ladung.": "Завершить текущую зарядку сейчас? Если автомобиль продолжит заряжаться, начнётся новая зарядка.",
  "Heimladung erfasst": "Домашняя зарядка записана",
- "Die gewählte KI hat die Anfrage abgelehnt ({0}). Details stehen im Home-Assistant-Protokoll.": "Выбранный ИИ отклонил запрос ({0}). Подробности в журнале Home Assistant."
+ "Die gewählte KI hat die Anfrage abgelehnt ({0}). Details stehen im Home-Assistant-Protokoll.": "Выбранный ИИ отклонил запрос ({0}). Подробности в журнале Home Assistant.",
+ "Keine Währung erkannt, Land nicht ermittelbar: Werte als {0} angenommen. Bitte Währung prüfen.": "Валюта не распознана, страна неизвестна: значения приняты в {0}. Проверьте валюту.",
+ "Beleg in {0}, Umrechnung nicht möglich, Werte nicht in {2}! Original: {1}": "Чек в {0}, пересчёт невозможен, значения НЕ в {2}! Оригинал: {1}"
 }

@@ -259,5 +259,7 @@
  "Ladung jetzt abschließen": "Töltés lezárása most",
  "Laufende Ladung jetzt abschließen? Lädt das Auto weiter, beginnt danach eine neue Ladung.": "Lezárja most a folyamatban lévő töltést? Ha az autó tovább töltődik, utána új töltés kezdődik.",
  "Heimladung erfasst": "Otthoni töltés rögzítve",
- "Die gewählte KI hat die Anfrage abgelehnt ({0}). Details stehen im Home-Assistant-Protokoll.": "A kiválasztott MI elutasította a kérést ({0}). A részletek a Home Assistant naplójában találhatók."
+ "Die gewählte KI hat die Anfrage abgelehnt ({0}). Details stehen im Home-Assistant-Protokoll.": "A kiválasztott MI elutasította a kérést ({0}). A részletek a Home Assistant naplójában találhatók.",
+ "Keine Währung erkannt, Land nicht ermittelbar: Werte als {0} angenommen. Bitte Währung prüfen.": "Nem ismert fel pénznemet, az ország ismeretlen: az értékek {0} pénznemben feltételezve. Ellenőrizze a pénznemet.",
+ "Beleg in {0}, Umrechnung nicht möglich, Werte nicht in {2}! Original: {1}": "Bizonylat {0} pénznemben, az átváltás nem lehetséges, az értékek NEM {2} pénznemben vannak! Eredeti: {1}"
 }

@@ -182,16 +182,30 @@ def repair_value(values: dict[str, Any]) -> bool:
 _RATES: dict[tuple[str, str], tuple[float, str]] = {}
 
 
-async def eur_rate(hass, currency: str, on: date | None) -> tuple[float, str] | None:
-    """Tageskurs (EZB, über frankfurter.dev): 1 EUR = x Fremdwährung am Tag ``on`` (Wochenende/Feiertag: letzter Handelstag davor). None = nicht verfügbar."""
-    key = (currency, (on or date.today()).isoformat())
+SYMBOLS = {"EUR": "€", "GBP": "£", "USD": "$", "JPY": "¥", "CNY": "¥", "INR": "₹", "TRY": "₺", "UAH": "₴", "PLN": "zł", "KRW": "₩", "ILS": "₪", "AUD": "A$", "CAD": "C$", "NZD": "NZ$", "BRL": "R$"}
+
+
+def home_currency(hass) -> str:
+    """Währung der Installation (Einstellungen → System → Allgemein → Währung); Beträge werden in diese Währung umgerechnet."""
+    c = str(getattr(getattr(hass, "config", None), "currency", "") or "EUR").strip().upper()
+    return c if re.fullmatch(r"[A-Z]{3}", c) else "EUR"
+
+
+def currency_symbol(code: str) -> str:
+    """Kurzzeichen für die Anzeige (€, £, $ …), sonst der ISO-Code (CHF, SEK …)."""
+    return SYMBOLS.get(code, code)
+
+
+async def eur_rate(hass, currency: str, on: date | None, base: str = "EUR") -> tuple[float, str] | None:
+    """Tageskurs (EZB, über frankfurter.dev): 1 ``base`` (Hauswährung) = x Fremdwährung am Tag ``on`` (Wochenende/Feiertag: letzter Handelstag davor). None = nicht verfügbar."""
+    key = (currency, (on or date.today()).isoformat(), base)
     if key in _RATES:
         return _RATES[key]
     from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
     try:
         async with asyncio.timeout(15):
-            r = await async_get_clientsession(hass).get(f"https://api.frankfurter.dev/v1/{key[1]}", params={"base": "EUR", "symbols": currency})
+            r = await async_get_clientsession(hass).get(f"https://api.frankfurter.dev/v1/{key[1]}", params={"base": base, "symbols": currency})
             if r.status != 200:
                 return None
             j = await r.json()
@@ -273,7 +287,9 @@ def round_half_up(x: float, digits: int = 2) -> float:
 
 
 async def convert_to_eur(hass, out: dict[str, Any], pos: tuple[float, float] | None = None, exif: tuple[float, float] | None = None) -> None:
-    """Betrag und Preis eines Belegs in Fremdwährung zum Tageskurs des Belegdatums in Euro umrechnen. Die Originalwerte stehen danach in ``out["orig"]`` (für die Notiz)."""
+    """Betrag und Preis eines Belegs in Fremdwährung zum Tageskurs des Belegdatums in die Hauswährung der Installation umrechnen (meist Euro, in GB Pfund usw.).
+    Die Originalwerte stehen danach in ``out["orig"]`` (für die Notiz)."""
+    home = home_currency(hass)
     cur = str(out.get("currency") or "").strip().upper().replace("€", "EUR").replace("£", "GBP")   # „eur“, „€“ usw. nicht als Fremdwährung behandeln
     assumed = None
     d = out.get("date")
@@ -284,18 +300,18 @@ async def convert_to_eur(hass, out: dict[str, Any], pos: tuple[float, float] | N
         for p, today_only in ((pos, True), (exif, False)):
             if p and not got and (not today_only or d is None or abs((date.today() - d).days) <= 1):
                 got = await assumed_currency(hass, p)
-        if got and got[0] != "EUR":
+        if got and got[0] != home:
             cur, assumed = got
         elif not got:
             out["currency"] = ""
             out["orig"] = {"currency": None, "total": out.get("total"), "unit_price": out.get("unit_price"), "rate": None, "date": None, "assumed": None, "unknown": True}   # Warnung in der Notiz, Währung von Hand wählbar
             return
     out["currency"] = cur
-    if not cur or cur == "EUR" or not amounts:
+    if not cur or cur == home or not amounts:
         return
     orig = {"currency": cur, "total": out.get("total"), "unit_price": out.get("unit_price"), "rate": None, "date": None, "assumed": assumed}
     out["orig"] = orig
-    got = await eur_rate(hass, cur, out.get("date"))
+    got = await eur_rate(hass, cur, out.get("date"), home)
     if not got:
         return   # nicht umgerechnet: die Notiz weist darauf hin
     rate, day = got
@@ -315,7 +331,7 @@ STRUCTURE = {
     "category": {"description": "What was bought. One of: fuel (petrol, diesel, LPG, CNG, hydrogen), charging (EV electricity), adblue (AdBlue / DEF / urea), oil (engine oil), washer (windscreen washer fluid), carwash (car wash), other (anything else for the car, e.g. wiper blades, bulbs, cleaner). Use fuel if the receipt shows fuel, even with a shop item on it.", "required": False, "selector": {"text": {}}},
     "item": {"description": "For category other only: short name of the main article as printed, empty otherwise", "required": False, "selector": {"text": {}}},
     "quantity": {"description": "Amount of fuel (litres) or energy (kWh) as a number, dot as decimal separator", "required": False, "selector": {"number": {"mode": "box", "step": "any"}}},
-    "unit_price": {"description": "Price per litre or per kWh as a number (currency of the receipt, normally EUR)", "required": False, "selector": {"number": {"mode": "box", "step": "any"}}},
+    "unit_price": {"description": "Price per litre or per kWh as a number (currency of the receipt)", "required": False, "selector": {"number": {"mode": "box", "step": "any"}}},
     "total": {"description": "Total amount paid as a number", "required": False, "selector": {"number": {"mode": "box", "step": "any"}}},
     "odometer": {"description": "Total odometer reading in km as a number (NOT the trip meter). Two cases: (1) a photo of a car instrument cluster or dashboard: read the digit display of the odometer (usually 5-6 digits, often marked total or km), no text label is needed; (2) a receipt: only if a line is explicitly labelled Kilometerstand, km-Stand, Odometer, Mileage or Compteur - never a receipt number, pump number, card number, customer number, phone number, date or time. Empty if neither case applies.", "required": False, "selector": {"number": {"mode": "box", "step": "any"}}},
     "date": {"description": "Date of the transaction as DD.MM.YYYY, empty if not readable", "required": False, "selector": {"text": {}}},
@@ -495,7 +511,7 @@ async def ai_read(hass, entity_id: str, image: bytes, media_dir: Path, pos: tupl
         return None   # ein Tacho-Foto hat nur den Kilometerstand
     if not plausible(out) and not out["odometer"]:
         _LOGGER.warning("Beleg-KI: Werte passen nicht zusammen: Menge %s, Preis %s, Betrag %s", out["quantity"], out["unit_price"], out["total"])
-    await convert_to_eur(hass, out, pos, exif)   # Fremdwährung: zum Tageskurs des Belegdatums in Euro
+    await convert_to_eur(hass, out, pos, exif)   # Fremdwährung: zum Tageskurs des Belegdatums in die Hauswährung
     return out
 
 

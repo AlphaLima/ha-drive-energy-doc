@@ -259,5 +259,7 @@
  "Ladung jetzt abschließen": "Termina la ricarica ora",
  "Laufende Ladung jetzt abschließen? Lädt das Auto weiter, beginnt danach eine neue Ladung.": "Terminare ora la ricarica in corso? Se l'auto continua a caricare, inizia poi una nuova ricarica.",
  "Heimladung erfasst": "Ricarica domestica registrata",
- "Die gewählte KI hat die Anfrage abgelehnt ({0}). Details stehen im Home-Assistant-Protokoll.": "L'IA selezionata ha rifiutato la richiesta ({0}). I dettagli sono nel registro di Home Assistant."
+ "Die gewählte KI hat die Anfrage abgelehnt ({0}). Details stehen im Home-Assistant-Protokoll.": "L'IA selezionata ha rifiutato la richiesta ({0}). I dettagli sono nel registro di Home Assistant.",
+ "Keine Währung erkannt, Land nicht ermittelbar: Werte als {0} angenommen. Bitte Währung prüfen.": "Nessuna valuta riconosciuta, paese sconosciuto: valori presunti in {0}. Controllare la valuta.",
+ "Beleg in {0}, Umrechnung nicht möglich, Werte nicht in {2}! Original: {1}": "Scontrino in {0}, conversione impossibile, i valori NON sono in {2}! Originale: {1}"
 }

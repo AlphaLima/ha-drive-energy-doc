@@ -165,7 +165,9 @@ for n, f in list(globals().items()):
 def test_convert_foreign_currency():
     import asyncio
 
-    async def fake_rate(hass, cur, on):
+    async def fake_rate(hass, cur, on, base="EUR"):
+        if base == "GBP":
+            return (1.2, "2026-10-06") if cur == "EUR" else None   # 1 GBP = 1,20 EUR
         return (4.0, "2026-10-06") if cur == "PLN" else None
     orig = r.eur_rate
     r.eur_rate = fake_rate
@@ -179,6 +181,16 @@ def test_convert_foreign_currency():
         e = {"total": 40.0, "currency": "EUR"}
         asyncio.run(r.convert_to_eur(None, e))
         assert "orig" not in e
+        class GB:   # Installation in Großbritannien: Hauswährung Pfund, Euro-Belege werden umgerechnet, Pfund-Belege nicht
+            class config:
+                currency = "GBP"
+        g = {"total": 60.0, "unit_price": 1.8, "currency": "EUR", "date": date(2026, 10, 6)}
+        asyncio.run(r.convert_to_eur(GB, g))
+        assert abs(g["total"] - 50.0) < 1e-9 and abs(g["unit_price"] - 1.5) < 1e-9 and g["orig"]["currency"] == "EUR"
+        h = {"total": 60.0, "currency": "GBP"}
+        asyncio.run(r.convert_to_eur(GB, h))
+        assert h["total"] == 60.0 and "orig" not in h
+        assert r.home_currency(GB) == "GBP" and r.home_currency(None) == "EUR" and r.currency_symbol("GBP") == "£" and r.currency_symbol("CHF") == "CHF"
     finally:
         r.eur_rate = orig
 

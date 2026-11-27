@@ -259,5 +259,7 @@
  "Ladung jetzt abschließen": "Zakończ ładowanie teraz",
  "Laufende Ladung jetzt abschließen? Lädt das Auto weiter, beginnt danach eine neue Ladung.": "Zakończyć teraz trwające ładowanie? Jeśli auto ładuje się dalej, rozpocznie się nowe ładowanie.",
  "Heimladung erfasst": "Ładowanie w domu zapisane",
- "Die gewählte KI hat die Anfrage abgelehnt ({0}). Details stehen im Home-Assistant-Protokoll.": "Wybrana SI odrzuciła żądanie ({0}). Szczegóły znajdują się w dzienniku Home Assistant."
+ "Die gewählte KI hat die Anfrage abgelehnt ({0}). Details stehen im Home-Assistant-Protokoll.": "Wybrana SI odrzuciła żądanie ({0}). Szczegóły znajdują się w dzienniku Home Assistant.",
+ "Keine Währung erkannt, Land nicht ermittelbar: Werte als {0} angenommen. Bitte Währung prüfen.": "Nie rozpoznano waluty, kraj nieznany: przyjęto {0}. Sprawdź walutę.",
+ "Beleg in {0}, Umrechnung nicht möglich, Werte nicht in {2}! Original: {1}": "Paragon w {0}, przeliczenie niemożliwe, wartości nie w {2}! Oryginał: {1}"
 }

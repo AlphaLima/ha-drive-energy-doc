@@ -259,5 +259,7 @@
  "Ladung jetzt abschließen": "Laadbeurt nu afsluiten",
  "Laufende Ladung jetzt abschließen? Lädt das Auto weiter, beginnt danach eine neue Ladung.": "Lopende laadbeurt nu afsluiten? Laadt de auto verder, dan begint daarna een nieuwe laadbeurt.",
  "Heimladung erfasst": "Thuisladen vastgelegd",
- "Die gewählte KI hat die Anfrage abgelehnt ({0}). Details stehen im Home-Assistant-Protokoll.": "De gekozen AI heeft het verzoek geweigerd ({0}). Details staan in het Home Assistant-logboek."
+ "Die gewählte KI hat die Anfrage abgelehnt ({0}). Details stehen im Home-Assistant-Protokoll.": "De gekozen AI heeft het verzoek geweigerd ({0}). Details staan in het Home Assistant-logboek.",
+ "Keine Währung erkannt, Land nicht ermittelbar: Werte als {0} angenommen. Bitte Währung prüfen.": "Geen valuta herkend, land onbekend: waarden aangenomen in {0}. Controleer de valuta.",
+ "Beleg in {0}, Umrechnung nicht möglich, Werte nicht in {2}! Original: {1}": "Bon in {0}, omrekenen niet mogelijk, waarden NIET in {2}! Origineel: {1}"
 }

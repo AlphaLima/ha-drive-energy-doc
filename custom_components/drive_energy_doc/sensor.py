@@ -7,6 +7,7 @@ from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.dispatcher import async_dispatcher_connect
 from homeassistant.util import dt as dt_util
 
+from . import receipt
 from .const import DOMAIN
 from .vehicle import Vehicle, signal
 
@@ -62,7 +63,7 @@ class TankPrice(_Base):
 
     @property
     def native_unit_of_measurement(self):
-        return f"€/{self.v.unit}"
+        return f"{receipt.currency_symbol(receipt.home_currency(self.hass))}/{self.v.unit}"
 
     @property
     def native_value(self):
@@ -98,7 +99,10 @@ class TankConsumptionElectric(_Base):
 class TankCost(_Base):
     key = "cost_12m"
     _attr_device_class = SensorDeviceClass.MONETARY
-    _attr_native_unit_of_measurement = "EUR"
+
+    @property
+    def native_unit_of_measurement(self):
+        return receipt.home_currency(self.hass)
 
     @property
     def native_value(self):
