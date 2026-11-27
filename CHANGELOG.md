@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.1.87b3 (Beta, 27.11.2026)
+- Panel am Handy (Companion-App, schmale Bildschirme): Menü-Button oben links, öffnet die eingeklappte Seitenleiste; vorher kam man aus dem Panel nicht mehr zu Home Assistant zurück. Nutzt HAs eigenen `ha-menu-button` (am Desktop ausgeblendet, auch bei „Seitenleiste immer ausgeblendet“ sichtbar).
+
 ## 0.1.87b2 (Beta, 27.11.2026)
 - Beleg-KI mit Claude: Den Rückfall auf „JSON als Text“ merkt sich DED jetzt dauerhaft (`.storage/drive_energy_doc.ai_no_schema`), nicht nur bis zum nächsten Neustart; die erste Anfrage nach einem HA-Neustart läuft nicht mehr erst in den 400-Fehler.
 

@@ -5,7 +5,7 @@ const FUEL_GRADES = { diesel: "Diesel", diesel_premium: "Diesel Premium", e10: "
 const COLS = ["nr", "date", "start", "end", "lfrom", "lto", "km", "station", "qty", "ctype", "kcar", "kwb", "pavg", "ppk", "price", "total", "cons", "sol", "loss", "receipt", "note", "act"];
 const DEF_HIDE = ["start", "end", "lfrom", "lto", "ctype", "kcar", "kwb", "pavg", "ppk"];   // Laden von / bis: vorhanden, aber zunächst ausgeblendet
 
-const VERSION = "0.1.87b2";
+const VERSION = "0.1.87b3";
 
 class DriveEnergyDocPanel extends HTMLElement {
   set hass(h) {
@@ -17,6 +17,33 @@ class DriveEnergyDocPanel extends HTMLElement {
       h.connection.addEventListener("ready", () => { this._sig = null; this._load(); });
     }
     this._subscribe();
+    if (this._mb) this._menu();
+  }
+
+  // Menü-Button (Seitenleiste) für schmale Bildschirme, z. B. Companion-App am Handy: dort ist die Seitenleiste eingeklappt und nur über diesen Button erreichbar.
+  // HAs eigenes ha-menu-button blendet sich selbst aus, wenn die Seitenleiste sichtbar ist; fehlt es, ein einfacher Ersatz, der dasselbe Ereignis auslöst.
+  _menu() {
+    const root = this.shadowRoot;
+    if (!root) return;
+    if (!this._mb) {
+      if (customElements.get("ha-menu-button")) {
+        this._mb = document.createElement("ha-menu-button");
+      } else {
+        this._mb = document.createElement("button");
+        this._mb.className = "mbtn";
+        this._mb.setAttribute("aria-label", "Menu");
+        this._mb.innerHTML = '<svg viewBox="0 0 24 24" width="24" height="24"><path fill="currentColor" d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>';
+        this._mb.addEventListener("click", () => this.dispatchEvent(new CustomEvent("hass-toggle-menu", { bubbles: true, composed: true })));
+      }
+      this._mb.classList.add("menu");
+    }
+    this._mb.hass = this._hass;
+    this._mb.narrow = !!this._narrow;
+    this._mb.style.display = this._narrow || (this._hass && this._hass.dockedSidebar === "always_hidden") ? "" : "none";   // wie HA: schmal oder Seitenleiste ganz ausgeblendet
+    const head = root.querySelector(".head");
+    if (this._mb.parentNode === (head || root)) return;   // hass kommt sehr oft: nur nach einem neuen Aufbau einhängen
+    if (head) head.insertBefore(this._mb, head.firstChild);
+    else root.insertBefore(this._mb, (root.querySelector("style") || {}).nextSibling || root.firstChild);
   }
 
   _subscribe() {
@@ -124,7 +151,7 @@ class DriveEnergyDocPanel extends HTMLElement {
     clearTimeout(this._toT);
     this._toT = setTimeout(() => t.remove(), 20000);
   }
-  set narrow(v) { this._narrow = v; }
+  set narrow(v) { this._narrow = v; this._menu(); }
   connectedCallback() {
     // HA kann das Element anlegen und hass setzen, bevor diese Datei geladen ist (Ladedatei lädt sie nach): dann liegt hass als eigene Eigenschaft
     // am Element und verdeckt den Setter – das Panel würde nie laden. Wert übernehmen und über den Setter neu setzen.
@@ -134,7 +161,7 @@ class DriveEnergyDocPanel extends HTMLElement {
     if (!this.shadowRoot) {
       this.attachShadow({ mode: "open" });
       // ShadowRoot kennt kein onclick: echten Listener setzen
-      this.shadowRoot.addEventListener("click", ev => { if (this._cur) this._click(ev, this._cur); });
+      this.shadowRoot.addEventListener("click", ev => { if (ev.composedPath().includes(this._mb)) return; if (this._cur) this._click(ev, this._cur); });   // Menü-Button öffnet nur die Seitenleiste, nicht die Fahrzeugwahl
       this.shadowRoot.addEventListener("change", ev => { if (ev.target && ev.target.id === "agg") { this._agg = ev.target.value; try { localStorage.setItem("deAgg", this._agg); } catch (e) { /* ignore */ } this._render(); return; } if (ev.target && ev.target.id === "flt") { this._flt = ev.target.value; this._selId = null; this._render(); } });   // Filter der Liste
       document.addEventListener("keydown", ev => { if (this.isConnected) this._keys(ev); });
       this.shadowRoot.addEventListener("pointerdown", ev => this._rsStart(ev));
@@ -732,6 +759,7 @@ class DriveEnergyDocPanel extends HTMLElement {
       .plate{white-space:nowrap;flex:none}
       .chip{flex:none;white-space:nowrap;background:var(--primary-color);color:var(--text-primary-color,#fff);border-radius:10px;padding:6px 14px;font-size:16px}
       .plateimg{height:40px;width:auto;flex:none}
+      .menu{flex:0 0 auto;margin:-8px 0 -8px -8px;color:var(--primary-text-color);--mdc-icon-button-size:44px}.mbtn{background:none;border:0;padding:10px;cursor:pointer}.head .menu+.ttl{margin-left:-20px}
       .head.pick{cursor:pointer}.chev{font-size:18px;color:var(--secondary-text-color);font-weight:400}
       .vopic{margin-left:auto;height:34px;max-width:30%;object-fit:contain;flex:none}
       .vo{display:flex;align-items:center;gap:14px;padding:10px 12px;border-radius:10px;cursor:pointer;border:2px solid transparent}.vo:hover{background:var(--secondary-background-color,#0001)}.vo.on{border-color:var(--primary-color)}.vo .nm{font-size:13px;color:var(--secondary-text-color)}.vo .tt{font-size:16px}
@@ -898,8 +926,8 @@ class DriveEnergyDocPanel extends HTMLElement {
       }
     `;
     this._pvHide();
-    if (this._err) { this.shadowRoot.innerHTML = `<style>${css}</style><p>${this._esc(this._err)}</p>`; return; }
-    if (!d.length) { this.shadowRoot.innerHTML = `<style>${css}</style><h1>Drive Energy Doc</h1><p>${this.T("Noch kein Fahrzeug. Einstellungen → Geräte & Dienste → Integration „Drive Energy Doc“ hinzufügen.")}</p>`; return; }
+    if (this._err) { this.shadowRoot.innerHTML = `<style>${css}</style><p>${this._esc(this._err)}</p>`; this._menu(); return; }
+    if (!d.length) { this.shadowRoot.innerHTML = `<style>${css}</style><h1>Drive Energy Doc</h1><p>${this.T("Noch kein Fahrzeug. Einstellungen → Geräte & Dienste → Integration „Drive Energy Doc“ hinzufügen.")}</p>`; this._menu(); return; }
     if (v.id !== this._colVeh) this._loadCols(v.id);
     const s = v.summary, u = this.T(v.unit);
     const pic = this._pic(v);
@@ -983,6 +1011,7 @@ class DriveEnergyDocPanel extends HTMLElement {
       <div class="bar"><button data-act="csv" title="${this.T("CSV-Export")}" aria-label="${this.T("CSV-Export")}">${this._ico("csv")}</button><button data-act="print" title="${this.T("Drucken / PDF")}" aria-label="${this.T("Drucken")}">${this._ico("print")}</button><button data-act="ori" title="${this._ori === "portrait" ? this.T("Hochformat") : this.T("Querformat")} (${this.T("zum Wechseln klicken")})" aria-label="${this.T("Seitenformat")}">${this._ico(this._ori)}</button><button data-act="rcp" title="${this.T("Belege im Druck")}: ${this._rcp ? this.T("mit") : this.T("ohne")} (${this.T("zum Wechseln klicken")})" aria-label="${this.T("Belege im Druck")}" aria-pressed="${this._rcp}">${this._ico(this._rcp ? "photo" : "photoOff")}</button><button data-act="clr" title="${this.T("Zeilenfarben")}: ${this._clr ? this.T("an") : this.T("aus")} (${this.T("zum Wechseln klicken")})" aria-label="${this.T("Zeilenfarben")}" aria-pressed="${this._clr}">${this._ico(this._clr ? "palette" : "paletteOff")}</button><button data-act="cols" title="${this.T("Spalten")}" aria-label="${this.T("Spalten")}">${this._ico("cols")}</button><button data-act="add" title="${this.T("Eintrag von Hand hinzufügen")}" aria-label="${this.T("Eintrag von Hand")}">${this._ico("plus")}</button>${aggSel}${fltSel}${(() => { const c = (s.correction || {}); return ["electric", "fuel"].filter(k => c[k] && c[k].all && c[k].all.factor).map(k => { const row = c[k], tip = ["all", "ac", "dc"].filter(g => row[g]).map(g => (g === "all" ? "" : g.toUpperCase() + " ") + (row[g].factor ? "×" + this._fmt(row[g].factor, 2) : "–") + " (" + row[g].n + " " + this.T("Einträge") + ")").join(" · "); return `<span class="stat" title="${this._esc(tip)}"><b>×${this._fmt(row.all.factor, 2)}</b><span>${this.T("Korrektur")} ${this.T(k === "electric" ? "Strom" : "Kraftstoff")}</span></span>`; }).join(""); })()}<span class="stat"><b>${s.count}</b><span>${this.T("Einträge")}</span></span><span class="stat"><b>${this.T(s.status === "refuelling" && (v.energy === "electric" || s.live) ? "Lädt gerade" : { idle: "Bereit", candidate: "Anstieg erkannt", refuelling: "Tankt" }[s.status])}</b><span>${this.T("Status")}</span></span><input type="file" id="cam" accept="image/*" capture="environment" hidden><input type="file" id="pic" accept="image/*" multiple hidden></div>
       ${aggHtml || `<div class="wrap"><table class="${fixed ? "fx" : ""}" ${fixed ? `style="width:${sumW}px"` : ""}><colgroup>${order.map(c => `<col data-c="${c}" ${cw[c] || (fixed && DEFW[c]) ? `style="width:${cw[c] || DEFW[c]}px"` : ""}>`).join("")}</colgroup><thead><tr>${order.map(c => { const sym = (ic, txt) => `${this._ico(ic)}<span class="sr">${this._esc(txt)}</span>`; const H = { nr: ["#", "n"], date: [sym("cal", this.T("Datum")), ""], km: [sym("road", this.T("km")), "n"], station: [sym("pin", this.T("Tankstelle")), ""], qty: [sym(v.energy === "electric" ? "batt" : "drop", this.T("Menge")), "n"], price: [`€/${u}`, "n"], total: ["€", "n"], cons: [sym("gauge", `${u}/100 ${this.T("km")}`), "n"], sol: [sym("sun", this.T("Solaranteil")), "ctr"], start: [sym("clock", this.T("Laden von")), ""], end: [sym("clockEnd", this.T("Laden bis")), ""], lfrom: [sym("battLow", this.T("Ladestand von")), "n"], lto: [sym("battFull", this.T("Ladestand bis")), "n"], ctype: [sym("plug", this.T("Ladeart")), "ctr"], kcar: [sym("car", this.T("Akku") + " kWh"), "n"], kwb: [sym("wbox", "Wallbox kWh"), "n"], pavg: [sym("pwr", this.T("Ø Ladeleistung")), "n"], ppk: [sym("pwrPk", this.T("Spitzenleistung")), "n"], loss: [sym("loss", this.T("Ladeverlust")), "n"], receipt: [sym("bon", this.T("Beleg")), ""], note: [sym("note", this.T("Notiz")), ""], act: ["", ""] }[c]; return `<th data-c="${c}" class="${H[1]}${c === "act" ? "" : " sortable"}" ${sk && sk.c === c ? `aria-sort="${sk.dir > 0 ? "ascending" : "descending"}"` : ""} ${c === "act" ? "" : `draggable="true" title="${this._esc(this._colName(c, u))} · ${this.T("Auf eine andere Überschrift ziehen: Reihenfolge ändern")}"`}>${H[0]}${sk && sk.c === c ? `<span class="si">${sk.dir > 0 ? "▲" : "▼"}</span>` : ""}<span class="rs" data-c="${c}" title="${this.T("Ziehen: Spaltenbreite ändern · Doppelklick: Breiten und Reihenfolge zurücksetzen")}"></span></th>`; }).join("")}</tr></thead><tbody>${liveRow}${rows}</tbody></table></div>`}
       <div class="ver">Drive Energy Doc ${VERSION}</div>`;
+    this._menu();
     this._cur = v;
     this.setAttribute("dir", this._rtl ? "rtl" : "ltr");
   }
