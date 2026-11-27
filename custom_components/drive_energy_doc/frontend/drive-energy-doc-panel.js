@@ -152,10 +152,12 @@ class DriveEnergyDocPanel extends HTMLElement {
     this._toT = setTimeout(() => t.remove(), 20000);
   }
   set narrow(v) { this._narrow = v; this._menu(); }
+  get narrow() { return this._narrow; }
   connectedCallback() {
     // HA kann das Element anlegen und hass setzen, bevor diese Datei geladen ist (Ladedatei lädt sie nach): dann liegt hass als eigene Eigenschaft
     // am Element und verdeckt den Setter – das Panel würde nie laden. Wert übernehmen und über den Setter neu setzen.
     if (Object.prototype.hasOwnProperty.call(this, "hass")) { const h = this.hass; delete this.hass; if (h) this.hass = h; }
+    if (Object.prototype.hasOwnProperty.call(this, "narrow")) { const n = this.narrow; delete this.narrow; this.narrow = n; }   // ebenso narrow (Menü-Button am Handy)
     if (!this._locCb) { this._locCb = () => this._quick(); }
     window.addEventListener("location-changed", this._locCb);   // Link aus der Push-Nachricht, während das Panel schon offen ist
     if (!this.shadowRoot) {
@@ -759,7 +761,7 @@ class DriveEnergyDocPanel extends HTMLElement {
       .plate{white-space:nowrap;flex:none}
       .chip{flex:none;white-space:nowrap;background:var(--primary-color);color:var(--text-primary-color,#fff);border-radius:10px;padding:6px 14px;font-size:16px}
       .plateimg{height:40px;width:auto;flex:none}
-      .menu{flex:0 0 auto;margin:-8px 0 -8px -8px;color:var(--primary-text-color);--mdc-icon-button-size:44px}.mbtn{background:none;border:0;padding:10px;cursor:pointer}.head .menu+.ttl{margin-left:-20px}
+      .menu{flex:0 0 auto;margin:-8px 0 -8px -8px;color:var(--primary-text-color);--mdc-icon-button-size:44px}.mbtn{background:none;border:0;padding:10px;cursor:pointer}.head .menu{margin-right:-16px}
       .head.pick{cursor:pointer}.chev{font-size:18px;color:var(--secondary-text-color);font-weight:400}
       .vopic{margin-left:auto;height:34px;max-width:30%;object-fit:contain;flex:none}
       .vo{display:flex;align-items:center;gap:14px;padding:10px 12px;border-radius:10px;cursor:pointer;border:2px solid transparent}.vo:hover{background:var(--secondary-background-color,#0001)}.vo.on{border-color:var(--primary-color)}.vo .nm{font-size:13px;color:var(--secondary-text-color)}.vo .tt{font-size:16px}

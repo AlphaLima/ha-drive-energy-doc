@@ -1,6 +1,7 @@
 # Changelog
 
 ## 0.1.87b3 (Beta, 27.11.2026)
+- Menü-Button am Handy erschien in b3 nicht: HA setzte `narrow` vor dem Laden der Panel-Datei, der Wert verdeckte den Setter (wie früher bei `hass`); wird jetzt beim Einhängen übernommen. Das Logo wird nicht mehr links abgeschnitten.
 - Panel am Handy (Companion-App, schmale Bildschirme): Menü-Button oben links, öffnet die eingeklappte Seitenleiste; vorher kam man aus dem Panel nicht mehr zu Home Assistant zurück. Nutzt HAs eigenen `ha-menu-button` (am Desktop ausgeblendet, auch bei „Seitenleiste immer ausgeblendet“ sichtbar).
 
 ## 0.1.87b2 (Beta, 27.11.2026)
