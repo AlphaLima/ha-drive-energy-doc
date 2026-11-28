@@ -844,6 +844,8 @@ class Vehicle:
         wb, wb_note = (self._wb_match(done, est) if (kind == "electric" and self.o.get(CONF_WB_ENERGY)) else (None, None))
         if wb:
             qty, src = wb, "wallbox"   # gemessene Energie der Heim-Wallbox (einschließlich der Ladeverluste)
+            if not ctype:   # Ladestand kam erst nach der Ladung (Auto meldet verspätet): Ladeart-Sensor nie abgetastet – die Heim-Wallbox lädt mit Wechselstrom
+                ctype, csrc = "ac", "wallbox"
         entry = {
             "id": uuid.uuid4().hex[:12],
             "ts": done["last_increase_ts"],
